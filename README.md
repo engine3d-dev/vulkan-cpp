@@ -1,12 +1,14 @@
 # Vulkan-CPP
 
-Vulkan abstraction layer that focuses on making an attempt at simplifying API design to utilize vulkan, with minimal cost and allows ability to flexibly use the API in your own projects.
+Vulkan abstraction layer, that uses modern C++ at an attempt to simplify the development with vulkan.
 
 # Overview
 
-This vulkan abstract layer does not make an attempt at trying to abstract and hide how the vulkan physical and logical devices get created per-say, but what this abstraction allows you to do is focus on how you want those devices to be configured, adapted, and flexible with your specific implementations.
+This does not mean that the instnace, physical, and logical devices are handled for you. You still would need to create those. This abstracion allows for a simpler design as to how those creation get done. Allowing you to focus on the specification of those creation without much of the verbose of the vulkan's API.
 
-What this means is yes, the physical and logical devices are not quite hidden from you as the developer, but it allows you to still be able to control how they are configured and add your own checks through the API. Look at the code examples below for more information.
+This API focuses on simplicity, but providing enough information to still be flexible in your own application. Whether you want to build a device management system that understands your hardware specifications and support multiple GPU's configurations for multi-viewport. To even having a single logical device for simpler use.
+
+That is the purpose as to why I decided to make vulkan-cpp, to focus on usability and simplicity. While introducing minimal code to get something working if possible.
 
 ## How to Build
 
