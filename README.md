@@ -34,6 +34,40 @@ debug_callback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity
   void* pUserData
 );
 
+std::vector<const char*> initialize_instance_extensions() {
+  std::vector<const char*> extension_names;
+
+  extension_names.emplace_back(VK_KHR_SURFACE_EXTENSION_NAME);
+
+  // An additional surface extension needs to be loaded. This extension is
+  // platform-specific so needs to be selected based on the platform the
+  // example is going to be deployed to. Preprocessor directives are used
+  // here to select the correct platform.
+#ifdef VK_USE_PLATFORM_WIN32_KHR
+        extension_names.emplace_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+#endif
+#ifdef VK_USE_PLATFORM_XLIB_KHR
+        extensionNames.emplace_back(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
+#endif
+#ifdef VK_USE_PLATFORM_XCB_KHR
+        extensionNames.emplace_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
+#endif
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+        extensionNames.emplace_back(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME);
+#endif
+#ifdef VK_USE_PLATFORM_WAYLAND_KHR
+        extensionNames.emplace_back(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
+#endif
+#ifdef VK_USE_PLATFORM_MACOS_MVK
+        extensionNames.emplace_back(VK_MVK_MACOS_SURFACE_EXTENSION_NAME);
+#endif
+#ifdef USE_PLATFORM_NULLWS
+        extensionNames.emplace_back(VK_KHR_DISPLAY_EXTENSION_NAME);
+#endif
+
+        return extension_names;
+}
+
 int main() {
   // setting up validation layers
   std::array<const char*, 2> validation_layers = {
@@ -41,9 +75,7 @@ int main() {
   };
 
   // setting up extensions
-  std::array<const char*, 2> global_extensions = {
-    "VK_LAYER_KHRONOS_validation"
-  };
+  std::span<const char*> global_extensions = initialize_instance_extensions();
 
   vk::debug_message_utility debug_callback_info = {
     // .severity essentially takes in vk::message::verbose, vk::message::warning, vk::message::error
