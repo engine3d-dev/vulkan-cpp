@@ -218,15 +218,25 @@ int main() {
 }
 ```
 
-
-## Setup Vulkan Renderpass
-
-The code example is not available at the moment.
-
-
 ## Setup Vulkan Swapchain
 
-This code example for handling a vulkan swapchain using `vulkan-cpp` is currently, incomplete.
+This code example is for setting up the swapchain. There are some things that needs to happen to get the base working swapchain up and running.
+
+Here are the things that needs to happen:
+
+* Initiate `vk::swapchain` handler.
+* Initiate `vector<vk::image>` to correspond frames-in-flight.
+* Initiate `vector<vk::framebuffer>`.
+* Initiate `vector<vk::command_buffer>`
+* Then specify attachments for the renderpass
+* Initiate `vk::renderpass` with attachments pre-defined.
+
+### vk::image
+
+For the creation of the swapchain, we are going to create `vk::image` for this code tutorial, the next tutorial will cover how to create a renderpass.
+
+In Vulkan when you create images, each `vk::image` contains `VkImage` and `VkImageView`. `VkImageView` in vulkan, is most the handler that will be referenced throughout Vulkan's API, because `VkImage` is never directly invoked by any of the API's.
+
 
 ```C++
 
@@ -269,8 +279,23 @@ int main() {
   };
 
   vk::swapchain window1_swapchain = vk::swapchain(swapchain_config);
+  std::span<vk::image> swapchain_images = window1_swapchain.images();
+  uint32_t image_size = read_image_size(window1_swapchain);
+
+  // Creating a vk::image that contains `VkImage` and `VkImageView`
+  std::vector<vk::image> images(image_size);
+  for(size_t i = 0; i < images.size(); i++) {
+    images[i].image = swapchain_images[i];
+    image_view_properties properties {
+      .format = window1_swapchain.surface_format(),
+      .aspect_flags = vk::aspect::color_bit
+    };
+    images[i].image_view = create_image2d_view(logical_device, images[i].image, properties);
+  }
 
   while(!glfwWindowShouldClose(window_handle)) {
+    uint32_t current_image_frame = window1_swapchain.acquired_next_image();
+    vk::image current_image = images[current_image_frame];
 
     glfwPollEvents();
   }
@@ -286,3 +311,8 @@ int main() {
   vk::resource_free();
 }
 ```
+
+
+## Setup Vulkan Renderpass
+
+Renderpass in Computer graphics is a list of operations. These operations are referred to as attachments which tell each renderpass how to handle the objects when they are getting rendered.
