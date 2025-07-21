@@ -9,9 +9,9 @@ namespace vk {
     /**
      * @brief message sevierity explicitly to max size of a byte
      */
-    enum message : uint8_t { verbose=0x1, warning=0x2, error=0x3 };
+    enum message : uint8_t { verbose = 0x1, warning = 0x2, error = 0x3 };
 
-    enum debug : uint8_t { general=0x1, validation=0x2, performance=0x3 };
+    enum debug : uint8_t { general = 0x1, validation = 0x2, performance = 0x3 };
 
     enum class api_version : uint32_t {
         vk_1_2,
