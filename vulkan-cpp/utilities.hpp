@@ -27,4 +27,13 @@ namespace vk {
     VkDebugUtilsMessageTypeFlagsEXT to_message_type(uint32_t p_flag);
 
     uint32_t vk_api_version(const api_version& p_version);
+
+    VkPhysicalDeviceType vk_physical_device_type(physical p_physical_type);
+
+	VkPhysicalDevice enumerate_physical_devices(const VkInstance& p_instance, const physical& p_physical_device_type);
+
+	// TODO: Eventually have a free-standing function to return the enumerated physical devices
+	// std::span<vk::physical_device> enumerate_physical_devices(const VkInstance& p_instance);
+
+	std::span<VkQueueFamilyProperties> enumerate_queue_family_properties(const VkPhysicalDevice& p_physical);
 };

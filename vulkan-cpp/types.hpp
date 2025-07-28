@@ -19,9 +19,6 @@ namespace vk {
         // vk_1_2, // vulkan version 1.4
     };
 
-    template<typename T>
-    concept IsVkMessage = std::is_same_v<std::remove_cvref_t<T>, vk::message>;
-
     struct debug_message_utility {
         uint32_t severity;
         uint32_t message_type;
@@ -45,4 +42,27 @@ namespace vk {
         std::string description;
     };
 
+
+    //! @brief vk::physical defines what kinds of physical device specification to use that is available based on your current physical hardware specifications.
+    enum class physical {
+        integrated,
+        discrete,
+        virtualized,
+        cpu,
+        max_enum,
+        other
+    };
+
+    /**
+     * @brief Enumeration represents configuration for the physical device
+     * 
+     * Defines the configuration for the VkPhysicalDevice handler to be created with
+    */
+    struct physical_enumeration {
+        physical device_type;
+    };
+
+    struct physical_queue_enumeration {
+        uint32_t queue_count=0;
+    };
 };
