@@ -1,6 +1,7 @@
 #pragma once
 #include <vulkan-cpp/types.hpp>
 #include <source_location>
+#include <vector>
 
 namespace vk {
 
@@ -35,5 +36,14 @@ namespace vk {
 	// TODO: Eventually have a free-standing function to return the enumerated physical devices
 	// std::span<vk::physical_device> enumerate_physical_devices(const VkInstance& p_instance);
 
-	std::span<VkQueueFamilyProperties> enumerate_queue_family_properties(const VkPhysicalDevice& p_physical);
+	std::vector<VkQueueFamilyProperties> enumerate_queue_family_properties(const VkPhysicalDevice& p_physical);
+	
+	//! @return a selected format with specific tiling and feature flags
+	VkFormat select_compatible_formats(const VkPhysicalDevice& p_physical, const std::span<VkFormat>& p_format_selection, VkImageTiling p_tiling, VkFormatFeatureFlags p_feature_flag);
+	
+	//! @return the depth format which checks for compatible formats and is specific to the depth stencil attachment specified
+	VkFormat select_depth_format(const VkPhysicalDevice& p_physical, const std::span<VkFormat>& p_format_selection);
+
+	//! @return -1 if there are no flags available/compatible/valid
+	uint32_t physical_memory_properties(const VkPhysicalDevice& p_physical, uint32_t p_type_filter, VkMemoryPropertyFlags p_property_flag);
 };

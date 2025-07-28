@@ -65,4 +65,21 @@ namespace vk {
     struct physical_queue_enumeration {
         uint32_t queue_count=0;
     };
+
+    struct queue_enumeration {
+        uint32_t family=-1;
+        uint32_t index=-1;
+    };
+
+    struct queue_indices {
+        uint32_t graphics=-1;
+        uint32_t compute=-1;
+        uint32_t transfer=-1;
+    };
+
+    struct device_enumeration {
+        std::span<float> queue_priorities{};
+        std::span<const char*> extensions{}; // Can add VK_KHR_SWAPCHAIN_EXTENSION_NAME to this extension
+        uint32_t queue_family_index=0;
+    };
 };

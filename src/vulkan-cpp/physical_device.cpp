@@ -14,7 +14,7 @@ namespace vk {
         m_queue_family_properties = enumerate_queue_family_properties(m_physical_device);
 
         // This makes sure that we get the graphics, compute, and transfer queue indices from the physical queue family assigned
-        uint32_t queue_index=-1;
+        uint32_t queue_index=0;
         for(const auto& queue_family : m_queue_family_properties) {
             if(queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
                 m_queue_family_indices.graphics = queue_index;
@@ -23,7 +23,7 @@ namespace vk {
 
             queue_index++;
         }
-        queue_index=-1;
+        queue_index=0;
 
         for(const auto& queue_family : m_queue_family_properties) {
             if(queue_family.queueFlags & VK_QUEUE_COMPUTE_BIT) {
@@ -31,7 +31,7 @@ namespace vk {
             }
             queue_index++;
         }
-        queue_index=-1;
+        queue_index=0;
 
         for(const auto& queue_family : m_queue_family_properties) {
             if(queue_family.queueFlags & VK_QUEUE_TRANSFER_BIT) {
@@ -39,7 +39,7 @@ namespace vk {
             }
             queue_index++;
         }
-        queue_index=-1;
+        queue_index=0;
 
     }
 

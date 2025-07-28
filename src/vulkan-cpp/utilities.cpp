@@ -109,14 +109,62 @@ namespace vk {
         return physical_device;
     }
 
-    std::span<VkQueueFamilyProperties> enumerate_queue_family_properties(const VkPhysicalDevice& p_physical) {
+    std::vector<VkQueueFamilyProperties> enumerate_queue_family_properties(const VkPhysicalDevice& p_physical) {
         uint32_t queue_family_count = 0;
         vkGetPhysicalDeviceQueueFamilyProperties(p_physical, &queue_family_count, nullptr);
         std::vector<VkQueueFamilyProperties> queue_family_properties(queue_family_count);
 
         vkGetPhysicalDeviceQueueFamilyProperties(p_physical,&queue_family_count,queue_family_properties.data());
 
-        return std::span<VkQueueFamilyProperties>(queue_family_properties.begin(), queue_family_properties.end());
+        return queue_family_properties;
+    }
+
+    VkFormat select_compatible_formats(const VkPhysicalDevice& p_physical, const std::span<VkFormat>& p_format_selection, VkImageTiling p_tiling, VkFormatFeatureFlags p_feature_flag) {
+        VkFormat format = VK_FORMAT_UNDEFINED;
+
+        for (size_t i = 0; i < p_format_selection.size(); i++) {
+            VkFormat current_format = p_format_selection[i];
+            VkFormatProperties format_properties;
+            vkGetPhysicalDeviceFormatProperties(
+              p_physical, current_format, &format_properties);
+
+            if (p_tiling == VK_IMAGE_TILING_LINEAR) {
+                if (format_properties.linearTilingFeatures & p_feature_flag) {
+                    format = current_format;
+                }
+            }
+            else if (p_tiling == VK_IMAGE_TILING_OPTIMAL and
+                     format_properties.optimalTilingFeatures & p_feature_flag) {
+                format = current_format;
+            }
+        }
+
+        return format;
+    }
+
+    VkFormat select_depth_format(const VkPhysicalDevice& p_physical, const std::span<VkFormat>& p_format_selection) {
+
+        VkFormat format = select_compatible_formats(
+          p_physical,
+          p_format_selection,
+          VK_IMAGE_TILING_OPTIMAL,
+          VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+        return format;
+    }
+
+    uint32_t physical_memory_properties(const VkPhysicalDevice& p_physical, uint32_t p_type_filter, VkMemoryPropertyFlags p_property_flag) {
+        VkPhysicalDeviceMemoryProperties mem_props;
+        vkGetPhysicalDeviceMemoryProperties(p_physical, &mem_props);
+
+        for (uint32_t i = 0; i < mem_props.memoryTypeCount; i++) {
+            if ((p_type_filter & (1 << i)) and
+                (mem_props.memoryTypes[i].propertyFlags & p_property_flag) ==
+                  p_property_flag) {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
 }

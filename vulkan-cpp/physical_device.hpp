@@ -6,11 +6,6 @@
 namespace vk {
 
     class physical_device {
-        struct queue_indices {
-            uint32_t graphics=-1;
-            uint32_t compute=-1;
-            uint32_t transfer=-1;
-        };
     public:
         physical_device() = default;
 
@@ -32,7 +27,7 @@ namespace vk {
 
     private:
         VkPhysicalDevice m_physical_device=nullptr;
-        std::span<VkQueueFamilyProperties> m_queue_family_properties;
+        std::vector<VkQueueFamilyProperties> m_queue_family_properties;
         queue_indices m_queue_family_indices{};
     };
 };
