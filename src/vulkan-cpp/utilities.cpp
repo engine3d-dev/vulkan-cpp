@@ -167,6 +167,33 @@ namespace vk {
         return -1;
     }
 
+    VkMemoryPropertyFlags to_memory_property_flags(memory_property p_flag) {
+        switch (p_flag) {
+        case memory_property::device_local_bit:
+            return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+        case memory_property::host_visible_bit:
+            return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+        case memory_property::host_coherent_bit:
+            return VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+        case memory_property::host_cached_bit:
+            return VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+        case memory_property::lazily_allocated_bit:
+            return VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
+        case memory_property::device_protected_bit:
+            return VK_MEMORY_PROPERTY_PROTECTED_BIT;
+        case memory_property::device_coherent_bit_amd:
+            return VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD;
+        case memory_property::device_uncached_bit_amd:
+            return VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD;
+        case memory_property::rdma_capable_bit_nv:
+            return VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV;
+        case memory_property::flag_bits_max_enum:
+            return VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM;
+        }
+
+        throw std::runtime_error("Invalid memory property flag set!");
+    }
+
     surface_enumeration enumerate_surface(const VkPhysicalDevice& p_physical, const VkSurfaceKHR& p_surface) {
         surface_enumeration enumerate_surface_properties{};
         vk_check(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
@@ -213,6 +240,21 @@ namespace vk {
         }
 
         return final_image_count;
+    }
+
+    VkCommandBufferUsageFlags to_command_usage_flag_bits(command_usage p_command_usage_flag) {
+        switch(p_command_usage_flag) {
+        case command_usage::one_time_submit:
+            return VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+        case command_usage::renderpass_continue_bit:
+            return VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
+        case command_usage::simulatneous_use_bit:
+            return VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+        case command_usage::max_bit:
+            return VK_COMMAND_BUFFER_USAGE_FLAG_BITS_MAX_ENUM;
+        }
+
+        throw std::runtime_error("Invalid command_usage specified");
     }
 
     VkSampler create_sampler(const VkDevice& p_device, const filter_range& p_range, VkSamplerAddressMode p_address_mode) {
@@ -277,8 +319,6 @@ namespace vk {
 
         VkImageUsageFlags usage =
               VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-            VkMemoryPropertyFlagBits property_flags =
-              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
         VkImageCreateInfo image_ci = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -394,12 +434,12 @@ namespace vk {
         }
     }
 
-    uint32_t image_memory_requirements(const VkPhysicalDevice& p_physical, const VkDevice& p_device, const image& p_image, VkMemoryPropertyFlags p_property) {
+    uint32_t image_memory_requirements(const VkPhysicalDevice& p_physical, const VkDevice& p_device, const image& p_image, memory_property p_property) {
         VkMemoryRequirements memory_requirements;
         vkGetImageMemoryRequirements(p_device, p_image.image, &memory_requirements);
 
         uint32_t type_filter = memory_requirements.memoryTypeBits;
-        uint32_t property_flag = p_property;
+        VkMemoryPropertyFlags property_flag = to_memory_property_flags(p_property);
 
         VkPhysicalDeviceMemoryProperties mem_props;
         vkGetPhysicalDeviceMemoryProperties(p_physical, &mem_props);
@@ -573,14 +613,6 @@ namespace vk {
         if(p_layout == image_layout::depth_stencil_read_only_optimal) {
             return true;
         }
-        // switch (p_layout){
-        // case image_layout::depth_stencil_optimal:
-        // case image_layout::depth_stencil_read_only_optimal:
-        //     has_depth = true;
-        // default:
-        //     has_depth = false;
-        // }
-
         return false;
     }
 }

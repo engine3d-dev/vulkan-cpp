@@ -125,6 +125,7 @@ namespace vk {
     }
 
     void renderpass::begin(const renderpass_begin_info& p_begin_info) {
+        // TODO: Move VkViewport and VkScissor to vk::swapchain since these are information more closely set by the swapchain
         VkViewport viewport = {
             .x = 0.0f,
             .y = 0.0f,

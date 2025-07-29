@@ -9,7 +9,7 @@ namespace vk {
         command_buffer() = default;
         command_buffer(const VkDevice& p_device, const command_enumeration& p_enumerate_command_info);
 
-        void begin(VkCommandBufferUsageFlags p_usage);
+        void begin(command_usage p_usage);
         void end();
 
         [[nodiscard]] bool alive() const { return m_command_buffer; }

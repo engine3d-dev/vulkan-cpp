@@ -29,7 +29,7 @@ namespace vk {
                  "vkAllocateCommandBuffers");
     }
 
-    void command_buffer::begin(VkCommandBufferUsageFlags p_usage) {
+    void command_buffer::begin(command_usage p_usage) {
         // Resets to zero if get called every frame
         if(m_begin_end_count == 2) {
             m_begin_end_count = 0;
@@ -38,7 +38,7 @@ namespace vk {
         VkCommandBufferBeginInfo command_begin_info = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
             .pNext = nullptr,
-            .flags = p_usage
+            .flags = to_command_usage_flag_bits(p_usage)
         };
         vk_check(
           vkBeginCommandBuffer(m_command_buffer, &command_begin_info),

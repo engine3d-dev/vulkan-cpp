@@ -219,11 +219,6 @@ main() {
           create_image2d_view(logical_device, enumerate_image_properties);
 
         // Creating Depth Images for depth buffering
-        // VkImageUsageFlagBits usage =
-        //     VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-        VkMemoryPropertyFlagBits property_flags =
-          VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-
         vk::image_enumeration depth_image_enumeration = {
             .width = swapchain_extent.width,
             .height = swapchain_extent.height,
@@ -231,6 +226,8 @@ main() {
             .aspect = VK_IMAGE_ASPECT_DEPTH_BIT
         };
 
+		// Retrieving the image resource memory requirements for specific memory allocation
+		// Parameter is default to using vk::memory_property::device_local_bit
         uint32_t memory_type_index = vk::image_memory_requirements(
           physical_device, logical_device, swapchain_images[i]);
         swapchain_depth_images[i] = create_depth_image2d(
@@ -243,16 +240,12 @@ main() {
         vk::command_enumeration settings = {
             enumerate_swapchain_settings.present_index,
             vk::command_levels::primary,
-            // VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
             vk::command_pool_flags::reset
         };
 
         swapchain_command_buffers[i] =
           vk::command_buffer(logical_device, settings);
     }
-
-    std::println("Command Buffers Created with size() = {}",
-                 swapchain_command_buffers.size());
 
     // setting up renderpass
 
@@ -332,7 +325,7 @@ main() {
         uint32_t current_frame = presentation_queue.acquire_next_image();
         vk::command_buffer current = swapchain_command_buffers[current_frame];
 
-        current.begin(VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT);
+        current.begin(vk::command_usage::simulatneous_use_bit);
 
         // renderpass begin/end must be within a recording command buffer
         vk::renderpass_begin_info begin_renderpass = {
@@ -353,6 +346,7 @@ main() {
     }
 
     // TODO: Make the cleanup much saner. For now we are cleaning it up like
+	// Potentially bring back submit_resource_free([this](){ .. free stuff .. }); (???)
     // this to ensure they are cleaned up in the proper order
     logical_device.wait();
     main_swapchain.destroy();
