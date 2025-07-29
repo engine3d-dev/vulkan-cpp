@@ -430,4 +430,34 @@ namespace vk {
 
         throw std::runtime_error("Invalid command buffer levels");
     }
+
+    VkCommandPoolCreateFlagBits to_command_buffer_pool_flags(command_pool_flags p_command_pool_flag) {
+        switch (p_command_pool_flag){
+        case command_pool_flags::protected_bit:
+            return VK_COMMAND_POOL_CREATE_PROTECTED_BIT;
+        case command_pool_flags::reset:
+            return VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+        case command_pool_flags::transient:
+            return VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+        case command_pool_flags::max_enum_bit:
+            return VK_COMMAND_POOL_CREATE_FLAG_BITS_MAX_ENUM;
+        }
+
+        throw std::runtime_error("Invalid command_pool_flag specified!!!");
+    }
+
+    VkSubpassContents to_subpass_contents(subpass_contents p_content) {
+        switch (p_content){
+        case subpass_contents::inline_bit:
+            return VK_SUBPASS_CONTENTS_INLINE;
+        case subpass_contents::secondary_command:
+            return VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS;
+        case subpass_contents::inline_and_secondary_command_khr:
+            return VK_SUBPASS_CONTENTS_INLINE_AND_SECONDARY_COMMAND_BUFFERS_KHR;
+        case subpass_contents::max_enum_content:
+            return VK_SUBPASS_CONTENTS_MAX_ENUM;
+        default:
+            break;
+        }
+    }
 }

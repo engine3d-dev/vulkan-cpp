@@ -137,12 +137,8 @@ main() {
     // We provide a selection of format support that we want to check is supported on current hardware device.
     VkFormat depth_format = vk::select_depth_format(physical_device, format_support);
 
-    if(depth_format != VK_FORMAT_UNDEFINED) {
-        std::println("Depth format specifically was able to be found!!!");
-    }
-
     vk::queue_indices queue_indices = physical_device.family_indices();
-    std::println("Graphics Queue Family Index = {}", (int)queue_indices.graphics);
+    std::println("Graphics Queue Family Index = {}", queue_indices.graphics);
     std::println("Compute Queue Family Index = {}", queue_indices.compute);
     std::println("Transfer Queue Family Index = {}", queue_indices.transfer);
 
@@ -179,11 +175,10 @@ main() {
         .width = (uint32_t)width,
         .height = (uint32_t)height,
         .present_index = physical_device.family_indices().graphics, // presentation index just uses the graphics index
-        // .memory_type_index = vk::image_memory_requirements(physical_device, logical_device)
     };
     vk::swapchain main_swapchain(logical_device, window_surface, enumerate_swapchain_settings, surface_properties);
 
-    //!@brief querying images available
+    // querying swapchain images
     uint32_t image_count = 0;
     vkGetSwapchainImagesKHR(logical_device,
                             main_swapchain,
@@ -199,7 +194,6 @@ main() {
     std::vector<vk::image> swapchain_images;
     std::vector<vk::sampled_image> swapchain_depth_images;
     swapchain_images.resize(image_count);
-    // m_image_size = image_count;
     swapchain_depth_images.resize(image_count);
 
     VkExtent2D swapchain_extent = surface_properties.capabilities.currentExtent;
@@ -218,8 +212,8 @@ main() {
         swapchain_images[i] = create_image2d_view(logical_device, enumerate_image_properties);
 
         // Creating Depth Images for depth buffering
-        VkImageUsageFlagBits usage =
-            VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+        // VkImageUsageFlagBits usage =
+        //     VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
         VkMemoryPropertyFlagBits property_flags =
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
@@ -240,7 +234,8 @@ main() {
         vk::command_enumeration settings = {
             enumerate_swapchain_settings.present_index,
             vk::command_levels::primary,
-            VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
+            // VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
+            vk::command_pool_flags::reset
         };
 
         swapchain_command_buffers[i] = vk::command_buffer(logical_device, settings);
@@ -250,7 +245,7 @@ main() {
 
     // setting up renderpass
 
-    // setting up attachments for renderpass
+    // setting up attachments for the renderpass
     VkAttachmentDescription color_attachment = {
         .flags = 0,
         .format = surface_properties.format.format,
@@ -306,10 +301,6 @@ main() {
         subpass_description
     };
 
-    // vk_renderpass_options renderpass_options = { .attachments = attachments,
-    //                                                 .subpass_descriptions =
-    //                                                 subpass_desc };
-
     vk::renderpass_attachments main_attachments {
         .attachments = attachments,
         .subpass_descriptions = subpass_desc
@@ -324,19 +315,7 @@ main() {
     swapchain_framebuffers.resize(image_count);
 
     for (uint32_t i = 0; i < swapchain_framebuffers.size(); i++) {
-        std::println("What happened at index = {}???", i);
         std::vector<VkImageView> image_view_attachments;
-        VkImageView img_view = swapchain_images[i].view;
-        VkImageView depth_img_view = swapchain_depth_images[i].view;
-
-        if(img_view == nullptr) {
-            std::println("VkImageView is nullptr!!!");
-        }
-
-        if(depth_img_view == nullptr) {
-            std::println("Depth VkImageView is nullptr!!!");
-        }
-
         image_view_attachments.push_back(swapchain_images[i].view);
         image_view_attachments.push_back(swapchain_depth_images[i].view);
 
@@ -345,8 +324,6 @@ main() {
             .pNext = nullptr,
             .flags = 0,
             .renderPass = main_renderpass,
-            // .attachmentCount = 1,
-            // .pAttachments = &m_swapchain_images[i].image_view,
             .attachmentCount =
                 static_cast<uint32_t>(image_view_attachments.size()),
             .pAttachments = image_view_attachments.data(),
@@ -374,9 +351,9 @@ main() {
     std::array<float, 4> color = {0.f, 0.5f, 0.5f, 1.f};
 
     // Set window background color
-    VkClearColorValue renderpass_color = {
-        { color.at(0), color.at(1), color.at(2), color.at(3) }
-    };
+    // VkClearColorValue renderpass_color = {
+    //     { color.at(0), color.at(1), color.at(2), color.at(3) }
+    // };
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -384,57 +361,66 @@ main() {
         uint32_t current_frame = presentation_queue.acquire_next_image();
         vk::command_buffer current = swapchain_command_buffers[current_frame];
 
-        std::array<VkClearValue, 2> clear_values = {};
+        // std::array<VkClearValue, 2> clear_values = {};
 
-        clear_values[0].color = renderpass_color;
-        clear_values[1].depthStencil = { 1.f, 0 };
+        // clear_values[0].color = renderpass_color;
+        // clear_values[1].depthStencil = { 1.f, 0 };
 
-        VkRenderPassBeginInfo renderpass_begin_info = {
-            .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-			.pNext = nullptr,
-			.renderPass = main_renderpass,
-			.renderArea = {
-				.offset = {
-					.x = 0,
-					.y = 0
-				},
-				.extent = {
-					.width = swapchain_extent.width,
-					.height = swapchain_extent.height
-				},
-			},
-			.clearValueCount = static_cast<uint32_t>(clear_values.size()),
-			.pClearValues = clear_values.data()
-        };
+        // VkRenderPassBeginInfo renderpass_begin_info = {
+        //     .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+		// 	.pNext = nullptr,
+		// 	.renderPass = main_renderpass,
+		// 	.renderArea = {
+		// 		.offset = {
+		// 			.x = 0,
+		// 			.y = 0
+		// 		},
+		// 		.extent = {
+		// 			.width = swapchain_extent.width,
+		// 			.height = swapchain_extent.height
+		// 		},
+		// 	},
+		// 	.clearValueCount = static_cast<uint32_t>(clear_values.size()),
+		// 	.pClearValues = clear_values.data()
+        // };
 
         current.begin(VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT);
-        VkViewport viewport = {
-            .x = 0.0f,
-            .y = 0.0f,
-            .width = static_cast<float>(swapchain_extent.width),
-            .height = static_cast<float>(swapchain_extent.height),
-            .minDepth = 0.0f,
-            .maxDepth = 1.0f,
-        };
+        // VkViewport viewport = {
+        //     .x = 0.0f,
+        //     .y = 0.0f,
+        //     .width = static_cast<float>(swapchain_extent.width),
+        //     .height = static_cast<float>(swapchain_extent.height),
+        //     .minDepth = 0.0f,
+        //     .maxDepth = 1.0f,
+        // };
 
-        vkCmdSetViewport(current, 0, 1, &viewport);
+        // vkCmdSetViewport(current, 0, 1, &viewport);
 
-        VkRect2D scissor = {
-            .offset = { 0, 0 },
-            .extent = { swapchain_extent.width, swapchain_extent.height },
-        };
+        // VkRect2D scissor = {
+        //     .offset = { 0, 0 },
+        //     .extent = { swapchain_extent.width, swapchain_extent.height },
+        // };
 
-        vkCmdSetScissor(current, 0, 1, &scissor);
+        // vkCmdSetScissor(current, 0, 1, &scissor);
 
         // renderpass_begin_info.framebuffer =
         //   main_swapchain.active_framebuffer(current);
-        renderpass_begin_info.framebuffer = swapchain_framebuffers[current_frame];
+        // renderpass_begin_info.framebuffer = swapchain_framebuffers[current_frame];
+        vk::renderpass_begin_info begin_renderpass = {
+            .current_command = current,
+            .extent = swapchain_extent,
+            .current_framebuffer = swapchain_framebuffers[current_frame],
+            .color = color,
+            .subpass = vk::subpass_contents::inline_bit
+        };
+        main_renderpass.begin(begin_renderpass);
 
-        vkCmdBeginRenderPass(current,
-                             &renderpass_begin_info,
-                             VK_SUBPASS_CONTENTS_INLINE);
+        // vkCmdBeginRenderPass(current,
+        //                      &renderpass_begin_info,
+        //                      VK_SUBPASS_CONTENTS_INLINE);
         
-        vkCmdEndRenderPass(current);
+        // vkCmdEndRenderPass(current);
+        main_renderpass.end(current);
         current.end();
 
         presentation_queue.submit_async(current);

@@ -38,7 +38,7 @@ namespace vk {
     struct swapchain_enumeration {
         uint32_t width;
         uint32_t height;
-        uint32_t present_index=-1;
+        uint32_t present_index = -1;
 
         VkFormat depth; // depth format
     };
@@ -55,8 +55,9 @@ namespace vk {
         std::string description;
     };
 
-
-    //! @brief vk::physical defines what kinds of physical device specification to use that is available based on your current physical hardware specifications.
+    //! @brief vk::physical defines what kinds of physical device specification
+    //! to use that is available based on your current physical hardware
+    //! specifications.
     enum class physical {
         integrated,
         discrete,
@@ -68,15 +69,16 @@ namespace vk {
 
     /**
      * @brief Enumeration represents configuration for the physical device
-     * 
-     * Defines the configuration for the VkPhysicalDevice handler to be created with
-    */
+     *
+     * Defines the configuration for the VkPhysicalDevice handler to be created
+     * with
+     */
     struct physical_enumeration {
         physical device_type;
     };
 
     struct physical_queue_enumeration {
-        uint32_t queue_count=0;
+        uint32_t queue_count = 0;
     };
 
     struct surface_enumeration {
@@ -85,53 +87,55 @@ namespace vk {
     };
 
     struct queue_enumeration {
-        uint32_t family=-1;
-        uint32_t index=-1;
+        uint32_t family = -1;
+        uint32_t index = -1;
     };
 
     struct queue_indices {
-        uint32_t graphics=-1;
-        uint32_t compute=-1;
-        uint32_t transfer=-1;
+        uint32_t graphics = -1;
+        uint32_t compute = -1;
+        uint32_t transfer = -1;
     };
 
     struct device_enumeration {
         std::span<float> queue_priorities{};
-        std::span<const char*> extensions{}; // Can add VK_KHR_SWAPCHAIN_EXTENSION_NAME to this extension
-        uint32_t queue_family_index=0;
+        std::span<const char*>
+          extensions{}; // Can add VK_KHR_SWAPCHAIN_EXTENSION_NAME to this
+                        // extension
+        uint32_t queue_family_index = 0;
     };
 
     // raw image handlers
     struct image {
-        VkImage image=nullptr;
-        VkImageView view=nullptr;
+        VkImage image = nullptr;
+        VkImageView view = nullptr;
     };
 
     // sampler + raw image handlers
     struct sampled_image {
-        VkImage image=nullptr;
-        VkImageView view=nullptr;
-        VkSampler sampler=nullptr;
-        VkDeviceMemory device_memory=nullptr;
+        VkImage image = nullptr;
+        VkImageView view = nullptr;
+        VkSampler sampler = nullptr;
+        VkDeviceMemory device_memory = nullptr;
     };
 
     //! @brief enumeration if an image is provided
     struct swapchain_image_enumeration {
-        VkImage image=nullptr;
+        VkImage image = nullptr;
         VkFormat format;
         VkImageAspectFlags aspect;
-        uint32_t layer_count=0;
-        uint32_t mip_levels=1;
+        uint32_t layer_count = 0;
+        uint32_t mip_levels = 1;
     };
 
     // Image enumeration for creating a brand new VkImage/VkImageView handlers
     struct image_enumeration {
-        uint32_t width=-1;
-        uint32_t height=-1;
+        uint32_t width = -1;
+        uint32_t height = -1;
         VkFormat format;
         VkImageAspectFlags aspect;
-        uint32_t layer_count=1;
-        uint32_t mip_levels=1;
+        uint32_t layer_count = 1;
+        uint32_t mip_levels = 1;
     };
 
     /**
@@ -156,7 +160,38 @@ namespace vk {
     enum command_levels : uint8_t {
         primary = 0,
         secondary = 1,
-        max_enum = 2
+        max_enum = 2,
+    };
+
+    /**
+     * @param transient represents VK_COMMAND_POOL_CREATE_TRANSIENT_BIT
+     *
+     * Usage: specifies command buffers allocated from pool are short-lived,
+     * meaning they will reset or be freed in a short time-frame. Flag may also
+     * be used by implementation to control memory allocation behavior within
+     * the pool
+     *
+     * @param reset represents VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
+     *
+     * Usage: Allows command buffers allocated from the pool to be individually
+     * reset to their initial state; either by calling vkResetCommandBuffer or
+     * implicit reset when calling vkBeginCommandBuffer
+     *
+     * @param protected_bit represents VK_COMMAND_POOL_CREATE_PROTECTED_BIT
+     *
+     * Usage: Specifies command buffers allocated from pool are protected
+     * command buffers; meaning the the memory allocated with the command pool
+     * is protected
+     *
+     *
+     */
+    enum command_pool_flags : uint8_t {
+        transient = 0x01,     // represents VK_COMMAND_POOL_CREATE_TRANSIENT_BIT
+        reset = 0x02,         // represents
+                              // VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
+        protected_bit = 0x04, // represents VK_COMMAND_POOL_CREATE_PROTECTED_BIT
+        max_enum_bit =
+          0x7F, // represents VK_COMMAND_POOL_CREATE_FLAG_BITS_MAX_ENUM
     };
 
     /**
@@ -185,15 +220,16 @@ namespace vk {
      */
     struct command_enumeration {
         command_enumeration(uint32_t p_queue_family,
-                                const command_levels& p_levels,
-                                const VkCommandPoolCreateFlagBits& p_pool_flags)
+                            const command_levels& p_levels,
+                            const command_pool_flags& p_pool_flags)
           : levels(p_levels)
           , queue_index(p_queue_family)
-          , pool_flag(p_pool_flags) {}
+          , flags(p_pool_flags) {}
 
         command_levels levels;
         uint32_t queue_index = -1;
-        VkCommandPoolCreateFlagBits pool_flag;
+        // VkCommandPoolCreateFlagBits pool_flag;
+        command_pool_flags flags;
     };
 
     struct renderpass_attachments {
@@ -201,5 +237,12 @@ namespace vk {
         std::span<VkAttachmentDescription> attachments{};
         std::span<VkSubpassDescription> subpass_descriptions{};
         std::span<VkSubpassDependency> dependencies{};
+    };
+
+    enum subpass_contents : uint32_t {
+        inline_bit=0,                                   // represents VK_SUBPASS_CONTENTS_INLINE
+        secondary_command=1,                            // represents VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS
+        inline_and_secondary_command_khr=1000451000,    // represents VK_SUBPASS_CONTENTS_INLINE_AND_SECONDARY_COMMAND_BUFFERS_KHR and VK_SUBPASS_CONTENTS_INLINE_AND_SECONDARY_COMMAND_BUFFERS_EXT
+        max_enum_content = 0x7F                         // represents VK_SUBPASS_CONTENTS_MAX_ENUM
     };
 };

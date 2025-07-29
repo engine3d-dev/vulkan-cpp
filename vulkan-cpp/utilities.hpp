@@ -73,4 +73,8 @@ namespace vk {
     void free_image(const VkDevice& p_driver, image p_image);
 
 	VkCommandBufferLevel to_vk_command_buffer_level(const command_levels& p_level);
+
+	VkCommandPoolCreateFlagBits to_command_buffer_pool_flags(command_pool_flags p_command_pool_flag);
+
+	VkSubpassContents to_subpass_contents(subpass_contents p_content);
 };

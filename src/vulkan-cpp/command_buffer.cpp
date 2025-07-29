@@ -6,7 +6,8 @@ namespace vk {
         VkCommandPoolCreateInfo pool_ci = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
             .pNext = nullptr,
-            .flags = (VkCommandPoolCreateFlags)p_enumerate_command_info.pool_flag,
+            // .flags = (VkCommandPoolCreateFlags)p_enumerate_command_info.pool_flag,
+            .flags = (VkCommandPoolCreateFlags)to_command_buffer_pool_flags(p_enumerate_command_info.flags),
             .queueFamilyIndex = p_enumerate_command_info.queue_index
         };
 
