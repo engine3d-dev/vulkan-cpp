@@ -1,20 +1,29 @@
 #pragma once
 #include <vulkan-cpp/types.hpp>
 #include <vulkan/vulkan.h>
-#include <array>
+
 namespace vk {
-    struct renderpass_begin_info {
-        VkCommandBuffer current_command=nullptr;
-        VkExtent2D extent;
-        VkFramebuffer current_framebuffer=nullptr;
-        std::array<float, 4> color;
-        subpass_contents subpass;
-    };
+
+    /**
+     * @name renderpass
+     *
+     * @param p_device is the logical device to associate the creation of
+     * renderpasses
+     * @param p_renderpass_attachment is a vk::attachment to specify the
+     * individual attachment operation that handle in creating
+     * VkAttachmentDescription, VkAttachmentReference, and VkSubpassDescription
+     * 
+     * @param p_enable_subpass because subpasses are optional, this is a boolean to enable if we want to apply subpasses
+     */
 
     class renderpass {
     public:
         renderpass() = default;
-        renderpass(const VkDevice& p_device, const renderpass_attachments& p_attachemnts);
+        renderpass(const VkDevice& p_device,
+                   const renderpass_attachments& p_attachemnts);
+        renderpass(const VkDevice& p_device,
+                   const std::span<attachment> p_renderpass_attachments,
+                   bool p_enable_subpasses = true);
 
         void create(const renderpass_attachments& p_attachemnts);
 
@@ -25,14 +34,13 @@ namespace vk {
 
         void destroy();
 
-
         operator VkRenderPass() const { return m_renderpass; }
 
         operator VkRenderPass() { return m_renderpass; }
 
     private:
-        VkDevice m_device=nullptr;
-        VkRenderPass m_renderpass=nullptr;
+        VkDevice m_device = nullptr;
+        VkRenderPass m_renderpass = nullptr;
     };
 
 };

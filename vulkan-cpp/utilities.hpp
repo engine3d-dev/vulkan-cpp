@@ -77,4 +77,18 @@ namespace vk {
 	VkCommandPoolCreateFlagBits to_command_buffer_pool_flags(command_pool_flags p_command_pool_flag);
 
 	VkSubpassContents to_subpass_contents(subpass_contents p_content);
+
+	VkPipelineBindPoint to_pipeline_bind_point(pipeline_bind_point p_bind_point);
+
+    VkAttachmentLoadOp to_attachment_load(attachment_load p_attachment_type);
+
+    VkAttachmentStoreOp to_attachment_store(attachment_store p_attachment_type);
+
+    VkSampleCountFlagBits to_sample_count_bits(sample_bit p_sample_count_bit);
+
+    VkImageLayout to_image_layout(image_layout p_layout);
+
+    VkVertexInputRate to_input_rate(input_rate p_input_rate);
+
+	bool has_depth_specified(image_layout p_layout);
 };

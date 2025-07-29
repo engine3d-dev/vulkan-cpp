@@ -460,4 +460,127 @@ namespace vk {
             break;
         }
     }
+
+    VkPipelineBindPoint to_pipeline_bind_point(pipeline_bind_point p_bind_point) {
+        switch (p_bind_point) {
+            case pipeline_bind_point::graphics:
+                return VK_PIPELINE_BIND_POINT_GRAPHICS;
+            case pipeline_bind_point::compute:
+                return VK_PIPELINE_BIND_POINT_COMPUTE;
+            case pipeline_bind_point::ray_tracing_khr:
+                return VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR;
+            case pipeline_bind_point::subpass_shading_hauwei:
+                return VK_PIPELINE_BIND_POINT_SUBPASS_SHADING_HUAWEI;
+            case pipeline_bind_point::ray_tracing_nv:
+                return VK_PIPELINE_BIND_POINT_RAY_TRACING_NV;
+            case pipeline_bind_point::max_enum:
+                return VK_PIPELINE_BIND_POINT_MAX_ENUM;
+            default:
+                break;
+        }
+    }
+
+    VkAttachmentLoadOp to_attachment_load(attachment_load p_attachment_type) {
+        switch (p_attachment_type) {
+            case attachment_load::load:
+                return VK_ATTACHMENT_LOAD_OP_LOAD;
+            case attachment_load::clear:
+                return VK_ATTACHMENT_LOAD_OP_CLEAR;
+            case attachment_load::dont_care:
+                return VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+            case attachment_load::none_khr:
+                return VK_ATTACHMENT_LOAD_OP_NONE_KHR;
+            case attachment_load::none_ext:
+                return VK_ATTACHMENT_LOAD_OP_NONE_EXT;
+            case attachment_load::max_enum:
+                return VK_ATTACHMENT_LOAD_OP_MAX_ENUM;
+        }
+    }
+
+    VkAttachmentStoreOp to_attachment_store(attachment_store p_attachment_type) {
+        switch (p_attachment_type) {
+            case attachment_store::store:
+                return VK_ATTACHMENT_STORE_OP_STORE;
+            case attachment_store::dont_care:
+                return VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            case attachment_store::none_khr:
+                return VK_ATTACHMENT_STORE_OP_NONE_KHR;
+            case attachment_store::none_qcom:
+                return VK_ATTACHMENT_STORE_OP_NONE_QCOM;
+            case attachment_store::none_ext:
+                return VK_ATTACHMENT_STORE_OP_NONE_EXT;
+            case attachment_store::max_enum:
+                return VK_ATTACHMENT_STORE_OP_MAX_ENUM;
+            default:
+                break;
+        }
+    }
+
+    VkSampleCountFlagBits to_sample_count_bits(sample_bit p_sample_count_bit) {
+        switch (p_sample_count_bit) {
+            case sample_bit::count_1:
+                return VK_SAMPLE_COUNT_1_BIT;
+            case sample_bit::count_2:
+                return VK_SAMPLE_COUNT_2_BIT;
+            case sample_bit::count_4:
+                return VK_SAMPLE_COUNT_4_BIT;
+            case sample_bit::count_8:
+                return VK_SAMPLE_COUNT_8_BIT;
+            case sample_bit::count_16:
+                return VK_SAMPLE_COUNT_16_BIT;
+            case sample_bit::count_32:
+                return VK_SAMPLE_COUNT_32_BIT;
+            case sample_bit::count_64:
+                return VK_SAMPLE_COUNT_64_BIT;
+            case sample_bit::max_enum:
+                return VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM;
+        }
+    }
+
+    VkImageLayout to_image_layout(image_layout p_layout) {
+        switch (p_layout) {
+            case image_layout::undefined:
+                return VK_IMAGE_LAYOUT_UNDEFINED;
+            case image_layout::general:
+                return VK_IMAGE_LAYOUT_GENERAL;
+            case image_layout::color_optimal:
+                return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            case image_layout::depth_stencil_optimal:
+                return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+            case image_layout::depth_stencil_read_only_optimal:
+                return VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL;
+            case image_layout::present_src_khr:
+                return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        }
+    }
+
+    VkVertexInputRate to_input_rate(input_rate p_input_rate) {
+        switch (p_input_rate) {
+            case input_rate::vertex:
+                return VK_VERTEX_INPUT_RATE_VERTEX;
+            case input_rate::instance:
+                return VK_VERTEX_INPUT_RATE_INSTANCE;
+            default:
+                return VK_VERTEX_INPUT_RATE_MAX_ENUM;
+        }
+    }
+
+    bool has_depth_specified(image_layout p_layout) {
+        if(p_layout == image_layout::depth_stencil_optimal) {
+            return true;
+        }
+
+        if(p_layout == image_layout::depth_stencil_read_only_optimal) {
+            return true;
+        }
+        // switch (p_layout){
+        // case image_layout::depth_stencil_optimal:
+        // case image_layout::depth_stencil_read_only_optimal:
+        //     has_depth = true;
+        // default:
+        //     has_depth = false;
+        // }
+
+        return false;
+    }
 }

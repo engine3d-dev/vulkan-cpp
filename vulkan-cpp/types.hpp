@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.h>
 #include <string>
 #include <span>
+#include <array>
 
 namespace vk {
 
@@ -240,9 +241,133 @@ namespace vk {
     };
 
     enum subpass_contents : uint32_t {
-        inline_bit=0,                                   // represents VK_SUBPASS_CONTENTS_INLINE
-        secondary_command=1,                            // represents VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS
-        inline_and_secondary_command_khr=1000451000,    // represents VK_SUBPASS_CONTENTS_INLINE_AND_SECONDARY_COMMAND_BUFFERS_KHR and VK_SUBPASS_CONTENTS_INLINE_AND_SECONDARY_COMMAND_BUFFERS_EXT
-        max_enum_content = 0x7F                         // represents VK_SUBPASS_CONTENTS_MAX_ENUM
+        inline_bit = 0, // represents VK_SUBPASS_CONTENTS_INLINE
+        secondary_command =
+          1, // represents VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS
+        inline_and_secondary_command_khr =
+          1000451000, // represents
+                      // VK_SUBPASS_CONTENTS_INLINE_AND_SECONDARY_COMMAND_BUFFERS_KHR
+                      // and
+                      // VK_SUBPASS_CONTENTS_INLINE_AND_SECONDARY_COMMAND_BUFFERS_EXT
+        max_enum_content = 0x7F // represents VK_SUBPASS_CONTENTS_MAX_ENUM
+    };
+
+    enum class image_layout : uint8_t {
+        undefined = 0,     // VK_IMAGE_LAYOUT_UNDEFINED
+        general = 1,       // VK_IMAGE_LAYOUT_GENERAL
+        color_optimal = 2, // VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+        depth_stencil_optimal =
+          3, // VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+        depth_stencil_read_only_optimal =
+          4, // VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_READ_ONLY_OPTIMAL
+        present_src_khr = 5, // VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+    };
+
+    enum class format : uint64_t {
+        rgb32_sfloat, // Represent R32G32B32_SFLOAT
+        rg32_sfloat,  // Represent R32G32_SFLOAT
+    };
+
+    enum buffer : uint8_t {
+        uniform = 0,
+        storage = 1,
+        combined_image_sampler = 2,
+        sampled_only_image = 3
+    };
+
+    /**
+     * @brief Refers to the input rate
+     *
+     * vertex - refers to most common rate. Indicates GPU to move next data
+     * entry (next vertex data) into a buffer for every single vertex that's
+     * processed.
+     *       - Used for vertex attributes that change per vertex on the mesh
+     *       - vertex attribute-only data
+     *       - Per-object based specification in the next data entry
+     *
+     * instance - refers to data entry per-instance. Specifying to the GPU that
+     *           the data entry in the buffer is to be after the instance of the
+     * object itself.
+     *         - Typically used for instanced rendering. Specfying next entry of
+     * data to be after instanced drawn, could be shared. Therefore instance is
+     * an option to choose from if vertex data is across as a per-instance
+     * basis.
+     *        - instance-based specification next data entry
+     *
+     */
+    enum class input_rate : uint8_t {
+        vertex,
+        instance,
+        max_enum,
+    };
+
+    //! @brief Equivalent to doing VkSampleCountFlagBits but simplified
+    enum class sample_bit : uint8_t {
+        count_1,
+        count_2,
+        count_4,
+        count_8,
+        count_16,
+        count_32,
+        count_64,
+        max_enum
+    };
+
+    //! @brief Equivalent to VkAttachmentLoadOp
+    enum class attachment_load : uint8_t {
+        load = 0,  // LOAD_OP_LOAD
+        clear,     // LOAD_OP_CLEAR
+        dont_care, // lOAD_OP_DONT_CARE
+        none_khr,  // LOAD_OP_NONE_KHR
+        none_ext,  // LOAD_OP_NONE_EXT
+        max_enum,  // LOAD_OP_MAX_ENUM
+    };
+
+    //! @brief Equivalent to VkAttachmentStoreOp
+    enum class attachment_store : uint8_t {
+        store = 0, // STORE_OP_STORE
+        dont_care, // STORE_OP_CLEAR
+        none_khr,  // STORE_OP_NONE
+        none_qcom, // STORE_OP_NONE_EXT
+        none_ext,  // STORE_OP_NONE_KHR
+        max_enum,  // STORE_OP_MAX_ENUM
+    };
+
+    //! @brief Equivalent to VkPipelineBindPoint
+    enum class pipeline_bind_point : uint8_t {
+        graphics = 0,           // VK_PIPELINE_BIND_POINT_GRAPHICS
+        compute = 1,            // VK_PIPELINE_BIND_POINT_COMPUTE
+        ray_tracing_khr,        // VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR
+        subpass_shading_hauwei, // VK_PIPELINE_BIND_POINT_SUBPASS_SHADING_HUAWEI
+        ray_tracing_nv,         // VK_PIPELINE_BIND_POINT_RAY_TRACING_NV
+        max_enum                // VK_PIPELINE_BIND_POINT_MAX_ENUM
+    };
+
+    /**
+     * @brief Specifies a specific attachment that a renderpass may operate
+     * using
+     *
+     * Renderpasses can consist of multiple attachment that can be specified
+     * under this one struct to represent both the VkAttachmentDescription and
+     * VkAttachmentReference
+     */
+    struct attachment {
+        VkFormat format;
+        image_layout layout; // specify for VkAttachmentReference
+        sample_bit samples;
+        attachment_load load;
+        attachment_store store;
+        attachment_load stencil_load;
+        attachment_store stencil_store;
+        image_layout initial_layout;
+        image_layout final_layout;
+    };
+
+    struct renderpass_begin_info {
+        VkCommandBuffer current_command = nullptr;
+        VkExtent2D extent;
+        VkFramebuffer current_framebuffer = nullptr;
+        std::array<float, 4> color;
+        subpass_contents subpass;
     };
 };
