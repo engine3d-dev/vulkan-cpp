@@ -156,12 +156,6 @@ main() {
 
     vk::device logical_device(physical_device, logical_device_enumeration);
 
-    // Presentation queue family uses graphics queue
-    vk::queue_enumeration present_queue_enumerate = {
-        .family = 0,
-        .index = queue_indices.graphics,
-    };
-    vk::device_queue presesnt_queue(logical_device, present_queue_enumerate);
     vk::surface window_surface(api_instance, window);
     std::println("Starting implementation of the swapchain!!!");
 
@@ -197,10 +191,8 @@ main() {
                             images.data()); // used to store in the images
 
     // Creating Images
-    std::vector<vk::image> swapchain_images;
-    std::vector<vk::sampled_image> swapchain_depth_images;
-    swapchain_images.resize(image_count);
-    swapchain_depth_images.resize(image_count);
+    std::vector<vk::image> swapchain_images(image_count);
+    std::vector<vk::sampled_image> swapchain_depth_images(image_count);
 
     VkExtent2D swapchain_extent = surface_properties.capabilities.currentExtent;
 
@@ -226,8 +218,9 @@ main() {
             .aspect = VK_IMAGE_ASPECT_DEPTH_BIT
         };
 
-		// Retrieving the image resource memory requirements for specific memory allocation
-		// Parameter is default to using vk::memory_property::device_local_bit
+        // Retrieving the image resource memory requirements for specific memory
+        // allocation Parameter is default to using
+        // vk::memory_property::device_local_bit
         uint32_t memory_type_index = vk::image_memory_requirements(
           physical_device, logical_device, swapchain_images[i]);
         swapchain_depth_images[i] = create_depth_image2d(
@@ -280,8 +273,7 @@ main() {
     std::println("renderpass created!!!");
 
     // Setting up swapchain framebuffers
-    std::vector<VkFramebuffer> swapchain_framebuffers;
-    swapchain_framebuffers.resize(image_count);
+    std::vector<VkFramebuffer> swapchain_framebuffers(image_count);
 
     for (uint32_t i = 0; i < swapchain_framebuffers.size(); i++) {
         std::vector<VkImageView> image_view_attachments;
@@ -312,7 +304,10 @@ main() {
                  swapchain_framebuffers.size());
 
     // setting up presentation queue to display commands to the screen
-    vk::queue_enumeration enumerate_present_queue{ .family = 0, .index = 0 };
+    vk::queue_enumeration enumerate_present_queue{
+        .family = 0,
+        .index = 0,
+    };
     vk::device_present_queue presentation_queue(
       logical_device, main_swapchain, enumerate_present_queue);
 
@@ -346,7 +341,8 @@ main() {
     }
 
     // TODO: Make the cleanup much saner. For now we are cleaning it up like
-	// Potentially bring back submit_resource_free([this](){ .. free stuff .. }); (???)
+    // Potentially bring back submit_resource_free([this](){ .. free stuff ..
+    // }); (???)
     // this to ensure they are cleaned up in the proper order
     logical_device.wait();
     main_swapchain.destroy();
