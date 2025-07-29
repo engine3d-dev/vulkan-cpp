@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.27)
 project(vulkan-cpp CXX)
 
 build_library(
-    DIRECTORIES src demos/4-surface
+    DIRECTORIES src demos/5-swapchain
     ENABLE_TESTS OFF
 
     PACKAGES

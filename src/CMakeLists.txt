@@ -7,6 +7,10 @@ set(
     vulkan-cpp/device.cpp
     vulkan-cpp/device_queue.cpp
     vulkan-cpp/surface.cpp
+    vulkan-cpp/swapchain.cpp
+    vulkan-cpp/device_present_queue.cpp
+    vulkan-cpp/command_buffer.cpp
+    vulkan-cpp/renderpass.cpp
 )
 
 add_library(${PROJECT_NAME} ${all_src})

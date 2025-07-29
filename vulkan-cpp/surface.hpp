@@ -12,6 +12,8 @@ namespace vk {
 
         void destroy();
 
+        operator VkSurfaceKHR() const { return m_surface_handler; }
+        operator VkSurfaceKHR() { return m_surface_handler; }
 
     private:
         VkInstance m_instance=nullptr;

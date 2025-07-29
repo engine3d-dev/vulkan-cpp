@@ -13,5 +13,6 @@ namespace vk {
         if(m_surface_handler != nullptr) {
             vkDestroySurfaceKHR(m_instance, m_surface_handler, nullptr);
         }
+        vkDestroyInstance(m_instance, nullptr);
     }
 };

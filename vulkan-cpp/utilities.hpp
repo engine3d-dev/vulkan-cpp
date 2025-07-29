@@ -44,6 +44,33 @@ namespace vk {
 	//! @return the depth format which checks for compatible formats and is specific to the depth stencil attachment specified
 	VkFormat select_depth_format(const VkPhysicalDevice& p_physical, const std::span<VkFormat>& p_format_selection);
 
+  	//! @return surface_enumeration which contains VkSurfaceCapabilities and VkSurfaceFormatKHR for the swapchain
+  	surface_enumeration enumerate_surface(const VkPhysicalDevice& p_physical, const VkSurfaceKHR& p_surface);
+
+  	//! @return image size the surface requires
+  	uint32_t surface_image_size(const VkSurfaceCapabilitiesKHR& p_capabilities);
+
 	//! @return -1 if there are no flags available/compatible/valid
 	uint32_t physical_memory_properties(const VkPhysicalDevice& p_physical, uint32_t p_type_filter, VkMemoryPropertyFlags p_property_flag);
+
+	//! @return image view handler that is creating a gpu resource for 2d image
+	//! @return this returns a created image view handler if the image is already created for you
+	image create_image2d_view(const VkDevice& p_device, const swapchain_image_enumeration& p_enumerate_image);
+	sampled_image create_depth_image2d(const VkDevice& p_device, const image_enumeration& p_enumerate_image, uint32_t p_memory_type_index);
+	
+	VkSampler create_sampler(const VkDevice& p_device, const filter_range& p_range, VkSamplerAddressMode p_address_mode);
+
+	VkSemaphore create_semaphore(const VkDevice& p_device);
+
+	// uint32_t image_memory_requirements(const VkPhysicalDevice& p_physical, const VkDevice& p_device);
+
+	//! @brief Requests memory requirements from the physical hardware device
+	//! @brief Using it to get the type_filter to return the image_memory_requirement
+	uint32_t image_memory_requirements(const VkPhysicalDevice& p_physical, const VkDevice& p_device, const image& p_image, VkMemoryPropertyFlags p_property=VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+	void free_image(const VkDevice& p_driver, sampled_image p_image);
+
+    void free_image(const VkDevice& p_driver, image p_image);
+
+	VkCommandBufferLevel to_vk_command_buffer_level(const command_levels& p_level);
 };

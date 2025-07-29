@@ -33,12 +33,13 @@ namespace vk {
         create_info.pEnabledFeatures = &features;
 
         vk_check(vkCreateDevice(p_physical, &create_info, nullptr, &m_device),"vkCreateDevice");
+    }
 
-        
+    void device::wait() {
+        vkDeviceWaitIdle(m_device);
     }
 
     void device::destroy() {
-        vkDeviceWaitIdle(m_device);
 
         if(m_device != nullptr) {
             vkDestroyDevice(m_device, nullptr);

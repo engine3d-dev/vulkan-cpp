@@ -167,4 +167,267 @@ namespace vk {
         return -1;
     }
 
+    surface_enumeration enumerate_surface(const VkPhysicalDevice& p_physical, const VkSurfaceKHR& p_surface) {
+        surface_enumeration enumerate_surface_properties{};
+        vk_check(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
+                   p_physical,
+                   p_surface,
+                   &enumerate_surface_properties.capabilities),
+                 "vkGetPhysicalDeviceSurfaceCapabilitiesKHR");
+        
+        uint32_t format_count = 0;
+        std::vector<VkSurfaceFormatKHR> formats;
+        vk_check(vkGetPhysicalDeviceSurfaceFormatsKHR(
+                   p_physical, p_surface, &format_count, nullptr),
+                 "vkGetPhysicalDeviceSurfaceFormatsKHR");
+
+        formats.resize(format_count);
+
+        vk_check(vkGetPhysicalDeviceSurfaceFormatsKHR(
+                   p_physical, p_surface, &format_count, formats.data()),
+                 "vkGetPhysicalDeviceSurfaceFormatsKHR");
+
+        for (const auto& format : formats) {
+            if (format.format == VK_FORMAT_B8G8R8A8_SRGB &&
+                format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+                enumerate_surface_properties.format = format;
+            }
+        }
+
+        enumerate_surface_properties.format = formats[0];
+
+        return enumerate_surface_properties;
+    }
+
+    uint32_t surface_image_size(const VkSurfaceCapabilitiesKHR& p_capabilities) {
+        uint32_t requested_images = p_capabilities.minImageCount + 1;
+
+        uint32_t final_image_count = 0;
+
+        if ((p_capabilities.maxImageCount > 0) and
+            (requested_images > p_capabilities.maxImageCount)) {
+            final_image_count = p_capabilities.maxImageCount;
+        }
+        else {
+            final_image_count = requested_images;
+        }
+
+        return final_image_count;
+    }
+
+    VkSampler create_sampler(const VkDevice& p_device, const filter_range& p_range, VkSamplerAddressMode p_address_mode) {
+        VkSamplerCreateInfo sampler_info = {
+            .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .magFilter = p_range.min,
+            .minFilter = p_range.max,
+            .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+            .addressModeU = p_address_mode,
+            .addressModeV = p_address_mode,
+            .addressModeW = p_address_mode,
+            .mipLodBias = 0.0f,
+            .anisotropyEnable = false,
+            .maxAnisotropy = 1,
+            .compareEnable = false,
+            .compareOp = VK_COMPARE_OP_ALWAYS,
+            .minLod = 0.0f,
+            .maxLod = 0.0f,
+            .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+            .unnormalizedCoordinates = false
+        };
+
+        VkSampler sampler=nullptr;
+        VkResult res =
+          vkCreateSampler(p_device, &sampler_info, nullptr, &sampler);
+        vk_check(res, "vkCreateSampler");
+        return sampler;
+    }
+
+    image create_image2d_view(const VkDevice& p_device, const swapchain_image_enumeration& p_enumerate_image) {
+        VkImageViewCreateInfo image_view_ci = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .image = p_enumerate_image.image,
+            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            .format = p_enumerate_image.format,
+            .components = { .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                            .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                            .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                            .a = VK_COMPONENT_SWIZZLE_IDENTITY },
+            .subresourceRange = { .aspectMask = p_enumerate_image.aspect,
+                                  .baseMipLevel = 0,
+                                  .levelCount = p_enumerate_image.mip_levels,
+                                  .baseArrayLayer = 0,
+                                  .layerCount = p_enumerate_image.layer_count },
+        };
+
+        image image2d{};
+        image2d.image = p_enumerate_image.image;
+
+        VkImageView image_view;
+        vk_check(
+          vkCreateImageView(p_device, &image_view_ci, nullptr, &image2d.view),
+          "vkCreateImageView");
+        return image2d;
+    }
+
+    sampled_image create_depth_image2d(const VkDevice& p_device, const image_enumeration& p_enumerate_image, uint32_t p_memory_type_index) {
+
+        VkImageUsageFlags usage =
+              VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+            VkMemoryPropertyFlagBits property_flags =
+              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+        VkImageCreateInfo image_ci = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .imageType = VK_IMAGE_TYPE_2D,
+            .format = p_enumerate_image.format,
+            .extent = { .width = p_enumerate_image.width, .height = p_enumerate_image.height, .depth = 1 },
+            .mipLevels = p_enumerate_image.mip_levels,
+            .arrayLayers = 1,
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .tiling = VK_IMAGE_TILING_OPTIMAL,
+            .usage = usage,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+            .queueFamilyIndexCount = 0,
+            .pQueueFamilyIndices = nullptr,
+            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
+        };
+
+        sampled_image depth_image{};
+
+        vk_check(vkCreateImage(p_device, &image_ci, nullptr, &depth_image.image),
+                 "vkCreateImage");
+
+        // 2. get buffer memory requirements
+        VkMemoryRequirements memory_requirements;
+        vkGetImageMemoryRequirements(p_device, depth_image.image, &memory_requirements);
+
+        // 3. get memory type index
+        // uint32_t memory_type_index = driver.select_memory_type(
+        //   memory_requirements.memoryTypeBits, property_flags);
+
+        // 4. Allocate info
+        VkMemoryAllocateInfo memory_alloc_info = {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+            .pNext = nullptr,
+            .allocationSize = memory_requirements.size,
+            .memoryTypeIndex = p_memory_type_index
+        };
+
+        vk_check(vkAllocateMemory(
+                   p_device, &memory_alloc_info, nullptr, &depth_image.device_memory),
+                 "vkAllocateMemory");
+
+        // 5. bind image memory
+        vk_check(vkBindImageMemory(p_device, depth_image.image, depth_image.device_memory, 0),
+                 "vkBindImageMemory");
+        
+        // Needs to create VkImageView after VkImage
+        // because VkImageView expects a VkImage to be binded to a singl VkDeviceMemory beforehand
+        VkImageViewCreateInfo image_view_ci = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .image = depth_image.image,
+            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            .format = p_enumerate_image.format,
+            .components = { .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                            .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                            .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                            .a = VK_COMPONENT_SWIZZLE_IDENTITY },
+            .subresourceRange = { .aspectMask = p_enumerate_image.aspect,
+                                  .baseMipLevel = 0,
+                                  .levelCount = p_enumerate_image.mip_levels,
+                                  .baseArrayLayer = 0,
+                                  .layerCount = p_enumerate_image.layer_count },
+        };
+
+        vk_check(vkCreateImageView(p_device, &image_view_ci, nullptr, &depth_image.view),"vkCreateImage");
+
+        return depth_image;
+    }
+
+    VkSemaphore create_semaphore(const VkDevice& p_device) {
+        // creating semaphores
+        VkSemaphoreCreateInfo semaphore_ci = {
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0
+        };
+
+        VkSemaphore semaphore;
+        vk_check(
+          vkCreateSemaphore(p_device, &semaphore_ci, nullptr, &semaphore),
+          "vkCreateSemaphore");
+        return semaphore;
+    }
+
+    void free_image(const VkDevice& p_driver, sampled_image p_image) {
+        if (p_image.view != nullptr) {
+            vkDestroyImageView(p_driver, p_image.view, nullptr);
+        }
+
+        if (p_image.image != nullptr) {
+            vkDestroyImage(p_driver, p_image.image, nullptr);
+        }
+        if (p_image.sampler != nullptr) {
+            vkDestroySampler(p_driver, p_image.sampler, nullptr);
+        }
+
+        if (p_image.device_memory != nullptr) {
+            vkFreeMemory(p_driver, p_image.device_memory, nullptr);
+        }
+    }
+
+    void free_image(const VkDevice& p_driver, image p_image) {
+        if (p_image.view != nullptr) {
+            vkDestroyImageView(p_driver, p_image.view, nullptr);
+        }
+
+        if (p_image.image != nullptr) {
+            vkDestroyImage(p_driver, p_image.image, nullptr);
+        }
+    }
+
+    uint32_t image_memory_requirements(const VkPhysicalDevice& p_physical, const VkDevice& p_device, const image& p_image, VkMemoryPropertyFlags p_property) {
+        VkMemoryRequirements memory_requirements;
+        vkGetImageMemoryRequirements(p_device, p_image.image, &memory_requirements);
+
+        uint32_t type_filter = memory_requirements.memoryTypeBits;
+        uint32_t property_flag = p_property;
+
+        VkPhysicalDeviceMemoryProperties mem_props;
+        vkGetPhysicalDeviceMemoryProperties(p_physical, &mem_props);
+
+        for (uint32_t i = 0; i < mem_props.memoryTypeCount; i++) {
+            if ((type_filter & (1 << i)) and
+                (mem_props.memoryTypes[i].propertyFlags & property_flag) ==
+                  property_flag) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+
+
+    VkCommandBufferLevel to_vk_command_buffer_level(
+      const command_levels& p_level) {
+        switch (p_level) {
+            case command_levels::primary:
+                return VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+            case command_levels::secondary:
+                return VK_COMMAND_BUFFER_LEVEL_SECONDARY;
+            case command_levels::max_enum:
+                return VK_COMMAND_BUFFER_LEVEL_MAX_ENUM;
+        }
+
+        throw std::runtime_error("Invalid command buffer levels");
+    }
 }

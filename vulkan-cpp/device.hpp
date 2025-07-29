@@ -20,6 +20,8 @@ namespace vk {
 
         void destroy();
 
+        void wait();
+
         operator VkDevice() const { return m_device; }
 
         operator VkDevice() { return m_device; }
