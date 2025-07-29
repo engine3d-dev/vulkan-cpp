@@ -257,68 +257,6 @@ main() {
     // setting up renderpass
 
     // setting up attachments for the renderpass
-    /*
-    VkAttachmentDescription color_attachment = {
-        .flags = 0,
-        .format = surface_properties.format.format,
-        .samples = VK_SAMPLE_COUNT_1_BIT,
-        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-        .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
-    };
-
-    VkAttachmentDescription depth_attachment = {
-        .flags = 0,
-        .format = depth_format,
-        .samples = VK_SAMPLE_COUNT_1_BIT,
-        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-        .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-        .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-    };
-
-    std::array<VkAttachmentDescription, 2> attachments = {
-        color_attachment, depth_attachment
-    };
-
-    VkAttachmentReference color_attachment_ref = {
-        .attachment = 0, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
-    };
-
-    VkAttachmentReference depth_attachment_reference = {
-        .attachment = 1,
-        .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-    };
-
-    VkSubpassDescription subpass_description = {
-        .flags = 0,
-        .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-        .inputAttachmentCount = 0,
-        .pInputAttachments = nullptr,
-        .colorAttachmentCount = 1,
-        .pColorAttachments = &color_attachment_ref,
-        .pResolveAttachments = nullptr,
-        .pDepthStencilAttachment =
-            &depth_attachment_reference, // enable depth buffering
-        .preserveAttachmentCount = 0,
-        .pPreserveAttachments = nullptr
-    };
-
-    std::array<VkSubpassDescription, 1> subpass_desc = {
-        subpass_description
-    };
-
-    vk::renderpass_attachments main_attachments {
-        .attachments = attachments,
-        .subpass_descriptions = subpass_desc
-    };
-    */
-
     std::array<vk::attachment, 2> renderpass_attachments = {
         vk::attachment{
           .format = surface_properties.format.format,
@@ -344,7 +282,6 @@ main() {
         },
     };
 
-    // vk::renderpass main_renderpass(logical_device, main_attachments);
     vk::renderpass main_renderpass(logical_device, renderpass_attachments);
 
     std::println("renderpass created!!!");
