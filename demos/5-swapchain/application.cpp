@@ -257,192 +257,67 @@ main() {
     // setting up renderpass
 
     // setting up attachments for the renderpass
-    // VkAttachmentDescription color_attachment = {
-    //     .flags = 0,
-    //     .format = surface_properties.format.format,
-    //     .samples = VK_SAMPLE_COUNT_1_BIT,
-    //     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-    //     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-    //     .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-    //     .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-    //     .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-    //     .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
-    // };
-
-    // VkAttachmentDescription depth_attachment = {
-    //     .flags = 0,
-    //     .format = depth_format,
-    //     .samples = VK_SAMPLE_COUNT_1_BIT,
-    //     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-    //     .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-    //     .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-    //     .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-    //     .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-    //     .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-    // };
-
-    // std::array<VkAttachmentDescription, 2> attachments = {
-    //     color_attachment, depth_attachment
-    // };
-
     /*
+    VkAttachmentDescription color_attachment = {
+        .flags = 0,
+        .format = surface_properties.format.format,
+        .samples = VK_SAMPLE_COUNT_1_BIT,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+    };
 
-        New Specification for attachments
+    VkAttachmentDescription depth_attachment = {
+        .flags = 0,
+        .format = depth_format,
+        .samples = VK_SAMPLE_COUNT_1_BIT,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+    };
 
-        // handles VkAttachmentReference and sets this to index 0
-        color_attachment = {
-            .format = surface_properties.format.format,
-            .layout = vk::image_layout::color_attachment_optional, //  this is
-       used to set VkAttachmentReference .samples = vk::sample_bit::count_1,
-            .load = vk::attachment_load::clear,
-            .store = vk::attachment_store::dont_care,
-            .stencil_load = vk::attachment_load::clear,
-            .stencil_store = vk::attachment_store::dont_care,
-            .initial_layout = vk::image_layout::undefined,
-            .final_layout = vk::image_layout::present_src_khr
-        };
+    std::array<VkAttachmentDescription, 2> attachments = {
+        color_attachment, depth_attachment
+    };
 
-        replaces the following color attachment specifications below:
-        VkAttachmentReference color_attachment_ref = {
-            .attachment = 0, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
-        };
-        VkAttachmentDescription color_attachment = {
-            .flags = 0,
-            .format = surface_properties.format.format,
-            .samples = VK_SAMPLE_COUNT_1_BIT,
-            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-            .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-            .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
-        };
+    VkAttachmentReference color_attachment_ref = {
+        .attachment = 0, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+    };
 
-        ---------------------------------------------------------------
-        ---------------------------------------------------------------
-        ---------------------------------------------------------------
-        // handles VkAttachmentReference and sets this to index 1
-        // One way we can check if we have depth attachments is check for the
-       vk::image_layout::depth_stencil_attachment_optional  specification
-        // How the logic would go is that we iterate and setup all of the
-       VkAttachmentDescription
-        // Then during those iteration check if the attachment have any of the
-       depth/depth_stencil attachment specifications
-        // If they do then we add the indices to some std::vector<int>
-        // Then once the attachment descriptions are done, we iterate the
-       indices and add specifications required for the VkSubpassDescription!
+    VkAttachmentReference depth_attachment_reference = {
+        .attachment = 1,
+        .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+    };
 
-        Code Logic (pseudo-code so I dont forget)
+    VkSubpassDescription subpass_description = {
+        .flags = 0,
+        .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+        .inputAttachmentCount = 0,
+        .pInputAttachments = nullptr,
+        .colorAttachmentCount = 1,
+        .pColorAttachments = &color_attachment_ref,
+        .pResolveAttachments = nullptr,
+        .pDepthStencilAttachment =
+            &depth_attachment_reference, // enable depth buffering
+        .preserveAttachmentCount = 0,
+        .pPreserveAttachments = nullptr
+    };
 
-        // First VkAttachmentDescription specifications
-        std::vector<int> color_attachment_indices(attachments.size());
-        std::vector<int> depth_attachment_indices(attachments.size());
+    std::array<VkSubpassDescription, 1> subpass_desc = {
+        subpass_description
+    };
 
-
-        std::vector<VkAttachmentDescription> attachment_descriptions;
-        for(i = 0; i < attachments.size(); i++) {
-            attachment_descriptions[i] = attachments[i];
-            if(is_depth_layout(attachment[i].layout)) { // for example would
-       return true if we had something like
-       vk::image_layout::depth_stencil_attachment_optional or
-       VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-                depth_attachment_indices[i] = i;
-            }
-            else {
-                color_attachment_indices[i] = i;
-            }
-        }
-
-        // Second, now we setup subpass description
-        std::vector<VkAttachmentReferences> color_attachment_references;
-        std::vector<VkAttachmentReferences> depth_attachment_references;
-
-        // setting up color attachment references
-        for(i = 0; i < color_attachment_indices.size(); i++) {
-            color_attachment_references[i] =
-       p_attachments[color_attachment_indices[i]]; // which retrieves only the
-       depth/depth_stencil attachments at those specific index slots to setup
-       for the description
-        }
-
-        // setting up depth attachment references
-        for(i = 0; i < depth_attachment_indices.size(); i++) {
-            depth_attachment_references[i] =
-       p_attachments[depth_attachment_indices[i]]; // which retrieves only the
-       depth/depth_stencil attachments at those specific index slots to setup
-       for the description
-        }
-
-        depth_attachment = {
-            .format = depth_format,
-            .layout = vk::image_layout::depth_stencil_attachment_optional, //
-       this is used to set VkAttachmentReference .samples =
-       vk::sample_bit::count_1, .load = vk::attachment_load::clear, .store =
-       vk::attachment_store::dont_care, .stencil_load =
-       vk::attachment_load::clear, .stencil_store =
-       vk::attachment_store::dont_care, .initial_layout =
-       vk::image_layout::undefined, .final_layout =
-       vk::image_layout::present_src_khr
-        };
-
-
-        ---------------------------------------------------------------
-        ---------------------------------------------------------------
-        ---------------------------------------------------------------
-
-        std::array<vk::attachment, 2> attachments = {color_attachment,
-       depth_attachment}
-
-        VkAttachmentReference depth_attachment_reference = {
-            .attachment = 1,
-            .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-        };
-
-        VkAttachmentDescription depth_attachment = {
-            .flags = 0,
-            .format = depth_format,
-            .samples = VK_SAMPLE_COUNT_1_BIT,
-            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-            .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-            .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-            .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-        };
-
-
+    vk::renderpass_attachments main_attachments {
+        .attachments = attachments,
+        .subpass_descriptions = subpass_desc
+    };
     */
-    // VkAttachmentReference color_attachment_ref = {
-    //     .attachment = 0, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
-    // };
-
-    // VkAttachmentReference depth_attachment_reference = {
-    //     .attachment = 1,
-    //     .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-    // };
-
-    // VkSubpassDescription subpass_description = {
-    //     .flags = 0,
-    //     .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-    //     .inputAttachmentCount = 0,
-    //     .pInputAttachments = nullptr,
-    //     .colorAttachmentCount = 1,
-    //     .pColorAttachments = &color_attachment_ref,
-    //     .pResolveAttachments = nullptr,
-    //     .pDepthStencilAttachment =
-    //         &depth_attachment_reference, // enable depth buffering
-    //     .preserveAttachmentCount = 0,
-    //     .pPreserveAttachments = nullptr
-    // };
-
-    // std::array<VkSubpassDescription, 1> subpass_desc = {
-    //     subpass_description
-    // };
-
-    // vk::renderpass_attachments main_attachments {
-    //     .attachments = attachments,
-    //     .subpass_descriptions = subpass_desc
-    // };
 
     std::array<vk::attachment, 2> renderpass_attachments = {
         vk::attachment{

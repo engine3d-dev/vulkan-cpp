@@ -20,16 +20,15 @@ namespace vk {
     public:
         renderpass() = default;
         renderpass(const VkDevice& p_device,
-                   const renderpass_attachments& p_attachemnts);
-        renderpass(const VkDevice& p_device,
                    const std::span<attachment> p_renderpass_attachments,
                    bool p_enable_subpasses = true);
 
-        void create(const renderpass_attachments& p_attachemnts);
+        void create(const std::span<const attachment>& p_renderpass_attachments, bool p_enable_subpass=true);
 
         [[nodiscard]] bool alive() const { return m_renderpass; }
 
         void begin(const renderpass_begin_info& p_begin_info);
+
         void end(const VkCommandBuffer& p_current);
 
         void destroy();
