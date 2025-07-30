@@ -15,7 +15,7 @@
 #include <vulkan-cpp/device_present_queue.hpp>
 #include <vulkan-cpp/command_buffer.hpp>
 #include <vulkan-cpp/renderpass.hpp>
-#include <vulkan-cpp/utilities.hpp>
+#include <vulkan-cpp/framebuffer.hpp>
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 debug_callback(
@@ -273,32 +273,47 @@ main() {
     std::println("renderpass created!!!");
 
     // Setting up swapchain framebuffers
-    std::vector<VkFramebuffer> swapchain_framebuffers(image_count);
+    // std::vector<VkFramebuffer> swapchain_framebuffers(image_count);
 
-    for (uint32_t i = 0; i < swapchain_framebuffers.size(); i++) {
-        std::vector<VkImageView> image_view_attachments;
-        image_view_attachments.push_back(swapchain_images[i].view);
-        image_view_attachments.push_back(swapchain_depth_images[i].view);
+    // for (uint32_t i = 0; i < swapchain_framebuffers.size(); i++) {
+    //     std::vector<VkImageView> image_view_attachments;
+    //     image_view_attachments.push_back(swapchain_images[i].view);
+    //     image_view_attachments.push_back(swapchain_depth_images[i].view);
 
-        VkFramebufferCreateInfo framebuffer_ci = {
-            .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .renderPass = main_renderpass,
-            .attachmentCount =
-              static_cast<uint32_t>(image_view_attachments.size()),
-            .pAttachments = image_view_attachments.data(),
-            .width = swapchain_extent.width,
-            .height = swapchain_extent.height,
-            .layers = 1
-        };
+    //     VkFramebufferCreateInfo framebuffer_ci = {
+    //         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+    //         .pNext = nullptr,
+    //         .flags = 0,
+    //         .renderPass = main_renderpass,
+    //         .attachmentCount =
+    //           static_cast<uint32_t>(image_view_attachments.size()),
+    //         .pAttachments = image_view_attachments.data(),
+    //         .width = swapchain_extent.width,
+    //         .height = swapchain_extent.height,
+    //         .layers = 1
+    //     };
 
-        vk::vk_check(vkCreateFramebuffer(logical_device,
-                                         &framebuffer_ci,
-                                         nullptr,
-                                         &swapchain_framebuffers[i]),
-                     "vkCreateFramebuffer");
-    }
+    //     vk::vk_check(vkCreateFramebuffer(logical_device,
+    //                                      &framebuffer_ci,
+    //                                      nullptr,
+    //                                      &swapchain_framebuffers[i]),
+    //                  "vkCreateFramebuffer");
+    // }
+	std::vector<vk::framebuffer> swapchain_framebuffers(image_count);
+	for (uint32_t i = 0; i < swapchain_framebuffers.size(); i++) {
+		std::array<VkImageView, 2> image_view_attachments = {
+			swapchain_images[i].view,
+			swapchain_depth_images[i].view
+		};
+        // image_view_attachments.push_back(swapchain_images[i].view);
+        // image_view_attachments.push_back(swapchain_depth_images[i].view);
+		vk::framebuffer_settings framebuffer_info = {
+			.renderpass = main_renderpass,
+			.views = image_view_attachments,
+			.extent = swapchain_extent
+		};
+		swapchain_framebuffers[i] = vk::framebuffer(logical_device, framebuffer_info);
+	}
 
     std::println("Created VkFramebuffer's with size = {}",
                  swapchain_framebuffers.size());
@@ -352,7 +367,7 @@ main() {
     }
 
     for (auto& fb : swapchain_framebuffers) {
-        vkDestroyFramebuffer(logical_device, fb, nullptr);
+        fb.destroy();
     }
 
     for (auto& img : swapchain_images) {

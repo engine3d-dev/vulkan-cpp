@@ -6,6 +6,8 @@
 #include <array>
 
 namespace vk {
+    // Alias for VkFormat
+    using format = VkFormat;
 
     /**
      * @brief message sevierity explicitly to max size of a byte
@@ -103,7 +105,7 @@ namespace vk {
         std::span<const char*>
           extensions{}; // Can add VK_KHR_SWAPCHAIN_EXTENSION_NAME to this
                         // extension
-        uint32_t queue_family_index = 0;
+        uint8_t queue_family_index = 0;
     };
 
     // raw image handlers
@@ -137,6 +139,20 @@ namespace vk {
         VkImageAspectFlags aspect;
         uint32_t layer_count = 1;
         uint32_t mip_levels = 1;
+    };
+
+    /**
+     * @param renderpass vulkan requires framebuffers to know renderpasses up
+     * front
+     * @param views framebuffers provide the actual image views that will serve
+     * as attachments to the renderpass handle
+     * @param extent are for framebuffers to pass in frame image views to the
+     * screen. Should be the size of the window viewport specified
+     */
+    struct framebuffer_settings {
+        VkRenderPass renderpass = nullptr;
+        std::span<VkImageView> views;
+        VkExtent2D extent;
     };
 
     /**
@@ -263,10 +279,10 @@ namespace vk {
         present_src_khr = 5, // VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
     };
 
-    enum class format : uint64_t {
-        rgb32_sfloat, // Represent R32G32B32_SFLOAT
-        rg32_sfloat,  // Represent R32G32_SFLOAT
-    };
+    // enum class format : uint64_t {
+    //     rgb32_sfloat, // Represent R32G32B32_SFLOAT
+    //     rg32_sfloat,  // Represent R32G32_SFLOAT
+    // };
 
     enum buffer : uint8_t {
         uniform = 0,
@@ -458,5 +474,26 @@ namespace vk {
         rdma_capable_bit_nv = 0x80,
         flag_bits_max_enum = 0x7f
     };
+
+    enum class shader_stage {
+        vertex,
+        fragment,
+        compute,
+        undefined
+    };
+
+    //! @brief high-level specification for a shader source
+    struct shader_source {
+        std::string filename;
+        shader_stage stage=shader_stage::undefined;
+    };
+
+    //! @brief Represent the vulkan shader module that will get utilized by VkPipeline
+    struct shader_handle {
+        VkShaderModule module = nullptr;
+        shader_stage stage=shader_stage::undefined;
+    };
+
+
 
 };
