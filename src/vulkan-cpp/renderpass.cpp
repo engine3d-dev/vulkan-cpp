@@ -103,8 +103,6 @@ namespace vk {
         if (p_enable_subpasses) {
             subpasses = { subpass_description };
         }
-        else {
-        }
 
         VkRenderPassCreateInfo renderpass_ci = {
             .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,

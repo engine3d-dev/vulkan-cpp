@@ -615,4 +615,26 @@ namespace vk {
         }
         return false;
     }
+
+    VkShaderStageFlagBits to_shader_stage(const shader_stage& p_stage) {
+        switch (p_stage) {
+            case shader_stage::vertex:
+                return VK_SHADER_STAGE_VERTEX_BIT;
+            case shader_stage::fragment:
+                return VK_SHADER_STAGE_FRAGMENT_BIT;
+            default:
+                return (VkShaderStageFlagBits)0;
+        }
+    }
+
+    VkFormat to_format(const format& p_format) {
+        switch (p_format) {
+            case format::rg32_sfloat:
+                return VK_FORMAT_R32G32_SFLOAT;
+            case format::rgb32_sfloat:
+                return VK_FORMAT_R32G32B32A32_SFLOAT;
+            default:
+                return VK_FORMAT_UNDEFINED;
+        }
+    }
 }

@@ -132,4 +132,8 @@ namespace vk {
 	
 	// TODO: Use this to do bitwise checks rather then; since this only does switch-case statement checks
 	VkMemoryPropertyFlags to_memory_property_flags(memory_property p_flag);
+
+	VkShaderStageFlagBits to_shader_stage(const shader_stage& p_stage);
+
+  VkFormat to_format(const format& p_format);
 };

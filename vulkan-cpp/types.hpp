@@ -7,7 +7,16 @@
 
 namespace vk {
     // Alias for VkFormat
-    using format = VkFormat;
+    // using format = VkFormat;
+    // enum format {
+    //     rgb32_sfloat = VK_FORMAT_R32G32B32_SFLOAT,
+    //     rg32_sfloat = VK_FORMAT_R32G32_SFLOAT
+    // };
+
+    enum format {
+        rgb32_sfloat = VK_FORMAT_R32G32B32_SFLOAT,
+        rg32_sfloat = VK_FORMAT_R32G32_SFLOAT
+    };
 
     /**
      * @brief message sevierity explicitly to max size of a byte
@@ -492,6 +501,19 @@ namespace vk {
     struct shader_handle {
         VkShaderModule module = nullptr;
         shader_stage stage=shader_stage::undefined;
+    };
+
+    struct vertex_attribute_entry {
+        uint32_t location;
+        format format;
+        uint32_t stride;
+    };
+
+    struct vertex_attribute {
+        uint32_t binding;
+        std::span<vertex_attribute_entry> entries;
+        uint32_t stride;
+        input_rate input_rate;
     };
 
 

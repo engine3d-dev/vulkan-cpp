@@ -11,6 +11,9 @@ set(
     vulkan-cpp/device_present_queue.cpp
     vulkan-cpp/command_buffer.cpp
     vulkan-cpp/renderpass.cpp
+    vulkan-cpp/framebuffer.cpp
+    vulkan-cpp/shader_resource.cpp
+    vulkan-cpp/pipeline.cpp
 )
 
 add_library(${PROJECT_NAME} ${all_src})
