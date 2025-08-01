@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.27)
 project(vulkan-cpp CXX)
 
 build_library(
-    DIRECTORIES src demos/11-depth-buffering
+    DIRECTORIES src demos/12-loading-models
     ENABLE_TESTS OFF
 
     PACKAGES
@@ -12,6 +12,7 @@ build_library(
     VulkanHeaders
     glm
     stb
+    tinyobjloader
 
     LINK_PACKAGES
     glfw
@@ -20,6 +21,7 @@ build_library(
     vulkan-headers::vulkan-headers
     glm::glm
     stb::stb
+    tinyobjloader::tinyobjloader
 )
 
 generate_compile_commands()
