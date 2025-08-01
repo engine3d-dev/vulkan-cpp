@@ -15,6 +15,8 @@ set(
     vulkan-cpp/shader_resource.cpp
     vulkan-cpp/pipeline.cpp
     vulkan-cpp/vertex_buffer.cpp
+    vulkan-cpp/index_buffer.cpp
+    vulkan-cpp/uniform_buffer.cpp
 )
 
 add_library(${PROJECT_NAME} ${all_src})

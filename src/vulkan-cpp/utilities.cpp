@@ -803,6 +803,16 @@ namespace vk {
         vkUnmapMemory(p_device, p_buffer.device_memory);
     }
 
+    void write(const VkDevice& p_device, const buffer_handle& p_buffer, const std::span<uint32_t>& p_in_buffer) {
+        VkDeviceSize buffer_size = p_in_buffer.size_bytes();
+        void* mapped = nullptr;
+        vk_check(vkMapMemory(
+                   p_device, p_buffer.device_memory, 0, buffer_size, 0, &mapped),
+                 "vkMapMemory");
+        memcpy(mapped, p_in_buffer.data(), buffer_size);
+        vkUnmapMemory(p_device, p_buffer.device_memory);
+    }
+
     VkCommandPool create_single_command_pool(const VkDevice& p_device, uint32_t p_queue_family_index) {
         // uint32_t graphics_queue_index = physical.read_queue_family_indices().graphics;
         VkCommandPoolCreateInfo pool_ci = {

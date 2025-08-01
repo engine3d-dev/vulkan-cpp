@@ -583,6 +583,16 @@ namespace vk {
         std::span<vertex_input> vertices;
     };
 
+    struct index_buffer_info {
+        VkPhysicalDevice physical_handle=nullptr;
+        std::span<uint32_t> indices;
+    };
+
+    struct uniform_buffer_info {
+        VkPhysicalDevice physical_handle=nullptr;
+        uint32_t size_bytes=0;
+    };
+
 
 
 };
