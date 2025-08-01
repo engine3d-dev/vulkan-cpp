@@ -1,10 +1,9 @@
 #include <array>
 #include <print>
 
+// This is required to select the correct extension for specific platform
 #include <vulkan-cpp/imports.hpp>
 
-#define FMT_HEADER_ONLY
-#include <fmt/format.h>
 #include <vulkan-cpp/utilities.hpp>
 #include <vulkan-cpp/instance.hpp>
 #include <vulkan-cpp/physical_device.hpp>
@@ -68,12 +67,12 @@ int
 main() {
     //! @note Just added the some test code to test the conan-starter setup code
     if (!glfwInit()) {
-        fmt::print("glfwInit could not be initialized!\n");
+        std::println("glfwInit could not be initialized!");
         return -1;
     }
 
     if (!glfwVulkanSupported()) {
-        std::print("GLFW: Vulkan is not supported!");
+        std::println("GLFW: Vulkan is not supported!");
         return -1;
     }
 
@@ -209,9 +208,10 @@ main() {
         vk::swapchain_image_enumeration enumerate_image_properties = {
             .image = images[i],
             .format = surface_properties.format.format,
-            .aspect = VK_IMAGE_ASPECT_COLOR_BIT,
+            // .aspect = VK_IMAGE_ASPECT_COLOR_BIT,
+            .aspect = vk::image_aspect_flags::color_bit,
             .layer_count = 1,
-            .mip_levels = 1
+            .mip_levels = mip_levels
         };
         swapchain_images[i] =
           create_image2d_view(logical_device, enumerate_image_properties);
@@ -238,9 +238,9 @@ main() {
     std::vector<vk::command_buffer> swapchain_command_buffers(image_count);
     for (size_t i = 0; i < swapchain_command_buffers.size(); i++) {
         vk::command_enumeration settings = {
-            enumerate_swapchain_settings.present_index,
-            vk::command_levels::primary,
-            vk::command_pool_flags::reset
+            .levels = vk::command_levels::primary,
+            .queue_index = enumerate_swapchain_settings.present_index,
+            .flags = vk::command_pool_flags::reset,
         };
 
         swapchain_command_buffers[i] =
@@ -302,32 +302,6 @@ main() {
 		swapchain_framebuffers[i] = vk::framebuffer(logical_device, framebuffer_info);
 	}
 
-	// std::vector<VkFramebuffer> swapchain_framebuffers(image_count);
-    // for (uint32_t i = 0; i < swapchain_framebuffers.size(); i++) {
-    //     std::vector<VkImageView> image_view_attachments;
-    //     image_view_attachments.push_back(swapchain_images[i].view);
-    //     image_view_attachments.push_back(swapchain_depth_images[i].view);
-
-    //     VkFramebufferCreateInfo framebuffer_ci = {
-    //         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-    //         .pNext = nullptr,
-    //         .flags = 0,
-    //         .renderPass = main_renderpass,
-    //         .attachmentCount =
-    //           static_cast<uint32_t>(image_view_attachments.size()),
-    //         .pAttachments = image_view_attachments.data(),
-    //         .width = swapchain_extent.width,
-    //         .height = swapchain_extent.height,
-    //         .layers = 1
-    //     };
-
-    //     vk::vk_check(vkCreateFramebuffer(logical_device,
-    //                                      &framebuffer_ci,
-    //                                      nullptr,
-    //                                      &swapchain_framebuffers[i]),
-    //                  "vkCreateFramebuffer");
-    // }
-
     std::println("Created VkFramebuffer's with size = {}",
                  swapchain_framebuffers.size());
 
@@ -344,14 +318,7 @@ main() {
 
 	std::println("Start implementing graphics pipeline!!!");
 
-	// Now creating a vulkan graphics pipeline to render stuff to the screen
-	/*
-		// setting up vk::shader_resource
-		// Setting up vk::pipeline_settings
-	*/
-
-	// setting up shader sources
-
+	// Now creating a vulkan graphics pipeline for the shader loading
 	std::array<vk::shader_source, 2> shader_sources = {
 		vk::shader_source{
 			.filename = "shader_samples/test.vert.spv",
@@ -363,9 +330,10 @@ main() {
 		},
 	};
 
+    // To render triangle, we do not need to set any vertex attributes
 	vk::shader_resource_info shader_info = {
 		.sources = shader_sources,
-		.vertex_attributes = {} // since we only want to get a triangle, we are indicating there is not vertex attributes to set
+		.vertex_attributes = {} // this is to explicitly set to none, but also dont need to set this at all regardless
 	};
 	vk::shader_resource geometry_resource(logical_device, shader_info);
 
@@ -409,9 +377,11 @@ main() {
         };
         main_renderpass.begin(begin_renderpass);
 
-		// Binding a graphics pipeline
+		// Binding a graphics pipeline -- before drawing stuff
+		// Inside of this graphics pipeline bind, is where you want to do the drawing stuff to
 		main_graphics_pipeline.bind(current);
 
+        // Drawing-call to render actual triangle to the screen
 		vkCmdDraw(current, 3, 1, 0, 0);
 
         main_renderpass.end(current);
@@ -433,9 +403,6 @@ main() {
         command.destroy();
     }
 
-    // for (auto& fb : swapchain_framebuffers) {
-    //     vkDestroyFramebuffer(logical_device, fb, nullptr);
-    // }
 	for (auto& fb : swapchain_framebuffers) {
 		fb.destroy();
 	}
