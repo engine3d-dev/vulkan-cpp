@@ -27,6 +27,7 @@ class VulkanCpp(ConanFile):
         self.requires("imguidocking/2.0")
         self.requires("glm/1.0.1")
         self.requires("stb/cci.20230920")
+        self.requires("tinyobjloader/2.0.0-rc10")
     
     # This is how exporting the sources work
     def export_sources(self):

@@ -13,9 +13,9 @@ namespace vk {
         vertex_buffer() = default;
         vertex_buffer(const VkDevice& p_device, const vertex_buffer_info& p_vertices);
 
-        [[nodiscard]] uint32_t size_bytes() const;
+        [[nodiscard]] uint32_t size_bytes() const { return m_size_bytes; }
 
-        [[nodiscard]] uint32_t size() const;
+        [[nodiscard]] uint32_t size() const { return m_size; }
 
         [[nodiscard]] bool alive() const { return m_vertex_buffer.handle; }
 
