@@ -18,7 +18,6 @@
 
 #include <vulkan-cpp/shader_resource.hpp>
 #include <vulkan-cpp/pipeline.hpp>
-#include <vulkan-cpp/vertex_buffer.hpp>
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 debug_callback(
@@ -239,9 +238,9 @@ main() {
     std::vector<vk::command_buffer> swapchain_command_buffers(image_count);
     for (size_t i = 0; i < swapchain_command_buffers.size(); i++) {
         vk::command_enumeration settings = {
-            .levels = vk::command_levels::primary,
-            .queue_index = enumerate_swapchain_settings.present_index,
-            .flags = vk::command_pool_flags::reset,
+            enumerate_swapchain_settings.present_index,
+            vk::command_levels::primary,
+            vk::command_pool_flags::reset
         };
 
         swapchain_command_buffers[i] =
@@ -320,14 +319,13 @@ main() {
 	std::println("Start implementing graphics pipeline!!!");
 
 	// Now creating a vulkan graphics pipeline for the shader loading
-    // We are using sample1 shaders which is just showing a triangle
 	std::array<vk::shader_source, 2> shader_sources = {
 		vk::shader_source{
-			.filename = "shader_samples/sample1/test.vert.spv",
+			.filename = "shader_samples/test.vert.spv",
 			.stage = vk::shader_stage::vertex
 		},
 		vk::shader_source{
-			.filename = "shader_samples/sample1/test.frag.spv",
+			.filename = "shader_samples/test.frag.spv",
 			.stage = vk::shader_stage::fragment
 		},
 	};
@@ -360,30 +358,39 @@ main() {
 		std::println("Main graphics pipeline alive() = {}", main_graphics_pipeline.alive());
 	}
 
-
-    // Setting up vertex buffer
-    std::array<vk::vertex_input, 2> vertices = {
-        vk::vertex_input{
-            {1.f, 1.f},
-            {1.f, 1.f, 1.f},
-            {1.f, 1.f, 1.f},
-            {1.f, 1.f},
-        },
-        vk::vertex_input{
-            {1.f, 1.f},
-            {1.f, 1.f, 1.f},
-            {1.f, 1.f, 1.f},
-            {1.f, 1.f},
-        }
+    // NOTE: THis is for testing to see how to setup secondary command buffers for imgui-specifically
+    /*
+        Notes for self -- am going to try to consider this with the API's
+    */
+    /*
+    VkCommandBufferBeginInfo imgui_cmd_buffer_begin_info = {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT | VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT
     };
-    vk::vertex_buffer_info vertex_info = {
-        .physical_handle = physical_device,
-        .vertices = vertices,
-    };
-    vk::vertex_buffer test_vbo(logical_device, vertex_info);
 
-    if(test_vbo.alive()) {
-        std::println("Vertex Buffer Successfully is valid and working!!!");
+    // Gets assigned to VkCommandBufferBeginInfo
+    VkCommandBufferInheritanceInfo cmd_buffer_inherit_info = {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO,
+        .pNext = nullptr,
+        .renderPass = main_renderpass,
+        .subpass = 0,
+        .framebuffer = nullptr,
+    };
+
+    // Assigned here
+    imgui_cmd_buffer_begin_info.pInheritanceInfo = &cmd_buffer_inherit_info;
+    */
+
+    // TODO -- Add this support to vk::command_buffer for preparing for applying secondary command buffers
+    uint32_t usage_flags = uint32_t(vk::command_usage::one_time_submit | vk::command_usage::renderpass_continue_bit);
+    vk::command_usage usage = (vk::command_usage)usage_flags;
+
+    if(usage & vk::command_usage::one_time_submit) {
+        std::println("bitwise and'd vk::command_usage::one_time_submit");
+    }
+
+    if(usage & vk::command_usage::renderpass_continue_bit) {
+        std::println("bitwise and'd vk::command_usage::renderpass_continue_bit");
     }
 
 
@@ -427,8 +434,6 @@ main() {
     logical_device.wait();
     main_swapchain.destroy();
 
-    test_vbo.destroy();
-
     for (auto& command : swapchain_command_buffers) {
         command.destroy();
     }
@@ -458,3 +463,22 @@ main() {
     api_instance.destroy();
     return 0;
 }
+
+
+
+/*
+
+std::vector<vk::command_buffer> imgui_command_buffers(frames_in_flight);
+
+for(size_t i = 0; i < imgui_command_buffers.size(); i++) {
+    vk::command_enumeration settings = {
+        enumerate_swapchain_settings.present_index,
+        vk::command_levels::secondary,
+        vk::command_pool_flags::reset
+    };
+
+    imgui_command_buffers[i] = vk::command_buffer()
+}
+
+
+*/

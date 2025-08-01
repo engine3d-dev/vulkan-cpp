@@ -321,11 +321,11 @@ main() {
 	// Now creating a vulkan graphics pipeline for the shader loading
 	std::array<vk::shader_source, 2> shader_sources = {
 		vk::shader_source{
-			.filename = "shader_samples/test.vert.spv",
+			.filename = "shader_samples/sample1/test.vert.spv",
 			.stage = vk::shader_stage::vertex
 		},
 		vk::shader_source{
-			.filename = "shader_samples/test.frag.spv",
+			.filename = "shader_samples/sample1/test.frag.spv",
 			.stage = vk::shader_stage::fragment
 		},
 	};
