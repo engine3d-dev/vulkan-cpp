@@ -486,7 +486,7 @@ main() {
     // Loading a texture -- for testing
     vk::texture_info config_texture = {
         .physical = physical_device,
-        .filepath = std::filesystem::path("texture_samples/container_diffuse.png")
+        .filepath = std::filesystem::path("asset_samples/container_diffuse.png")
     };
     vk::texture texture1(logical_device, config_texture);
 
