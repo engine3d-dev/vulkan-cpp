@@ -209,6 +209,7 @@ namespace vk {
 	void copy(const VkCommandBuffer& p_command_buffer, const sampled_image& p_image, const buffer_handle& p_buffer, uint32_t p_width, uint32_t p_height);
 	
 	/**
+	 * @brief Returns a new created VkImageView handle
 	 * @param p_device logical device for creating VkImageView handle
 	 * @param p_image to create image view handle from
 	 * @param p_format specify image format to create VkImageView with
