@@ -47,7 +47,7 @@ namespace vk {
 
         void bind(const VkCommandBuffer& p_current, uint32_t p_frame_idx, const VkPipelineLayout& p_layout);
 
-        void update(const std::span<uniform_buffer>& p_uniforms);
+        void update(const std::span<uniform_buffer>& p_uniforms, const std::span<sampled_image>& p_texture_image_handles={});
 
         [[nodiscard]] VkDescriptorSetLayout layout() const { return m_descriptor_layout; }
 

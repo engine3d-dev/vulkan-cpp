@@ -72,14 +72,30 @@ namespace vk {
         vk_check(vkAllocateDescriptorSets(m_device,&descriptor_set_alloc_info,m_descriptor_sets.data()), "vkAllocateDescriptorSets");
     }
 
-    void descriptor_resource::update(const std::span<uniform_buffer>& p_uniforms) {
+    void descriptor_resource::update(const std::span<uniform_buffer>& p_uniforms, const std::span<sampled_image>& p_texture_image_handles) {
         std::vector<VkDescriptorBufferInfo> buffer_infos;
+        std::vector<VkDescriptorImageInfo> image_infos;
 
         for(const auto& uniform : p_uniforms) {
             // uniform, offste, and range
             buffer_infos.emplace_back(uniform, 0, p_uniforms.size_bytes());
         }
 
+        for(const auto& sample_image : p_texture_image_handles) {
+            // VkSampler, VkImageView, VkImageLayout
+            image_infos.emplace_back(sample_image.sampler, sample_image.view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        }
+
+        /*
+        
+            vk::write_descriptor set0_writes = {
+                .dst_binding = 0,
+                .uniforms = some_uniform, // std::span<vk::uniform_buffer>
+                // or
+                .image_uniforms = some_image_uniform // std::span<vk::texture> or std::span<vk::image_handle> or std::span<vk::image_source>
+            };
+        
+        */
         for (size_t i = 0; i < m_descriptor_sets.size(); i++) {
             std::vector<VkWriteDescriptorSet> write_descriptors;
             VkWriteDescriptorSet write_buffer{
@@ -95,18 +111,22 @@ namespace vk {
 
             write_descriptors.push_back(write_buffer);
 
-            // VkWriteDescriptorSet write_image{
-            //     .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            //     .pNext = nullptr,
-            //     .dstSet = m_descriptor_sets[i],
-            //     .dstBinding = 1,
-            //     .dstArrayElement = 0,
-            //     .descriptorCount = static_cast<uint32_t>(image_infos.size()),
-            //     .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            //     .pImageInfo = image_infos.data()
-            // };
+            // TODO: Probably have this handle no textures bit better...
+            // For now this'll check if there are any textures, if not. Then do not add anything to writable textures
+            if(!p_texture_image_handles.empty()) {
+                VkWriteDescriptorSet write_image{
+                    .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                    .pNext = nullptr,
+                    .dstSet = m_descriptor_sets[i],
+                    .dstBinding = 1,
+                    .dstArrayElement = 0,
+                    .descriptorCount = static_cast<uint32_t>(image_infos.size()),
+                    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                    .pImageInfo = image_infos.data()
+                };
 
-            // write_descriptors.push_back(write_image);
+                write_descriptors.push_back(write_image);
+            }
 
             vkUpdateDescriptorSets(
               m_device,

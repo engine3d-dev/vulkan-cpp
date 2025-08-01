@@ -813,6 +813,17 @@ namespace vk {
         vkUnmapMemory(p_device, p_buffer.device_memory);
     }
 
+    void write(const VkDevice& p_device, const buffer_handle& p_buffer, const void* p_data, size_t p_size_in_bytes) {
+        void* mapped = nullptr;
+        vk_check(
+          vkMapMemory(
+            p_device, p_buffer.device_memory, 0, p_size_in_bytes, 0, &mapped),
+          "vkMapMemory");
+
+        memcpy(mapped, p_data, p_size_in_bytes);
+        vkUnmapMemory(p_device, p_buffer.device_memory);
+    }
+
     VkCommandPool create_single_command_pool(const VkDevice& p_device, uint32_t p_queue_family_index) {
         // uint32_t graphics_queue_index = physical.read_queue_family_indices().graphics;
         VkCommandPoolCreateInfo pool_ci = {
@@ -888,5 +899,321 @@ namespace vk {
         }
     }
 
+    sampled_image create_sample_image2d(const VkDevice& p_device, const image_configuration& p_config) {
+        VkImageCreateInfo image_ci = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .imageType = VK_IMAGE_TYPE_2D,
+            .format = p_config.format,
+            .extent = { .width = p_config.width, .height = p_config.height, .depth = 1 },
+            .mipLevels = p_config.mip_levels,
+            .arrayLayers = p_config.array_layers,
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .tiling = VK_IMAGE_TILING_OPTIMAL,
+            .usage = p_config.usage,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+            .queueFamilyIndexCount = 0,
+            .pQueueFamilyIndices = nullptr,
+            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
+        };
+
+        // 1. creating the VkImage handle
+        sampled_image new_image{};
+        vk_check(vkCreateImage(p_device, &image_ci, nullptr, &new_image.image),"vkCreateImage");
+        
+        // 2. retrieve memory requirements with that image
+        if(p_config.physical_device == nullptr) {
+            throw std::runtime_error("Cannot utilize physical device -- not specified!!!");
+        }
+        VkMemoryRequirements memory_requirements;
+        vkGetImageMemoryRequirements(p_device, new_image.image, &memory_requirements);
+        uint32_t image_requirement_index= select_memory_requirements(p_config.physical_device, memory_requirements, p_config.property);
+
+        // 4. Allocate info
+        VkMemoryAllocateInfo memory_alloc_info = {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+            .pNext = nullptr,
+            .allocationSize = memory_requirements.size,
+            .memoryTypeIndex = image_requirement_index
+        };
+
+        vk_check(vkAllocateMemory(
+                   p_device, &memory_alloc_info, nullptr, &new_image.device_memory),
+                 "vkAllocateMemory");
+
+        // 5. bind image memory
+        vk_check(vkBindImageMemory(p_device, new_image.image, new_image.device_memory, 0),"vkBindImageMemory");
+        
+        return new_image;
+    }
+
+    int bytes_per_texture_format(VkFormat p_format) {
+        switch (p_format) {
+            case VK_FORMAT_R8_SINT:
+            case VK_FORMAT_R8_UNORM:
+                return 1;
+            case VK_FORMAT_R16_SFLOAT:
+                return 2;
+            case VK_FORMAT_R16G16_SFLOAT:
+            case VK_FORMAT_B8G8R8A8_UNORM:
+            case VK_FORMAT_R8G8B8A8_UNORM:
+                return 4;
+            case VK_FORMAT_R16G16B16A16_SFLOAT:
+                return 4 * sizeof(uint16_t);
+            case VK_FORMAT_R32G32B32A32_SFLOAT:
+                return 4 * sizeof(float);
+            case VK_FORMAT_R8G8B8A8_SRGB:
+                return 4 * sizeof(uint8_t);
+            default:
+                return 0;
+        }
+
+        return 0;
+    }
+
+    bool has_stencil_attachment(VkFormat p_format) {
+        return ((p_format == VK_FORMAT_D32_SFLOAT_S8_UINT) ||
+                (p_format == VK_FORMAT_D24_UNORM_S8_UINT));
+    }
+
+    void image_memory_barrier(const VkCommandBuffer& p_command_buffer,
+                              VkImage& p_image,
+                              VkFormat p_format,
+                              VkImageLayout p_old,
+                              VkImageLayout p_new) {
+        VkImageMemoryBarrier image_memory_barrier = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = 0,
+            .dstAccessMask = 0,
+            .oldLayout = p_old,
+            .newLayout = p_new,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = p_image,
+            .subresourceRange = { .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                                  .baseMipLevel = 0,
+                                  .levelCount = 1,
+                                  .baseArrayLayer = 0,
+                                  .layerCount = 1 }
+        };
+
+        VkPipelineStageFlags source_stage;
+        VkPipelineStageFlags dst_stages;
+
+        if (p_new == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL ||
+            (p_format == VK_FORMAT_D16_UNORM) ||
+            (p_format == VK_FORMAT_X8_D24_UNORM_PACK32) ||
+            (p_format == VK_FORMAT_D32_SFLOAT) ||
+            (p_format == VK_FORMAT_S8_UINT) ||
+            (p_format == VK_FORMAT_D16_UNORM_S8_UINT) ||
+            (p_format == VK_FORMAT_D24_UNORM_S8_UINT)) {
+            image_memory_barrier.subresourceRange.aspectMask =
+              VK_IMAGE_ASPECT_DEPTH_BIT;
+
+            if (has_stencil_attachment(p_format)) {
+                image_memory_barrier.subresourceRange.aspectMask |=
+                  VK_IMAGE_ASPECT_STENCIL_BIT;
+            }
+        }
+        else {
+            image_memory_barrier.subresourceRange.aspectMask =
+              VK_IMAGE_ASPECT_COLOR_BIT;
+        }
+
+        if (p_old == VK_IMAGE_LAYOUT_UNDEFINED &&
+            p_new == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+            image_memory_barrier.srcAccessMask = 0;
+            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+            source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        }
+        else if (p_old == VK_IMAGE_LAYOUT_UNDEFINED &&
+                 p_new == VK_IMAGE_LAYOUT_GENERAL) {
+            image_memory_barrier.srcAccessMask = 0;
+            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+            source_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        }
+
+        if (p_old == VK_IMAGE_LAYOUT_UNDEFINED &&
+            p_new == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+            image_memory_barrier.srcAccessMask = 0;
+            image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+            source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            dst_stages = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        } // Convert back from read-only to updateable
+        else if (p_old == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL &&
+                 p_new == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+            image_memory_barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+            image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+            source_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            dst_stages = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        } // Convert from updateable texture to shader read-only
+        else if (p_old == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
+                 p_new == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+            image_memory_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+            source_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        } // Convert depth texture from undefined state to depth-stencil buffer
+        else if (p_old == VK_IMAGE_LAYOUT_UNDEFINED &&
+                 p_new == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+            image_memory_barrier.srcAccessMask = 0;
+            image_memory_barrier.dstAccessMask =
+              VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+              VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+            source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            dst_stages = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        } // Wait for render pass to complete
+        else if (p_old == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL &&
+                 p_new == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+            image_memory_barrier.srcAccessMask =
+              0; // VK_ACCESS_SHADER_READ_BIT;
+            image_memory_barrier.dstAccessMask = 0;
+            source_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            dst_stages = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
+            dst_stages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+            source_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        } // Convert back from read-only to color attachment
+        else if (p_old == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL &&
+                 p_new == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
+            image_memory_barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+            image_memory_barrier.dstAccessMask =
+              VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+            source_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            dst_stages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        } // Convert from updateable texture to shader read-only
+        else if (p_old == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL &&
+                 p_new == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+            image_memory_barrier.srcAccessMask =
+              VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+            source_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        } // Convert back from read-only to depth attachment
+        else if (p_old == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL &&
+                 p_new == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+            image_memory_barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+            image_memory_barrier.dstAccessMask =
+              VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+            source_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            dst_stages = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+        } // Convert from updateable depth texture to shader read-only
+        else if (p_old == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL &&
+                 p_new == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+            image_memory_barrier.srcAccessMask =
+              VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+            source_stage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        }
+
+        vkCmdPipelineBarrier(p_command_buffer,
+                             source_stage,
+                             dst_stages,
+                             0,
+                             0,
+                             nullptr,
+                             0,
+                             nullptr,
+                             1,
+                             &image_memory_barrier);
+    }
+
+    void transition_image_layout(VkCommandBuffer& p_command, sampled_image& p_image, VkImageLayout p_old, VkImageLayout p_new, VkFormat p_format, const VkQueue& p_to_offload_queue) {
+        /*
+        command_buffer_settings properties = {
+            0,
+            command_buffer_levels::primary,
+            VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+        };
+
+        vk_command_buffer temp_copy_command_buffer =
+          vk_command_buffer(properties);
+
+        temp_copy_command_buffer.begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+        */
+
+        // 1. image memory barrier
+        // VkCommandBuffer handle = temp_copy_command_buffer;
+        image_memory_barrier(p_command, p_image.image, p_format, p_old, p_new);
+
+        // submit one copy
+        /*
+        temp_copy_command_buffer.end();
+
+        VkCommandBuffer buffer = temp_copy_command_buffer;
+
+        VkSubmitInfo submit_info = {
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .commandBufferCount = 1,
+            .pCommandBuffers = &buffer,
+        };
+
+        vkQueueSubmit(p_to_offload_queue, 1, &submit_info, nullptr);
+        vkQueueWaitIdle(p_to_offload_queue);
+
+        temp_copy_command_buffer.destroy();
+        */
+    }
+
+    void copy(const VkCommandBuffer& p_command_buffer, const sampled_image& p_image_handle, const buffer_handle& p_buffer, uint32_t p_width, uint32_t p_height) {
+        VkBufferImageCopy buffer_image_copy = {
+            .bufferOffset = 0,
+            .bufferRowLength = 0,
+            .bufferImageHeight = 0,
+            .imageSubresource = { .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                                  .mipLevel = 0,
+                                  .baseArrayLayer = 0,
+                                  .layerCount = 1 },
+            .imageOffset = { .x = 0, .y = 0, .z = 0 },
+            .imageExtent = { .width = p_width, .height = p_height, .depth = 1 }
+        };
+
+        vkCmdCopyBufferToImage(p_command_buffer,
+                               p_buffer.handle,
+                               p_image_handle.image,
+                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                               1,
+                               &buffer_image_copy);
+    }
+
+    VkImageView create_image2d_view(const VkDevice& p_device, const VkImage& p_image, VkFormat p_format, VkImageAspectFlags p_aspect_flags) {
+        VkImageViewCreateInfo view_info = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .image = p_image,
+            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            .format = p_format,
+            .components = { .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                            .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                            .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                            .a = VK_COMPONENT_SWIZZLE_IDENTITY },
+            .subresourceRange = { .aspectMask = p_aspect_flags,
+                                  .baseMipLevel = 0,
+                                  .levelCount = 1,
+                                  .baseArrayLayer = 0,
+                                  .layerCount = 1 }
+        };
+
+        VkImageView image_view = nullptr;
+        vk_check(vkCreateImageView(p_device, &view_info, nullptr, &image_view), "vkCreateImageView");
+
+        return image_view;
+    }
 
 }

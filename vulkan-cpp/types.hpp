@@ -540,8 +540,8 @@ namespace vk {
     struct vertex_input {
         glm::vec2 position;
         glm::vec3 color;
-        glm::vec3 normals;
         glm::vec2 uv;
+        glm::vec3 normals;
 
         bool operator==(const vertex_input& other) const {
             return position == other.position and color == other.color and
@@ -605,6 +605,19 @@ namespace vk {
         descriptor_binding_point binding_point;
         uint32_t descriptor_count;
     };
+
+    //! @brief vulkan-specification for creation of VkImage/VkImageView
+    struct image_configuration {
+		uint32_t width;
+		uint32_t height;
+		VkFormat format;
+        uint32_t mip_levels=1;
+        uint32_t array_layers=1;
+		VkImageUsageFlags usage;
+		// VkMemoryPropertyFlagBits property;
+        memory_property property;
+        VkPhysicalDevice physical_device=nullptr;
+	};
 
 
 };

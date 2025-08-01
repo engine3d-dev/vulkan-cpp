@@ -167,6 +167,9 @@ namespace vk {
      */
     void write(const VkDevice& p_device, const buffer_handle& p_buffer,
                const std::span<vertex_input>& p_in_buffer);
+		
+	//! @brief Maps to the buffer handle some arbitrary data
+	void write(const VkDevice& p_device, const buffer_handle& p_buffer, const void* p_data, size_t p_size_in_bytes);
 	
 	//! @brief Copies from one buffer source into another buffer source with a
     //! specific size of bytes to be stored the buffer that is being copied to
@@ -178,5 +181,40 @@ namespace vk {
     //! shader resource is acecssing
     VkDescriptorType to_descriptor_type(const buffer& p_type);
 
-	// VkShaderStageFlags to_shader_stage(const shader_stage& p_stage);
+    //! @brief Returns vk::sample_image which contains the VkImage, VkImage, and VKSampler handlers
+    //! with image 2D specifications
+    sampled_image create_sample_image2d(const VkDevice& p_device, const image_configuration& p_config);
+
+	//! @brief passes a vulkan format
+	//! @return the amount of bytes per vulkan format specification
+	int bytes_per_texture_format(VkFormat p_format);
+
+	/**
+	 * @brief image_memory_barrier is the operation to do when transitioning an image layout
+	 * @param p_command_buffer command buffer must be in record mode beforehand when doing image memory barriers
+	 * @param p_image requires an image to transition the image layout
+	 * @param p_format formst of the image being passed
+	 * @param p_old is the src image layout being transitioned of the spcified image
+	 * @param p_new is the dst image layout to transition image into
+	*/
+	void image_memory_barrier(const VkCommandBuffer& p_command_buffer, VkImage& p_image, VkFormat p_format, VkImageLayout p_old, VkImageLayout p_new);
+
+	/**
+	 * @param p_command_buffer command buffer must be in record mode beforehand when copying command buffer
+	 * @param  p_image the image to copy data to
+	 * @param p_buffer is the buffer handle to copy data from, to the image
+	 * @param p_width is the width of the image
+	 * @param p_height is the height of the image
+	*/
+	void copy(const VkCommandBuffer& p_command_buffer, const sampled_image& p_image, const buffer_handle& p_buffer, uint32_t p_width, uint32_t p_height);
+	
+	/**
+	 * @param p_image is the image to transition between one image layout to a different image layout
+	 * @param  VkQueue is to specify the queue handler to submit this texture to GPU memory
+	 * @param p_command is a temporary command buffer to contain the texture as a command that gets submitted to VkQueue specified parameter
+	*/
+	// void transition_image_layout(VkCommandBuffer& p_command, sampled_image& p_image, VkImageLayout p_old, VkImageLayout p_new, VkFormat p_format, const VkQueue& p_to_offload_queue);
+
+	VkImageView create_image2d_view(const VkDevice& p_device, const VkImage& p_image, VkFormat p_format, VkImageAspectFlags p_aspect_flags);
+
 };
