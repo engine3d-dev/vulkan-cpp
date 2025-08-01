@@ -382,7 +382,7 @@ main() {
 		std::println("geometry resource is valid!");
 	}
 
-    // Setting up descriptor sets for graphics pipeline
+    // Setting up descriptor entries for descriptor set 0
     std::vector<vk::descriptor_entry> entries = {
     vk::descriptor_entry{
             // specifies "layout (set = 0, binding = 0) uniform GlobalUbo"
@@ -394,7 +394,8 @@ main() {
             .descriptor_count = 1,
         }
     };
-    // uint32_t image_count = image_count;
+
+    // Setting up descriptor set layout for the set0
     vk::descriptor_layout set0_layout = {
         .slot = 0, // indicate that this is descriptor set 0
         .allocate_count = image_count, // the count how many descriptor
@@ -403,8 +404,11 @@ main() {
         .size_bytes = sizeof(global_uniform), // size of bytes of the uniforms utilized by this descriptor sets
         .entries = entries,      // specifies pool sizes and descriptor layout
     };
+
+    // Setting up the actual descriptor set 0 and array to pass into the graphics pipeline since graphics pipeline requires the descriptor layouts to be known upfront
     vk::descriptor_resource set0_resource(logical_device, set0_layout);
 
+    // Array of descriptor layouts to give the graphics pipeline
     std::array<VkDescriptorSetLayout, 1> layouts = {
         set0_resource.layout()
     };
@@ -453,11 +457,10 @@ main() {
     vk::index_buffer test_ibo(logical_device, index_info);
     std::println("index_buffer.alive() = {}", test_ibo.alive());
 
-    // Dummy uniform struct just for testing if update works when mapping some data
-    // camera_ubo global_ubo = {};
-    // test_ubo.update(&global_ubo);
 
-    // Setting up descriptor sets for handling uniforms
+    // Setting up our uniformss specifications and updating descriptor set 0 -- with our global uniform data before we bind
+    // This has to be done before we bind so the shader resource knows how to look up our data layout and see if they match
+    // Will get validation layer error messages if the data layout does not match (meaning size_bytes doesn't match)
     vk::uniform_buffer_info test_ubo_info = {
         .physical_handle = physical_device,
         .size_bytes = sizeof(global_uniform)
