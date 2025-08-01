@@ -25,6 +25,7 @@ class VulkanCpp(ConanFile):
         self.requires("spdlog/1.15.1")
         self.requires("opengl/system")
         self.requires("imguidocking/2.0")
+        self.requires("glm/1.0.1")
     
     # This is how exporting the sources work
     def export_sources(self):

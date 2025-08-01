@@ -4,6 +4,7 @@
 #include <string>
 #include <span>
 #include <array>
+#include <glm/glm.hpp>
 
 namespace vk {
     // Alias for VkFormat
@@ -16,6 +17,24 @@ namespace vk {
     enum format {
         rgb32_sfloat = VK_FORMAT_R32G32B32_SFLOAT,
         rg32_sfloat = VK_FORMAT_R32G32_SFLOAT
+    };
+
+    enum image_aspect_flags : uint8_t {
+        color_bit,
+        depth_bit,
+        stencil_bit,
+        metadata_bit,
+        plane0_bit,
+        plane1_bit,
+        plane2_bit,
+        none,
+        memory_plane0_bit_ext,
+        memory_plane1_bit_ext,
+        memory_plane2_bit_ext,
+        plane1_bit_khr,
+        plane2_bit_khr,
+        none_khr,
+        bits_max_enum
     };
 
     /**
@@ -135,7 +154,8 @@ namespace vk {
     struct swapchain_image_enumeration {
         VkImage image = nullptr;
         VkFormat format;
-        VkImageAspectFlags aspect;
+        // VkImageAspectFlags aspect;
+        image_aspect_flags aspect;
         uint32_t layer_count = 0;
         uint32_t mip_levels = 1;
     };
@@ -245,12 +265,12 @@ namespace vk {
      * operations
      */
     struct command_enumeration {
-        command_enumeration(uint32_t p_queue_family,
-                            const command_levels& p_levels,
-                            const command_pool_flags& p_pool_flags)
-          : levels(p_levels)
-          , queue_index(p_queue_family)
-          , flags(p_pool_flags) {}
+        // command_enumeration(uint32_t p_queue_family,
+        //                     const command_levels& p_levels,
+        //                     const command_pool_flags& p_pool_flags)
+        //   : levels(p_levels)
+        //   , queue_index(p_queue_family)
+        //   , flags(p_pool_flags) {}
 
         command_levels levels;
         uint32_t queue_index = -1;
@@ -472,12 +492,12 @@ namespace vk {
      *
      */
     enum memory_property : uint8_t {
-        device_local_bit = 0x01,
-        host_visible_bit = 0x2,
-        host_coherent_bit = 0x4,
-        host_cached_bit = 0x8,
-        lazily_allocated_bit = 0x10,
-        device_protected_bit,
+        device_local_bit = 0x00000001,
+        host_visible_bit = 0x00000002,
+        host_coherent_bit = 0x00000004,
+        host_cached_bit = 0x00000008,
+        lazily_allocated_bit = 0x00000010,
+        device_protected_bit = 0x00000020,
         device_coherent_bit_amd = 0x20,
         device_uncached_bit_amd = 0x40,
         rdma_capable_bit_nv = 0x80,
@@ -514,6 +534,53 @@ namespace vk {
         std::span<vertex_attribute_entry> entries;
         uint32_t stride;
         input_rate input_rate;
+    };
+
+    struct vertex_input {
+        glm::vec3 position;
+        glm::vec3 color;
+        glm::vec3 normals;
+        glm::vec2 uv;
+
+        bool operator==(const vertex_input& other) const {
+            return position == other.position and color == other.color and
+                   uv == other.uv and normals == other.normals;
+        }
+    };
+
+    //! @brief vulkan buffer struct to define the handlers and memory
+    //! specifications required for buffer handlers in vulkan
+    struct buffer_handle {
+        VkBuffer handle = nullptr;
+        VkDeviceMemory device_memory = nullptr;
+        uint32_t allocation_size = 0; // device allocation size
+    };
+
+    struct buffer_configuration {
+        VkDeviceSize device_size;
+        VkBufferUsageFlags usage;
+        // VkMemoryPropertyFlags property_flags;
+        memory_property property_flags;
+        VkPhysicalDevice physical=nullptr;
+    };
+
+    //! @brief struct for copying from staging buffer to a destination
+    struct buffer_copy_info {
+        buffer_handle src;
+        buffer_handle dst;
+    };
+
+    // The class will not contain VkPhysicalDevice handle
+    // using it only to get memory requirement for the buffer memory requirements
+
+    /**
+     * @brief vk::vertex_buffer specification for creation of the vertex buffer
+     * @param physical_handle is the physical device for selecting buffer memory requirements for allocations
+     * @param vertices is the data to copy to the vertex buffer handle
+    */
+    struct vertex_buffer_info {
+        VkPhysicalDevice physical_handle=nullptr;
+        std::span<vertex_input> vertices;
     };
 
 

@@ -62,6 +62,10 @@ namespace vk {
     //! @return image size the surface requires
     uint32_t surface_image_size(const VkSurfaceCapabilitiesKHR& p_capabilities);
 
+	VkCommandBufferUsageFlags to_command_usage_flag_bits(command_usage p_command_usage_flag);
+
+	VkImageAspectFlags  to_image_aspect_flags(image_aspect_flags p_flag);
+
     //! @return -1 if there are no flags available/compatible/valid
     uint32_t physical_memory_properties(const VkPhysicalDevice& p_physical,
                                         uint32_t p_type_filter,
@@ -100,6 +104,12 @@ namespace vk {
       const VkDevice& p_device,
       const image& p_image,
 	  memory_property p_property = memory_property::device_local_bit);
+	
+	uint32_t buffer_memory_requirement(const VkPhysicalDevice& p_physical, const VkDevice& p_device, const buffer_handle& p_buffer, memory_property p_property = memory_property::device_local_bit);
+	
+	//! @brief Whether the memory requirement is for retrieved by a VkImage or VkBuffer handle, you just pass the memory requirements to this function rather then the handle
+	// since that can vary.
+	uint32_t select_memory_requirements(const VkPhysicalDevice& p_physical, VkMemoryRequirements p_memory_requirements, memory_property p_property = memory_property::device_local_bit);
 
     void free_image(const VkDevice& p_driver, sampled_image p_image);
 
@@ -127,13 +137,40 @@ namespace vk {
     VkVertexInputRate to_input_rate(input_rate p_input_rate);
 
     bool has_depth_specified(image_layout p_layout);
-
-    VkCommandBufferUsageFlags to_command_usage_flag_bits(command_usage p_command_usage_flag);
 	
 	// TODO: Use this to do bitwise checks rather then; since this only does switch-case statement checks
 	VkMemoryPropertyFlags to_memory_property_flags(memory_property p_flag);
 
 	VkShaderStageFlagBits to_shader_stage(const shader_stage& p_stage);
 
-  VkFormat to_format(const format& p_format);
+	VkFormat to_format(const format& p_format);
+
+	buffer_handle create_buffer(const VkDevice& p_device, const buffer_configuration& p_info);
+
+	/**
+     * @brief maps the current buffer handler to some block of memory and the
+     * byte size for that chunk
+     */
+    void write(const VkDevice& p_device, const buffer_handle& p_buffer,
+               const void* p_data,
+               size_t p_size_in_bytes);
+
+    /**
+     * @brief Maps buffer handler to chunk of data of type, that is
+     * std::span<uint32_t>.
+     */
+    void write(const VkDevice& p_device, const buffer_handle& p_buffer,
+               const std::span<uint32_t>& p_in_buffer);
+
+    /**
+     * @brief Maps buffer handler to data chunks that contain vertices
+     */
+    void write(const VkDevice& p_device, const buffer_handle& p_buffer,
+               const std::span<vertex_input>& p_in_buffer);
+	
+	//! @brief Copies from one buffer source into another buffer source with a
+    //! specific size of bytes to be stored the buffer that is being copied to
+    void copy(const VkDevice& p_device, const buffer_copy_info& p_info, size_t p_size_of_bytes);
+
+	void free_buffer(const VkDevice& p_driver, buffer_handle& p_buffer);
 };

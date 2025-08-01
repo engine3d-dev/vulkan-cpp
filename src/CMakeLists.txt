@@ -14,6 +14,7 @@ set(
     vulkan-cpp/framebuffer.cpp
     vulkan-cpp/shader_resource.cpp
     vulkan-cpp/pipeline.cpp
+    vulkan-cpp/vertex_buffer.cpp
 )
 
 add_library(${PROJECT_NAME} ${all_src})

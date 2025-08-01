@@ -2,6 +2,7 @@
 #include <vulkan/vulkan.h>
 #include <filesystem>
 #include <print>
+#include <vulkan-cpp/command_buffer.hpp>
 
 namespace vk {
 
@@ -168,30 +169,62 @@ namespace vk {
     }
 
     VkMemoryPropertyFlags to_memory_property_flags(memory_property p_flag) {
-        switch (p_flag) {
-        case memory_property::device_local_bit:
-            return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-        case memory_property::host_visible_bit:
-            return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-        case memory_property::host_coherent_bit:
-            return VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-        case memory_property::host_cached_bit:
-            return VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
-        case memory_property::lazily_allocated_bit:
-            return VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
-        case memory_property::device_protected_bit:
-            return VK_MEMORY_PROPERTY_PROTECTED_BIT;
-        case memory_property::device_coherent_bit_amd:
-            return VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD;
-        case memory_property::device_uncached_bit_amd:
-            return VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD;
-        case memory_property::rdma_capable_bit_nv:
-            return VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV;
-        case memory_property::flag_bits_max_enum:
-            return VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM;
+        VkMemoryPropertyFlags flags = 0;
+        if (p_flag & memory_property::device_local_bit) {
+            flags |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+        }
+        if (p_flag & memory_property::host_visible_bit) {
+            flags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+        }
+        if (p_flag & memory_property::host_coherent_bit) {
+            flags |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+        }
+        if (p_flag & memory_property::host_cached_bit) {
+            flags |= VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+        }
+        if (p_flag & memory_property::lazily_allocated_bit) {
+            flags |= VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
+        }
+        if (p_flag & memory_property::device_protected_bit) {
+            flags |= VK_MEMORY_PROPERTY_PROTECTED_BIT;
+        }
+        if (p_flag & memory_property::device_coherent_bit_amd) {
+            flags |= VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD;
+        }
+        if (p_flag & memory_property::device_uncached_bit_amd) {
+            flags |= VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD;
+        }
+        if (p_flag & memory_property::rdma_capable_bit_nv) {
+            flags |= VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV;
         }
 
-        throw std::runtime_error("Invalid memory property flag set!");
+
+
+        // switch (p_flag) {
+        // case memory_property::device_local_bit:
+        //     return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+        // case memory_property::host_visible_bit:
+        //     return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+        // case memory_property::host_coherent_bit:
+        //     return VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+        // case memory_property::host_cached_bit:
+        //     return VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+        // case memory_property::lazily_allocated_bit:
+        //     return VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
+        // case memory_property::device_protected_bit:
+        //     return VK_MEMORY_PROPERTY_PROTECTED_BIT;
+        // case memory_property::device_coherent_bit_amd:
+        //     return VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD;
+        // case memory_property::device_uncached_bit_amd:
+        //     return VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD;
+        // case memory_property::rdma_capable_bit_nv:
+        //     return VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV;
+        // case memory_property::flag_bits_max_enum:
+        //     return VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM;
+        // }
+
+        // throw std::runtime_error("Invalid memory property flag set!");
+        return flags;
     }
 
     surface_enumeration enumerate_surface(const VkPhysicalDevice& p_physical, const VkSurfaceKHR& p_surface) {
@@ -257,6 +290,43 @@ namespace vk {
         throw std::runtime_error("Invalid command_usage specified");
     }
 
+    VkImageAspectFlags to_image_aspect_flags(image_aspect_flags p_flag) {
+        switch (p_flag){
+        case image_aspect_flags::color_bit:
+            return VK_IMAGE_ASPECT_COLOR_BIT;
+        case image_aspect_flags::depth_bit:
+            return VK_IMAGE_ASPECT_DEPTH_BIT;
+        case image_aspect_flags::stencil_bit:
+            return VK_IMAGE_ASPECT_STENCIL_BIT;
+        case image_aspect_flags::metadata_bit:
+            return VK_IMAGE_ASPECT_METADATA_BIT;
+        case image_aspect_flags::plane0_bit:
+            return VK_IMAGE_ASPECT_PLANE_0_BIT;
+        case image_aspect_flags::plane1_bit:
+            return VK_IMAGE_ASPECT_PLANE_1_BIT;
+        case image_aspect_flags::plane2_bit:
+            return VK_IMAGE_ASPECT_PLANE_2_BIT;
+        case image_aspect_flags::none:
+            return VK_IMAGE_ASPECT_NONE;
+        case image_aspect_flags::memory_plane0_bit_ext:
+            return VK_IMAGE_ASPECT_MEMORY_PLANE_0_BIT_EXT;
+        case image_aspect_flags::memory_plane1_bit_ext:
+            return VK_IMAGE_ASPECT_MEMORY_PLANE_1_BIT_EXT;
+        case image_aspect_flags::memory_plane2_bit_ext:
+            return VK_IMAGE_ASPECT_MEMORY_PLANE_2_BIT_EXT;
+        case image_aspect_flags::plane1_bit_khr:
+            return VK_IMAGE_ASPECT_PLANE_1_BIT_KHR;
+        case image_aspect_flags::plane2_bit_khr:
+            return VK_IMAGE_ASPECT_PLANE_2_BIT_KHR;
+        case image_aspect_flags::none_khr:
+            return VK_IMAGE_ASPECT_NONE_KHR;
+        case image_aspect_flags::bits_max_enum:
+            return VK_IMAGE_ASPECT_FLAG_BITS_MAX_ENUM;
+        }
+
+        throw std::runtime_error("Invalid image aspect flags specified!!!");
+    }
+
     VkSampler create_sampler(const VkDevice& p_device, const filter_range& p_range, VkSamplerAddressMode p_address_mode) {
         VkSamplerCreateInfo sampler_info = {
             .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
@@ -298,7 +368,7 @@ namespace vk {
                             .g = VK_COMPONENT_SWIZZLE_IDENTITY,
                             .b = VK_COMPONENT_SWIZZLE_IDENTITY,
                             .a = VK_COMPONENT_SWIZZLE_IDENTITY },
-            .subresourceRange = { .aspectMask = p_enumerate_image.aspect,
+            .subresourceRange = { .aspectMask = to_image_aspect_flags(p_enumerate_image.aspect),
                                   .baseMipLevel = 0,
                                   .levelCount = p_enumerate_image.mip_levels,
                                   .baseArrayLayer = 0,
@@ -455,6 +525,49 @@ namespace vk {
         return -1;
     }
 
+    uint32_t select_memory_requirements(const VkPhysicalDevice& p_physical, VkMemoryRequirements p_memory_requirements, memory_property p_property) {
+        // VkMemoryRequirements memory_requirements;
+        // vkGetImageMemoryRequirements(p_device, p_image.image, &memory_requirements);
+
+        uint32_t type_filter = p_memory_requirements.memoryTypeBits;
+        VkMemoryPropertyFlags property_flag = to_memory_property_flags(p_property);
+
+        VkPhysicalDeviceMemoryProperties mem_props;
+        vkGetPhysicalDeviceMemoryProperties(p_physical, &mem_props);
+
+        for (uint32_t i = 0; i < mem_props.memoryTypeCount; i++) {
+            if ((type_filter & (1 << i)) and
+                (mem_props.memoryTypes[i].propertyFlags & property_flag) ==
+                  property_flag) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    uint32_t buffer_memory_requirement(const VkPhysicalDevice& p_physical, const VkDevice& p_device, const buffer_handle& p_buffer, memory_property p_property) {
+        VkMemoryRequirements memory_requirements;
+        // vkGetImageMemoryRequirements(p_device, p_buffer.handle, &memory_requirements);
+        vkGetBufferMemoryRequirements(p_device, p_buffer.handle, &memory_requirements);
+
+        uint32_t type_filter = memory_requirements.memoryTypeBits;
+        VkMemoryPropertyFlags property_flag = to_memory_property_flags(p_property);
+
+        VkPhysicalDeviceMemoryProperties mem_props;
+        vkGetPhysicalDeviceMemoryProperties(p_physical, &mem_props);
+
+        for (uint32_t i = 0; i < mem_props.memoryTypeCount; i++) {
+            if ((type_filter & (1 << i)) and
+                (mem_props.memoryTypes[i].propertyFlags & property_flag) ==
+                  property_flag) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
 
 
     VkCommandBufferLevel to_vk_command_buffer_level(
@@ -483,7 +596,7 @@ namespace vk {
             return VK_COMMAND_POOL_CREATE_FLAG_BITS_MAX_ENUM;
         }
 
-        throw std::runtime_error("Invalid command_pool_flag specified!!!");
+        return (VkCommandPoolCreateFlagBits)0;
     }
 
     VkSubpassContents to_subpass_contents(subpass_contents p_content) {
@@ -637,4 +750,120 @@ namespace vk {
                 return VK_FORMAT_UNDEFINED;
         }
     }
+
+    buffer_handle create_buffer(const VkDevice& p_device, const buffer_configuration& p_info) {
+        buffer_handle handler = {};
+
+        handler.allocation_size = p_info.device_size;
+
+        VkBufferCreateInfo buffer_ci = {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .size = handler.allocation_size, // size in bytes
+            .usage = p_info.usage,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE
+        };
+
+        vk_check(vkCreateBuffer(p_device, &buffer_ci, nullptr, &handler.handle),"vkCreateBuffer");
+
+        // 2. retrieving buffer memory requirements
+        VkMemoryRequirements memory_requirements = {};
+        vkGetBufferMemoryRequirements(p_device, handler.handle, &memory_requirements);
+
+        // 3. selecting memory requirements from current physical device
+        // memory_property property;
+        uint32_t memory_type_index = select_memory_requirements(p_info.physical, memory_requirements, p_info.property_flags);
+
+        // 4. allocatring the necessary memory based on memory requirements for the buffer handles
+        VkMemoryAllocateInfo memory_alloc_info = {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+            .allocationSize = memory_requirements.size,
+            .memoryTypeIndex = memory_type_index
+        };
+
+        vk_check(vkAllocateMemory(p_device, &memory_alloc_info, nullptr, &handler.device_memory),"vkAllocateMemory");
+
+        // 5. bind memory resource of this buffer handle
+        vk_check(vkBindBufferMemory(p_device, handler.handle, handler.device_memory, 0),"vkBindBufferMemory");
+
+        return handler;
+    }
+
+    void write(const VkDevice& p_device, const buffer_handle& p_buffer, const std::span<vertex_input>& p_in_buffer) {
+        // does equivalent to doing sizeof(p_in_buffer[0]) * p_in_buffer.size();
+        VkDeviceSize buffer_size =
+          p_in_buffer
+            .size_bytes();
+        void* mapped = nullptr;
+        vk_check(vkMapMemory(
+                   p_device, p_buffer.device_memory, 0, buffer_size, 0, &mapped),
+                 "vkMapMemory");
+        memcpy(mapped, p_in_buffer.data(), buffer_size);
+        vkUnmapMemory(p_device, p_buffer.device_memory);
+    }
+
+    VkCommandPool create_single_command_pool(const VkDevice& p_device, uint32_t p_queue_family_index) {
+        // uint32_t graphics_queue_index = physical.read_queue_family_indices().graphics;
+        VkCommandPoolCreateInfo pool_ci = {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .queueFamilyIndex = p_queue_family_index
+        };
+
+        VkCommandPool command_pool = nullptr;
+        vk_check(vkCreateCommandPool(p_device, &pool_ci, nullptr, &command_pool),
+                 "vkCreateCommandPool");
+
+        return command_pool;
+    }
+
+    void copy(const VkDevice& p_device, const buffer_copy_info& p_info, size_t p_size_of_bytes) {
+
+        // 1. Retrieve the first queue
+        // TODO: Use vk::device_queue for this
+        VkQueue temp_graphics_queue = nullptr;
+        uint32_t queue_family_index = 0;
+        uint32_t queue_index = 0;
+        vkGetDeviceQueue(p_device, queue_family_index, queue_index, &temp_graphics_queue);
+
+        // command_buffer_info
+        command_enumeration enumerate_command_info = {
+            .levels = command_levels::primary,
+            .queue_index = 0,
+        };
+        command_buffer copy_command_buffer(p_device, enumerate_command_info);
+
+        copy_command_buffer.begin(command_usage::one_time_submit);
+        VkBufferCopy copy_region{};
+        copy_region.size = (VkDeviceSize)p_size_of_bytes;
+        vkCmdCopyBuffer(
+          copy_command_buffer, p_info.src.handle, p_info.dst.handle, 1, &copy_region);
+        copy_command_buffer.end();
+        VkCommandBuffer temp = copy_command_buffer;
+        VkSubmitInfo submit_info{};
+        submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submit_info.commandBufferCount = 1;
+        submit_info.pCommandBuffers = &temp;
+
+        vkQueueSubmit(temp_graphics_queue, 1, &submit_info, nullptr);
+        vkQueueWaitIdle(temp_graphics_queue);
+
+        // vkFreeCommandBuffers(, command_pool, 1, &copy_cmd_buffer);
+        // vkDestroyCommandPool(driver, command_pool, nullptr);
+        copy_command_buffer.destroy();
+    }
+
+    void free_buffer(const VkDevice& p_driver, buffer_handle& p_buffer) {
+        if (p_buffer.handle != nullptr) {
+            vkDestroyBuffer(p_driver, p_buffer.handle, nullptr);
+        }
+
+        if (p_buffer.device_memory != nullptr) {
+            vkFreeMemory(p_driver, p_buffer.device_memory, nullptr);
+        }
+    }
+
+
 }
