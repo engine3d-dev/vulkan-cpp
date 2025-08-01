@@ -11,7 +11,6 @@ void main() {
     // outColor = vec4(fragColor, 1.0);
 
     // Adding texture
-    // outColor = texture(texture_image, fragTexCoords * 2.0);
-    outColor = vec4(fragColor * texture(texture_image, fragTexCoords).rgb, 1.0);
+    outColor = texture(texture_image, fragTexCoords);
 
 }
