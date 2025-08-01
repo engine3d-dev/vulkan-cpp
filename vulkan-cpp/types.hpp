@@ -165,7 +165,8 @@ namespace vk {
         uint32_t width = -1;
         uint32_t height = -1;
         VkFormat format;
-        VkImageAspectFlags aspect;
+        // VkImageAspectFlags aspect;
+        image_aspect_flags aspect;
         uint32_t layer_count = 1;
         uint32_t mip_levels = 1;
     };

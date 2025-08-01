@@ -203,7 +203,8 @@ main() {
         vk::swapchain_image_enumeration enumerate_image_properties = {
             .image = images[i],
             .format = surface_properties.format.format,
-            .aspect = VK_IMAGE_ASPECT_COLOR_BIT,
+            // .aspect = VK_IMAGE_ASPECT_COLOR_BIT,
+            .aspect = vk::image_aspect_flags::color_bit,
             .layer_count = 1,
             .mip_levels = 1
         };
@@ -215,7 +216,8 @@ main() {
             .width = swapchain_extent.width,
             .height = swapchain_extent.height,
             .format = depth_format,
-            .aspect = VK_IMAGE_ASPECT_DEPTH_BIT
+            // .aspect = VK_IMAGE_ASPECT_DEPTH_BIT
+            .aspect = vk::image_aspect_flags::depth_bit
         };
 
         // Retrieving the image resource memory requirements for specific memory
@@ -231,9 +233,9 @@ main() {
     std::vector<vk::command_buffer> swapchain_command_buffers(image_count);
     for (size_t i = 0; i < swapchain_command_buffers.size(); i++) {
         vk::command_enumeration settings = {
-            enumerate_swapchain_settings.present_index,
-            vk::command_levels::primary,
-            vk::command_pool_flags::reset
+            .levels = vk::command_levels::primary,
+            .queue_index = enumerate_swapchain_settings.present_index,
+            .flags = vk::command_pool_flags::reset,
         };
 
         swapchain_command_buffers[i] =

@@ -221,7 +221,7 @@ main() {
             .width = swapchain_extent.width,
             .height = swapchain_extent.height,
             .format = depth_format,
-            .aspect = VK_IMAGE_ASPECT_DEPTH_BIT
+            .aspect = vk::image_aspect_flags::depth_bit
         };
 
         // Retrieving the image resource memory requirements for specific memory
