@@ -679,6 +679,8 @@ main() {
 		// Binding a graphics pipeline -- before drawing stuff
 		// Inside of this graphics pipeline bind, is where you want to do the drawing stuff to
 		main_graphics_pipeline.bind(current);
+
+        // Must be binded before descriptor resource gets binded
         test_model.bind(current);
 
         static auto start_time = std::chrono::high_resolution_clock::now();
