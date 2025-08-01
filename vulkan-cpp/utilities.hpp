@@ -209,12 +209,11 @@ namespace vk {
 	void copy(const VkCommandBuffer& p_command_buffer, const sampled_image& p_image, const buffer_handle& p_buffer, uint32_t p_width, uint32_t p_height);
 	
 	/**
-	 * @param p_image is the image to transition between one image layout to a different image layout
-	 * @param  VkQueue is to specify the queue handler to submit this texture to GPU memory
-	 * @param p_command is a temporary command buffer to contain the texture as a command that gets submitted to VkQueue specified parameter
+	 * @param p_device logical device for creating VkImageView handle
+	 * @param p_image to create image view handle from
+	 * @param p_format specify image format to create VkImageView with
+	 * @param p_aspect_flag to set the aspect of the image, the image view is being created with
 	*/
-	// void transition_image_layout(VkCommandBuffer& p_command, sampled_image& p_image, VkImageLayout p_old, VkImageLayout p_new, VkFormat p_format, const VkQueue& p_to_offload_queue);
-
 	VkImageView create_image2d_view(const VkDevice& p_device, const VkImage& p_image, VkFormat p_format, VkImageAspectFlags p_aspect_flags);
 
 };

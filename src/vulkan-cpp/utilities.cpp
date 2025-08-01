@@ -1133,43 +1133,6 @@ namespace vk {
                              &image_memory_barrier);
     }
 
-    void transition_image_layout(VkCommandBuffer& p_command, sampled_image& p_image, VkImageLayout p_old, VkImageLayout p_new, VkFormat p_format, const VkQueue& p_to_offload_queue) {
-        /*
-        command_buffer_settings properties = {
-            0,
-            command_buffer_levels::primary,
-            VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-        };
-
-        vk_command_buffer temp_copy_command_buffer =
-          vk_command_buffer(properties);
-
-        temp_copy_command_buffer.begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
-        */
-
-        // 1. image memory barrier
-        // VkCommandBuffer handle = temp_copy_command_buffer;
-        image_memory_barrier(p_command, p_image.image, p_format, p_old, p_new);
-
-        // submit one copy
-        /*
-        temp_copy_command_buffer.end();
-
-        VkCommandBuffer buffer = temp_copy_command_buffer;
-
-        VkSubmitInfo submit_info = {
-            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-            .commandBufferCount = 1,
-            .pCommandBuffers = &buffer,
-        };
-
-        vkQueueSubmit(p_to_offload_queue, 1, &submit_info, nullptr);
-        vkQueueWaitIdle(p_to_offload_queue);
-
-        temp_copy_command_buffer.destroy();
-        */
-    }
-
     void copy(const VkCommandBuffer& p_command_buffer, const sampled_image& p_image_handle, const buffer_handle& p_buffer, uint32_t p_width, uint32_t p_height) {
         VkBufferImageCopy buffer_image_copy = {
             .bufferOffset = 0,
