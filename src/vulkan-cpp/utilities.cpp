@@ -450,7 +450,7 @@ namespace vk {
                             .g = VK_COMPONENT_SWIZZLE_IDENTITY,
                             .b = VK_COMPONENT_SWIZZLE_IDENTITY,
                             .a = VK_COMPONENT_SWIZZLE_IDENTITY },
-            .subresourceRange = { .aspectMask = p_enumerate_image.aspect,
+            .subresourceRange = { .aspectMask = to_image_aspect_flags(p_enumerate_image.aspect),
                                   .baseMipLevel = 0,
                                   .levelCount = p_enumerate_image.mip_levels,
                                   .baseArrayLayer = 0,
