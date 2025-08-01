@@ -729,7 +729,7 @@ namespace vk {
         return false;
     }
 
-    VkShaderStageFlagBits to_shader_stage(const shader_stage& p_stage) {
+    VkShaderStageFlags to_shader_stage(const shader_stage& p_stage) {
         switch (p_stage) {
             case shader_stage::vertex:
                 return VK_SHADER_STAGE_VERTEX_BIT;
@@ -872,6 +872,19 @@ namespace vk {
 
         if (p_buffer.device_memory != nullptr) {
             vkFreeMemory(p_driver, p_buffer.device_memory, nullptr);
+        }
+    }
+
+    VkDescriptorType to_descriptor_type(const buffer& p_type) {
+        switch (p_type) {
+            case buffer::storage:
+                return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+            case buffer::uniform:
+                return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            case buffer::combined_image_sampler:
+                return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            case buffer::sampled_only_image:
+                return VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
         }
     }
 

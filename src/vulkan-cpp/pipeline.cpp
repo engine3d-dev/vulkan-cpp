@@ -14,10 +14,10 @@ namespace vk {
 
         // 1. Load in and setup the VKShaderModule handlers for VkPipeline
         for(const shader_handle& src : p_info.shader_modules) {
-            VkShaderStageFlagBits stage = to_shader_stage(src.stage);
+            VkShaderStageFlags stage = to_shader_stage(src.stage);
             pipeline_shader_stages[shader_src_index] = VkPipelineShaderStageCreateInfo{
                 .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-                .stage = stage,
+                .stage = (VkShaderStageFlagBits)stage,
                 .module = src.module,
                 .pName = "main"
             };

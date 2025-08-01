@@ -141,7 +141,7 @@ namespace vk {
 	// TODO: Use this to do bitwise checks rather then; since this only does switch-case statement checks
 	VkMemoryPropertyFlags to_memory_property_flags(memory_property p_flag);
 
-	VkShaderStageFlagBits to_shader_stage(const shader_stage& p_stage);
+	VkShaderStageFlags to_shader_stage(const shader_stage& p_stage);
 
 	VkFormat to_format(const format& p_format);
 
@@ -173,4 +173,10 @@ namespace vk {
     void copy(const VkDevice& p_device, const buffer_copy_info& p_info, size_t p_size_of_bytes);
 
 	void free_buffer(const VkDevice& p_driver, buffer_handle& p_buffer);
+
+	//! @return Returns the VkDescriptorType that represents a "handle" the
+    //! shader resource is acecssing
+    VkDescriptorType to_descriptor_type(const buffer& p_type);
+
+	// VkShaderStageFlags to_shader_stage(const shader_stage& p_stage);
 };

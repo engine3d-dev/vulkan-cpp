@@ -595,5 +595,16 @@ namespace vk {
     };
 
 
+    struct descriptor_binding_point {
+        uint32_t binding;
+        shader_stage stage;
+    };
+
+    struct descriptor_entry {
+        buffer type;
+        descriptor_binding_point binding_point;
+        uint32_t descriptor_count;
+    };
+
 
 };

@@ -17,6 +17,7 @@ set(
     vulkan-cpp/vertex_buffer.cpp
     vulkan-cpp/index_buffer.cpp
     vulkan-cpp/uniform_buffer.cpp
+    vulkan-cpp/descriptor_resource.cpp
 )
 
 add_library(${PROJECT_NAME} ${all_src})
