@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.27)
 project(vulkan-cpp CXX)
 
 build_library(
-    DIRECTORIES src demos/5-swapchain
+    DIRECTORIES src demos/11-depth-buffering
     ENABLE_TESTS OFF
 
     PACKAGES
@@ -10,12 +10,16 @@ build_library(
     fmt
     Vulkan
     VulkanHeaders
+    glm
+    stb
 
     LINK_PACKAGES
     glfw
     fmt::fmt
     Vulkan::Vulkan
     vulkan-headers::vulkan-headers
+    glm::glm
+    stb::stb
 )
 
 generate_compile_commands()
