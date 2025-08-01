@@ -19,6 +19,8 @@ namespace vk {
 
         [[nodiscard]] bool alive() const { return m_vertex_buffer.handle; }
 
+        void bind(const VkCommandBuffer& p_current);
+
         operator VkBuffer() const { return m_vertex_buffer.handle; }
 
         operator VkBuffer() { return m_vertex_buffer.handle; }

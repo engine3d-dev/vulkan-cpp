@@ -32,8 +32,6 @@ debug_callback(
     return false;
 }
 
-struct camera_ubo {};
-
 std::vector<const char*>
 initialize_instance_extensions() {
     std::vector<const char*> extension_names;
@@ -326,21 +324,46 @@ main() {
 	// Now creating a vulkan graphics pipeline for the shader loading
 	std::array<vk::shader_source, 2> shader_sources = {
 		vk::shader_source{
-			.filename = "shader_samples/test.vert.spv",
+			.filename = "shader_samples/sample2/test.vert.spv",
 			.stage = vk::shader_stage::vertex
 		},
 		vk::shader_source{
-			.filename = "shader_samples/test.frag.spv",
+			.filename = "shader_samples/sample2/test.frag.spv",
 			.stage = vk::shader_stage::fragment
 		},
 	};
 
+    // Setting up vertex attributes in the test shaders
+    std::array<vk::vertex_attribute_entry, 2> attribute_entries = {
+        vk::vertex_attribute_entry{
+            .location = 0,
+            .format = vk::format::rg32_sfloat,
+            .stride = offsetof(vk::vertex_input, position)
+        },
+        vk::vertex_attribute_entry{
+            .location = 1,
+            .format = vk::format::rgb32_sfloat,
+            .stride = offsetof(vk::vertex_input, color)
+        }
+    };
+
+    std::array<vk::vertex_attribute, 1> attributes = {
+            vk::vertex_attribute{
+              // layout (set = 0, binding = 0)
+              .binding = 0,
+              .entries = attribute_entries,
+              .stride = sizeof(vk::vertex_input),
+              .input_rate = vk::input_rate::vertex,
+            },
+        };
+
     // To render triangle, we do not need to set any vertex attributes
 	vk::shader_resource_info shader_info = {
 		.sources = shader_sources,
-		.vertex_attributes = {} // this is to explicitly set to none, but also dont need to set this at all regardless
+		.vertex_attributes = attributes // this is to explicitly set to none, but also dont need to set this at all regardless
 	};
 	vk::shader_resource geometry_resource(logical_device, shader_info);
+    geometry_resource.vertex_attributes(attributes);
 
 	if(geometry_resource.is_valid()) {
 		std::println("geometry resource is valid!");
@@ -365,19 +388,25 @@ main() {
 
 
     // Setting up vertex buffer
-    std::array<vk::vertex_input, 2> vertices = {
-        vk::vertex_input{
-            {1.f, 1.f, 1.f},
-            {1.f, 1.f, 1.f},
-            {1.f, 1.f, 1.f},
-            {1.f, 1.f},
-        },
-        vk::vertex_input{
-            {1.f, 1.f, 1.f},
-            {1.f, 1.f, 1.f},
-            {1.f, 1.f, 1.f},
-            {1.f, 1.f},
-        }
+    // std::array<vk::vertex_input, 2> vertices = {
+    //     vk::vertex_input{
+    //         {1.f, 1.f, 1.f},
+    //         {1.f, 1.f, 1.f},
+    //         {1.f, 1.f, 1.f},
+    //         {1.f, 1.f},
+    //     },
+    //     vk::vertex_input{
+    //         {1.f, 1.f, 1.f},
+    //         {1.f, 1.f, 1.f},
+    //         {1.f, 1.f, 1.f},
+    //         {1.f, 1.f},
+    //     }
+    // };
+    std::array<vk::vertex_input, 4> vertices = {
+        vk::vertex_input{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+        vk::vertex_input{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+        vk::vertex_input{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+        vk::vertex_input{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
     };
     vk::vertex_buffer_info vertex_info = {
         .physical_handle = physical_device,
@@ -386,7 +415,9 @@ main() {
     vk::vertex_buffer test_vbo(logical_device, vertex_info);
     std::println("vertex_buffer.alive() = {}", test_vbo.alive());
 
-    std::array<uint32_t, 4> indices = {1, 0, 2, 2};
+    std::array<uint32_t, 6> indices = {
+        0, 1, 2, 2, 3, 0
+    };
 
     vk::index_buffer_info index_info = {
         .physical_handle = physical_device,
@@ -397,14 +428,14 @@ main() {
 
     vk::uniform_buffer_info ubo_info = {
         .physical_handle = physical_device,
-        .size_bytes = sizeof(camera_ubo)
+        .size_bytes = sizeof(vk::vertex_input)
     };
     vk::uniform_buffer test_ubo(logical_device, ubo_info);
     std::println("uniform_buffer.alive() = {}", test_ubo.alive());
 
     // Dummy uniform struct just for testing if update works when mapping some data
-    camera_ubo global_ubo = {};
-    test_ubo.update(&global_ubo);
+    // camera_ubo global_ubo = {};
+    // test_ubo.update(&global_ubo);
 
 
     while (!glfwWindowShouldClose(window)) {
@@ -429,8 +460,12 @@ main() {
 		// Inside of this graphics pipeline bind, is where you want to do the drawing stuff to
 		main_graphics_pipeline.bind(current);
 
+        test_vbo.bind(current);
+        test_ibo.bind(current);
+
         // Drawing-call to render actual triangle to the screen
-		vkCmdDraw(current, 3, 1, 0, 0);
+		// vkCmdDraw(current, 3, 1, 0, 0);
+        vkCmdDrawIndexed(current, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
         main_renderpass.end(current);
         current.end();

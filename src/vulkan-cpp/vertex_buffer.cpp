@@ -43,6 +43,12 @@ namespace vk {
         free_buffer(m_device, staging_buffer);
     }
 
+    void vertex_buffer::bind(const VkCommandBuffer& p_current) {
+        std::array<VkBuffer, 1> handlers = { m_vertex_buffer.handle };
+        VkDeviceSize offsets[] = { 0 };
+        vkCmdBindVertexBuffers(p_current, 0, 1, handlers.data(), offsets);
+    }
+
     void vertex_buffer::destroy() {
         free_buffer(m_device, m_vertex_buffer);
     }

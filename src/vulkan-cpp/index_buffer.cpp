@@ -10,8 +10,7 @@ namespace vk {
         
         buffer_configuration config = {
             .device_size = p_index_info.indices.size_bytes(),
-            .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-            // .property_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
+            .usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
             .property_flags = (memory_property)property_flags,
             .physical = p_index_info.physical_handle
         };
@@ -19,6 +18,10 @@ namespace vk {
         m_index_buffer = create_buffer(m_device, config);
 
         write(m_device, m_index_buffer, p_index_info.indices);
+    }
+
+    void index_buffer::bind(const VkCommandBuffer& p_current) {
+        vkCmdBindIndexBuffer(p_current,m_index_buffer.handle, 0, VK_INDEX_TYPE_UINT32);
     }
 
     void index_buffer::destroy() {

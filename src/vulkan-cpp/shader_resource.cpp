@@ -98,9 +98,10 @@ namespace vk {
 
         m_vertex_binding_attributes.resize(p_attributes.size());
 
-        for(size_t i = 0; i < p_attributes.size(); i++) {
+        for(size_t i = 0; i < m_vertex_binding_attributes.size(); i++) {
             // setting up vertex binding
             const vertex_attribute attribute = p_attributes[i];
+            m_vertex_attributes.resize(attribute.entries.size());
             m_vertex_binding_attributes[i] = {
                 .binding = attribute.binding,
                 .stride = attribute.stride,
@@ -110,7 +111,7 @@ namespace vk {
             // then setting up the vertex attributes for the vertex data layouts
             for(size_t j = 0; j < attribute.entries.size(); j++) {
                 const vertex_attribute_entry entry = attribute.entries[j];
-                m_vertex_attributes[i] = {
+                m_vertex_attributes[j] = {
                     .location = entry.location,
                     .binding = attribute.binding,
                     .format = to_format(entry.format),

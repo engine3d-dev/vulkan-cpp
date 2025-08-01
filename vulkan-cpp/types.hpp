@@ -537,7 +537,7 @@ namespace vk {
     };
 
     struct vertex_input {
-        glm::vec3 position;
+        glm::vec2 position;
         glm::vec3 color;
         glm::vec3 normals;
         glm::vec2 uv;

@@ -13,6 +13,8 @@ namespace vk {
 
         [[nodiscard]] uint32_t size() const { return m_indices_count; }
 
+        void bind(const VkCommandBuffer& p_current);
+
         operator VkBuffer() const { return m_index_buffer.handle; }
 
         operator VkBuffer() { return m_index_buffer.handle; }
