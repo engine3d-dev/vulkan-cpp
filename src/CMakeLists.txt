@@ -19,6 +19,7 @@ set(
     vulkan-cpp/uniform_buffer.cpp
     vulkan-cpp/descriptor_resource.cpp
     vulkan-cpp/texture.cpp
+    vulkan-cpp/sample_image.cpp
 )
 
 add_library(${PROJECT_NAME} ${all_src})

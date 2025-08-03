@@ -3,6 +3,7 @@
 #include <vulkan-cpp/types.hpp>
 #include <vector>
 #include <vulkan-cpp/uniform_buffer.hpp>
+#include <vulkan-cpp/sample_image.hpp>
 
 namespace vk {
     /*
@@ -47,7 +48,7 @@ namespace vk {
 
         void bind(const VkCommandBuffer& p_current, uint32_t p_frame_idx, const VkPipelineLayout& p_layout);
 
-        void update(const std::span<uniform_buffer>& p_uniforms, const std::span<sampled_image>& p_texture_image_handles={});
+        void update(const std::span<write_buffer_descriptor>& p_uniforms, const std::span<write_image_descriptor>& p_texture_image_handles={});
 
         [[nodiscard]] VkDescriptorSetLayout layout() const { return m_descriptor_layout; }
 

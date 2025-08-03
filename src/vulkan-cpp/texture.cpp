@@ -10,7 +10,7 @@
 
 namespace vk {
 
-    static sampled_image create_texture_with_data(const VkDevice& p_device, const image_configuration& p_config, const void* p_data) {
+    static sample_image create_texture_with_data(const VkDevice& p_device, const image_configuration_information& p_config, const void* p_data) {
         // 1. Creating temporary command buffer for texture
         command_enumeration copy_command_enumeration = {
             .levels = command_levels::primary,
@@ -21,12 +21,22 @@ namespace vk {
 
         // 2. loading texture
         std::println("Created 2d image handlers");
-        sampled_image texture_image = create_sample_image2d(p_device, p_config);
+        // sampled_image texture_image = create_sample_image2d(p_device, p_config);
+        // image_configuration_information image_properties_config = {
+        //     .extent = { .width = p_config.width, .height = p_config.height },
+        //     .format = p_config.format,
+        //     .property = memory_property::device_local_bit,
+        //     .aspect = image_aspect_flags::color_bit,
+        //     .usage = p_config.usage,
+        //     .layer_count = 1,
+        //     .physical_device = p_config.physical_device,
+        // };
+        sample_image texture_image = sample_image(p_device, p_config);
         std::println("Searched for bytes per pixel format!!");
         int bytes_per_pixel = bytes_per_texture_format(p_config.format);
 
         // 3. getting layer size
-        uint32_t layer_size_with_bytes = p_config.width * p_config.height * bytes_per_pixel;
+        uint32_t layer_size_with_bytes = p_config.extent.width * p_config.extent.height * bytes_per_pixel;
         uint32_t layer_count = 1;
         uint32_t image_size = layer_size_with_bytes * layer_count;
 
@@ -51,19 +61,19 @@ namespace vk {
         VkImageLayout new_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
         VkFormat texture_format = p_config.format;
 
-        std::println("before command record!!!");
+        std::println("before command record!!! #1");
         temp_command_buffer.begin(command_usage::one_time_submit);
 
         // 6.1 -- transition image layout
-        image_memory_barrier(temp_command_buffer, texture_image.image, texture_format, old_layout, new_layout);
+        image_memory_barrier(temp_command_buffer, texture_image, texture_format, old_layout, new_layout);
 
         // 6.2 -- copy buffer to image handles
-        copy(temp_command_buffer, texture_image, staging_buffer, p_config.width, p_config.height);
+        copy(temp_command_buffer, texture_image, staging_buffer, p_config.extent.width, p_config.extent.height);
 
         // 6.3 -- transition image layout back to the layout specification
         old_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
         new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        image_memory_barrier(temp_command_buffer, texture_image.image, texture_format, old_layout, new_layout);
+        image_memory_barrier(temp_command_buffer, texture_image, texture_format, old_layout, new_layout);
 
         temp_command_buffer.end();
 
@@ -114,33 +124,34 @@ namespace vk {
 
         uint32_t property_flag = memory_property::device_local_bit;
 
-        image_configuration config_image = {
-            .width = (uint32_t)w,
-            .height = (uint32_t)h,
+        image_configuration_information config_image = {
+            .extent = {.width = (uint32_t)w, .height = (uint32_t)h},
             .format = VK_FORMAT_R8G8B8A8_UNORM,
-            .usage = (VkImageUsageFlagBits)(VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT),
             .property = (memory_property)property_flag,
+            .aspect = image_aspect_flags::color_bit,
+            .usage = (VkImageUsageFlags)(VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT),
             .physical_device = p_texture_info.physical
         };
 
-        m_image_handle = create_texture_with_data(p_device, config_image, image_pixel_data);
+        // m_image_handle = create_texture_with_data(p_device, config_image, image_pixel_data);
+        m_image = create_texture_with_data(p_device, config_image, image_pixel_data);;
 
         // 3.) Create Image View
         VkImageAspectFlags aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT;
-        // m_image_handle.view = create_image2d_view(m_image_handle.image, config_image.format, aspect_flags);
-        m_image_handle.view = create_image2d_view(p_device, m_image_handle.image, config_image.format, aspect_flags);
 
         filter_range sampler_range = { .min = VK_FILTER_LINEAR,
                                           .max = VK_FILTER_LINEAR };
 
         VkSamplerAddressMode addr_mode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 
-        m_image_handle.sampler = create_sampler(p_device, sampler_range, addr_mode);
+        // m_image_handle.sampler = create_sampler(p_device, sampler_range, addr_mode);
+
 
         m_texture_loaded = true;
     }
 
     void texture::destroy() {
-        free_image(m_device, m_image_handle);
+        // free_image(m_device, m_image_handle);
+        m_image.destroy();
     }
 };

@@ -619,5 +619,18 @@ namespace vk {
         VkPhysicalDevice physical_device=nullptr;
 	};
 
+    struct write_image_descriptor {
+        uint32_t dst_binding;
+        VkImageView view;
+        VkSampler sampler=nullptr;
+    };
+
+    struct write_buffer_descriptor {
+        uint32_t dst_binding;
+        VkBuffer buffer=nullptr;
+        uint32_t offset;
+        uint32_t range;
+    };
+
 
 };

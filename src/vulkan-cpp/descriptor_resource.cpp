@@ -72,13 +72,13 @@ namespace vk {
         vk_check(vkAllocateDescriptorSets(m_device,&descriptor_set_alloc_info,m_descriptor_sets.data()), "vkAllocateDescriptorSets");
     }
 
-    void descriptor_resource::update(const std::span<uniform_buffer>& p_uniforms, const std::span<sampled_image>& p_texture_image_handles) {
+    void descriptor_resource::update(const std::span<write_buffer_descriptor>& p_uniforms, const std::span<write_image_descriptor>& p_texture_image_handles) {
         std::vector<VkDescriptorBufferInfo> buffer_infos;
         std::vector<VkDescriptorImageInfo> image_infos;
 
         for(const auto& uniform : p_uniforms) {
             // uniform, offste, and range
-            buffer_infos.emplace_back(uniform, 0, p_uniforms.size_bytes());
+            buffer_infos.emplace_back(uniform.buffer, uniform.offset, uniform.range);
         }
 
         for(const auto& sample_image : p_texture_image_handles) {

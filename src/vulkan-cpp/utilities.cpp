@@ -504,9 +504,9 @@ namespace vk {
         }
     }
 
-    uint32_t image_memory_requirements(const VkPhysicalDevice& p_physical, const VkDevice& p_device, const image& p_image, memory_property p_property) {
+    uint32_t image_memory_requirements(const VkPhysicalDevice& p_physical, const VkDevice& p_device, const VkImage& p_image, memory_property p_property) {
         VkMemoryRequirements memory_requirements;
-        vkGetImageMemoryRequirements(p_device, p_image.image, &memory_requirements);
+        vkGetImageMemoryRequirements(p_device, p_image, &memory_requirements);
 
         uint32_t type_filter = memory_requirements.memoryTypeBits;
         VkMemoryPropertyFlags property_flag = to_memory_property_flags(p_property);
@@ -978,7 +978,7 @@ namespace vk {
     }
 
     void image_memory_barrier(const VkCommandBuffer& p_command_buffer,
-                              VkImage& p_image,
+                              const VkImage& p_image,
                               VkFormat p_format,
                               VkImageLayout p_old,
                               VkImageLayout p_new) {
@@ -1133,7 +1133,7 @@ namespace vk {
                              &image_memory_barrier);
     }
 
-    void copy(const VkCommandBuffer& p_command_buffer, const sampled_image& p_image_handle, const buffer_handle& p_buffer, uint32_t p_width, uint32_t p_height) {
+    void copy(const VkCommandBuffer& p_command_buffer, const VkImage& p_image, const buffer_handle& p_buffer, uint32_t p_width, uint32_t p_height) {
         VkBufferImageCopy buffer_image_copy = {
             .bufferOffset = 0,
             .bufferRowLength = 0,
@@ -1148,7 +1148,7 @@ namespace vk {
 
         vkCmdCopyBufferToImage(p_command_buffer,
                                p_buffer.handle,
-                               p_image_handle.image,
+                               p_image,
                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                1,
                                &buffer_image_copy);

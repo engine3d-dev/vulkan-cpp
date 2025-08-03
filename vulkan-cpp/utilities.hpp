@@ -102,7 +102,7 @@ namespace vk {
     uint32_t image_memory_requirements(
       const VkPhysicalDevice& p_physical,
       const VkDevice& p_device,
-      const image& p_image,
+      const VkImage& p_image,
 	  memory_property p_property = memory_property::device_local_bit);
 	
 	uint32_t buffer_memory_requirement(const VkPhysicalDevice& p_physical, const VkDevice& p_device, const buffer_handle& p_buffer, memory_property p_property = memory_property::device_local_bit);
@@ -197,7 +197,7 @@ namespace vk {
 	 * @param p_old is the src image layout being transitioned of the spcified image
 	 * @param p_new is the dst image layout to transition image into
 	*/
-	void image_memory_barrier(const VkCommandBuffer& p_command_buffer, VkImage& p_image, VkFormat p_format, VkImageLayout p_old, VkImageLayout p_new);
+	void image_memory_barrier(const VkCommandBuffer& p_command_buffer, const VkImage& p_image, VkFormat p_format, VkImageLayout p_old, VkImageLayout p_new);
 
 	/**
 	 * @param p_command_buffer command buffer must be in record mode beforehand when copying command buffer
@@ -206,15 +206,6 @@ namespace vk {
 	 * @param p_width is the width of the image
 	 * @param p_height is the height of the image
 	*/
-	void copy(const VkCommandBuffer& p_command_buffer, const sampled_image& p_image, const buffer_handle& p_buffer, uint32_t p_width, uint32_t p_height);
-	
-	/**
-	 * @brief Returns a new created VkImageView handle
-	 * @param p_device logical device for creating VkImageView handle
-	 * @param p_image to create image view handle from
-	 * @param p_format specify image format to create VkImageView with
-	 * @param p_aspect_flag to set the aspect of the image, the image view is being created with
-	*/
-	VkImageView create_image2d_view(const VkDevice& p_device, const VkImage& p_image, VkFormat p_format, VkImageAspectFlags p_aspect_flags);
+	void copy(const VkCommandBuffer& p_command_buffer, const VkImage& p_image, const buffer_handle& p_buffer, uint32_t p_width, uint32_t p_height);
 
 };

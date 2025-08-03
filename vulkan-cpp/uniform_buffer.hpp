@@ -22,6 +22,8 @@ namespace vk {
 
         operator VkBuffer() { return m_uniform_buffer.handle; }
 
+        [[nodiscard]] uint32_t size_bytes() const { return m_size_bytes; }
+
         void destroy();
 
     private:
