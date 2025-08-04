@@ -166,9 +166,11 @@ main() {
         glfwPollEvents();
     }
 
+    logical_device.wait();
+    logical_device.destroy();
+    
     window_surface.destroy();
     glfwDestroyWindow(window);
-    logical_device.destroy();
     api_instance.destroy();
     return 0;
 }

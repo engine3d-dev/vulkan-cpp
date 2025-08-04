@@ -16,6 +16,7 @@
 #include <vulkan-cpp/command_buffer.hpp>
 #include <vulkan-cpp/renderpass.hpp>
 #include <vulkan-cpp/framebuffer.hpp>
+#include <vulkan-cpp/sample_image.hpp>
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 debug_callback(
@@ -191,8 +192,8 @@ main() {
                             images.data()); // used to store in the images
 
     // Creating Images
-    std::vector<vk::image> swapchain_images(image_count);
-    std::vector<vk::sampled_image> swapchain_depth_images(image_count);
+    std::vector<vk::sample_image> swapchain_images(image_count);
+    std::vector<vk::sample_image> swapchain_depth_images(image_count);
 
     VkExtent2D swapchain_extent = surface_properties.capabilities.currentExtent;
 
@@ -200,33 +201,53 @@ main() {
     uint32_t layer_count = 1;
     uint32_t mip_levels = 1;
     for (uint32_t i = 0; i < swapchain_images.size(); i++) {
-        vk::swapchain_image_enumeration enumerate_image_properties = {
-            .image = images[i],
+        // vk::swapchain_image_enumeration enumerate_image_properties = {
+        //     .image = images[i],
+        //     .format = surface_properties.format.format,
+        //     // .aspect = VK_IMAGE_ASPECT_COLOR_BIT,
+        //     .aspect = vk::image_aspect_flags::color_bit,
+        //     .layer_count = 1,
+        //     .mip_levels = 1
+        // };
+        vk::image_configuration_information swapchain_image_config = {
+            .extent = {swapchain_extent.width, swapchain_extent.width},
             .format = surface_properties.format.format,
-            // .aspect = VK_IMAGE_ASPECT_COLOR_BIT,
             .aspect = vk::image_aspect_flags::color_bit,
+            .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+            .mip_levels = 1,
             .layer_count = 1,
-            .mip_levels = 1
+            .physical_device = physical_device
         };
-        swapchain_images[i] =
-          create_image2d_view(logical_device, enumerate_image_properties);
+        // swapchain_images[i] = create_image2d_view(logical_device, enumerate_image_properties);
+        swapchain_images[i] = vk::sample_image(logical_device, images[i], swapchain_image_config);
 
         // Creating Depth Images for depth buffering
-        vk::image_enumeration depth_image_enumeration = {
-            .width = swapchain_extent.width,
-            .height = swapchain_extent.height,
+        // vk::image_enumeration depth_image_enumeration = {
+        //     .width = swapchain_extent.width,
+        //     .height = swapchain_extent.height,
+        //     .format = depth_format,
+        //     // .aspect = VK_IMAGE_ASPECT_DEPTH_BIT
+        //     .aspect = vk::image_aspect_flags::depth_bit
+        // };
+        vk::image_configuration_information depth_image_config = {
+            .extent = {swapchain_extent.width, swapchain_extent.width},
             .format = depth_format,
-            // .aspect = VK_IMAGE_ASPECT_DEPTH_BIT
-            .aspect = vk::image_aspect_flags::depth_bit
+            .aspect = vk::image_aspect_flags::depth_bit,
+            .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+            .mip_levels = 1,
+            .layer_count = 1,
+            .physical_device = physical_device
         };
 
         // Retrieving the image resource memory requirements for specific memory
         // allocation Parameter is default to using
         // vk::memory_property::device_local_bit
-        uint32_t memory_type_index = vk::image_memory_requirements(
-          physical_device, logical_device, swapchain_images[i]);
-        swapchain_depth_images[i] = create_depth_image2d(
-          logical_device, depth_image_enumeration, memory_type_index);
+        // uint32_t memory_type_index = vk::image_memory_requirements(
+        //   physical_device, logical_device, swapchain_images[i]);
+        // swapchain_depth_images[i] = create_depth_image2d(
+        //   logical_device, depth_image_enumeration, memory_type_index);
+        swapchain_depth_images[i] = vk::sample_image(logical_device, depth_image_config);
+
     }
 
     // setting up command buffers
@@ -304,8 +325,8 @@ main() {
 	std::vector<vk::framebuffer> swapchain_framebuffers(image_count);
 	for (uint32_t i = 0; i < swapchain_framebuffers.size(); i++) {
 		std::array<VkImageView, 2> image_view_attachments = {
-			swapchain_images[i].view,
-			swapchain_depth_images[i].view
+			swapchain_images[i].image_view(),
+			swapchain_depth_images[i].image_view()
 		};
         // image_view_attachments.push_back(swapchain_images[i].view);
         // image_view_attachments.push_back(swapchain_depth_images[i].view);
@@ -372,13 +393,12 @@ main() {
         fb.destroy();
     }
 
-    for (auto& img : swapchain_images) {
-        // vk::free_image(logical_device, img);
-        vkDestroyImageView(logical_device, img.view, nullptr);
+    for (auto& image : swapchain_images) {
+        image.destroy();
     }
 
-    for (auto& depth_img : swapchain_depth_images) {
-        vk::free_image(logical_device, depth_img);
+    for (auto& depth_image : swapchain_depth_images) {
+        depth_image.destroy();
     }
 
     main_renderpass.destroy();

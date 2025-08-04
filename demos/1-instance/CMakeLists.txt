@@ -8,10 +8,10 @@ build_application(
     PACKAGES
     Vulkan
     VulkanHeaders
-    vulkan-cpp
+    # vulkan-cpp
 
     LINK_PACKAGES
     Vulkan::Vulkan
     vulkan-headers::vulkan-headers
-    vulkan-cpp::vulkan-cpp
+    vulkan-cpp
 )

@@ -117,7 +117,7 @@ main() {
         glfwPollEvents();
 
     }
-
+    glfwDestroyWindow(window);
     api_instance.destroy();
     return 0;
 }
