@@ -3,26 +3,6 @@
 #include <vulkan-cpp/types.hpp>
 
 namespace vk {
-    struct image_extent {
-        uint32_t width=1;
-        uint32_t height=1;
-    };
-
-    struct image_configuration_information {
-        image_extent extent;
-        VkFormat format;
-        memory_property property=memory_property::device_local_bit;
-        image_aspect_flags aspect=image_aspect_flags::color_bit;
-        VkImageUsageFlags usage;
-        uint32_t mip_levels=1;
-        uint32_t layer_count=1;
-        uint32_t array_layers=1;
-        VkPhysicalDevice physical_device=nullptr;
-        filter_range range{.min = VK_FILTER_LINEAR, .max = VK_FILTER_LINEAR};
-        VkSamplerAddressMode addrses_mode_u=VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        VkSamplerAddressMode addrses_mode_v=VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        VkSamplerAddressMode addrses_mode_w=VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    };
 
     class sample_image {
     public:
@@ -41,6 +21,7 @@ namespace vk {
         operator VkImage() { return m_image; }
 
     private:
+        bool m_only_destroy_image_view=false;
         VkDevice m_device=nullptr;
         VkImage m_image=nullptr;
         VkImageView m_image_view=nullptr;

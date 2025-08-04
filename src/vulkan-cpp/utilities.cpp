@@ -356,111 +356,34 @@ namespace vk {
         return sampler;
     }
 
-    image create_image2d_view(const VkDevice& p_device, const swapchain_image_enumeration& p_enumerate_image) {
-        VkImageViewCreateInfo image_view_ci = {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .image = p_enumerate_image.image,
-            .viewType = VK_IMAGE_VIEW_TYPE_2D,
-            .format = p_enumerate_image.format,
-            .components = { .r = VK_COMPONENT_SWIZZLE_IDENTITY,
-                            .g = VK_COMPONENT_SWIZZLE_IDENTITY,
-                            .b = VK_COMPONENT_SWIZZLE_IDENTITY,
-                            .a = VK_COMPONENT_SWIZZLE_IDENTITY },
-            .subresourceRange = { .aspectMask = to_image_aspect_flags(p_enumerate_image.aspect),
-                                  .baseMipLevel = 0,
-                                  .levelCount = p_enumerate_image.mip_levels,
-                                  .baseArrayLayer = 0,
-                                  .layerCount = p_enumerate_image.layer_count },
-        };
+    // image create_image2d_view(const VkDevice& p_device, const swapchain_image_enumeration& p_enumerate_image) {
+    //     VkImageViewCreateInfo image_view_ci = {
+    //         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+    //         .pNext = nullptr,
+    //         .flags = 0,
+    //         .image = p_enumerate_image.image,
+    //         .viewType = VK_IMAGE_VIEW_TYPE_2D,
+    //         .format = p_enumerate_image.format,
+    //         .components = { .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+    //                         .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+    //                         .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+    //                         .a = VK_COMPONENT_SWIZZLE_IDENTITY },
+    //         .subresourceRange = { .aspectMask = to_image_aspect_flags(p_enumerate_image.aspect),
+    //                               .baseMipLevel = 0,
+    //                               .levelCount = p_enumerate_image.mip_levels,
+    //                               .baseArrayLayer = 0,
+    //                               .layerCount = p_enumerate_image.layer_count },
+    //     };
 
-        image image2d{};
-        image2d.image = p_enumerate_image.image;
+    //     image image2d{};
+    //     image2d.image = p_enumerate_image.image;
 
-        VkImageView image_view;
-        vk_check(
-          vkCreateImageView(p_device, &image_view_ci, nullptr, &image2d.view),
-          "vkCreateImageView");
-        return image2d;
-    }
-
-    sampled_image create_depth_image2d(const VkDevice& p_device, const image_enumeration& p_enumerate_image, uint32_t p_memory_type_index) {
-
-        VkImageUsageFlags usage =
-              VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-
-        VkImageCreateInfo image_ci = {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .imageType = VK_IMAGE_TYPE_2D,
-            .format = p_enumerate_image.format,
-            .extent = { .width = p_enumerate_image.width, .height = p_enumerate_image.height, .depth = 1 },
-            .mipLevels = p_enumerate_image.mip_levels,
-            .arrayLayers = 1,
-            .samples = VK_SAMPLE_COUNT_1_BIT,
-            .tiling = VK_IMAGE_TILING_OPTIMAL,
-            .usage = usage,
-            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-            .queueFamilyIndexCount = 0,
-            .pQueueFamilyIndices = nullptr,
-            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
-        };
-
-        sampled_image depth_image{};
-
-        vk_check(vkCreateImage(p_device, &image_ci, nullptr, &depth_image.image),
-                 "vkCreateImage");
-
-        // 2. get buffer memory requirements
-        VkMemoryRequirements memory_requirements;
-        vkGetImageMemoryRequirements(p_device, depth_image.image, &memory_requirements);
-
-        // 3. get memory type index
-        // uint32_t memory_type_index = driver.select_memory_type(
-        //   memory_requirements.memoryTypeBits, property_flags);
-
-        // 4. Allocate info
-        VkMemoryAllocateInfo memory_alloc_info = {
-            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-            .pNext = nullptr,
-            .allocationSize = memory_requirements.size,
-            .memoryTypeIndex = p_memory_type_index
-        };
-
-        vk_check(vkAllocateMemory(
-                   p_device, &memory_alloc_info, nullptr, &depth_image.device_memory),
-                 "vkAllocateMemory");
-
-        // 5. bind image memory
-        vk_check(vkBindImageMemory(p_device, depth_image.image, depth_image.device_memory, 0),
-                 "vkBindImageMemory");
-        
-        // Needs to create VkImageView after VkImage
-        // because VkImageView expects a VkImage to be binded to a singl VkDeviceMemory beforehand
-        VkImageViewCreateInfo image_view_ci = {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .image = depth_image.image,
-            .viewType = VK_IMAGE_VIEW_TYPE_2D,
-            .format = p_enumerate_image.format,
-            .components = { .r = VK_COMPONENT_SWIZZLE_IDENTITY,
-                            .g = VK_COMPONENT_SWIZZLE_IDENTITY,
-                            .b = VK_COMPONENT_SWIZZLE_IDENTITY,
-                            .a = VK_COMPONENT_SWIZZLE_IDENTITY },
-            .subresourceRange = { .aspectMask = to_image_aspect_flags(p_enumerate_image.aspect),
-                                  .baseMipLevel = 0,
-                                  .levelCount = p_enumerate_image.mip_levels,
-                                  .baseArrayLayer = 0,
-                                  .layerCount = p_enumerate_image.layer_count },
-        };
-
-        vk_check(vkCreateImageView(p_device, &image_view_ci, nullptr, &depth_image.view),"vkCreateImage");
-
-        return depth_image;
-    }
+    //     VkImageView image_view;
+    //     vk_check(
+    //       vkCreateImageView(p_device, &image_view_ci, nullptr, &image2d.view),
+    //       "vkCreateImageView");
+    //     return image2d;
+    // }
 
     VkSemaphore create_semaphore(const VkDevice& p_device) {
         // creating semaphores
@@ -477,32 +400,32 @@ namespace vk {
         return semaphore;
     }
 
-    void free_image(const VkDevice& p_driver, sampled_image p_image) {
-        if (p_image.view != nullptr) {
-            vkDestroyImageView(p_driver, p_image.view, nullptr);
-        }
+    // void free_image(const VkDevice& p_driver, sampled_image p_image) {
+    //     if (p_image.view != nullptr) {
+    //         vkDestroyImageView(p_driver, p_image.view, nullptr);
+    //     }
 
-        if (p_image.image != nullptr) {
-            vkDestroyImage(p_driver, p_image.image, nullptr);
-        }
-        if (p_image.sampler != nullptr) {
-            vkDestroySampler(p_driver, p_image.sampler, nullptr);
-        }
+    //     if (p_image.image != nullptr) {
+    //         vkDestroyImage(p_driver, p_image.image, nullptr);
+    //     }
+    //     if (p_image.sampler != nullptr) {
+    //         vkDestroySampler(p_driver, p_image.sampler, nullptr);
+    //     }
 
-        if (p_image.device_memory != nullptr) {
-            vkFreeMemory(p_driver, p_image.device_memory, nullptr);
-        }
-    }
+    //     if (p_image.device_memory != nullptr) {
+    //         vkFreeMemory(p_driver, p_image.device_memory, nullptr);
+    //     }
+    // }
 
-    void free_image(const VkDevice& p_driver, image p_image) {
-        if (p_image.view != nullptr) {
-            vkDestroyImageView(p_driver, p_image.view, nullptr);
-        }
+    // void free_image(const VkDevice& p_driver, image p_image) {
+    //     if (p_image.view != nullptr) {
+    //         vkDestroyImageView(p_driver, p_image.view, nullptr);
+    //     }
 
-        if (p_image.image != nullptr) {
-            vkDestroyImage(p_driver, p_image.image, nullptr);
-        }
-    }
+    //     if (p_image.image != nullptr) {
+    //         vkDestroyImage(p_driver, p_image.image, nullptr);
+    //     }
+    // }
 
     uint32_t image_memory_requirements(const VkPhysicalDevice& p_physical, const VkDevice& p_device, const VkImage& p_image, memory_property p_property) {
         VkMemoryRequirements memory_requirements;
@@ -899,55 +822,6 @@ namespace vk {
         }
     }
 
-    sampled_image create_sample_image2d(const VkDevice& p_device, const image_configuration& p_config) {
-        VkImageCreateInfo image_ci = {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .imageType = VK_IMAGE_TYPE_2D,
-            .format = p_config.format,
-            .extent = { .width = p_config.width, .height = p_config.height, .depth = 1 },
-            .mipLevels = p_config.mip_levels,
-            .arrayLayers = p_config.array_layers,
-            .samples = VK_SAMPLE_COUNT_1_BIT,
-            .tiling = VK_IMAGE_TILING_OPTIMAL,
-            .usage = p_config.usage,
-            .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-            .queueFamilyIndexCount = 0,
-            .pQueueFamilyIndices = nullptr,
-            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
-        };
-
-        // 1. creating the VkImage handle
-        sampled_image new_image{};
-        vk_check(vkCreateImage(p_device, &image_ci, nullptr, &new_image.image),"vkCreateImage");
-        
-        // 2. retrieve memory requirements with that image
-        if(p_config.physical_device == nullptr) {
-            throw std::runtime_error("Cannot utilize physical device -- not specified!!!");
-        }
-        VkMemoryRequirements memory_requirements;
-        vkGetImageMemoryRequirements(p_device, new_image.image, &memory_requirements);
-        uint32_t image_requirement_index= select_memory_requirements(p_config.physical_device, memory_requirements, p_config.property);
-
-        // 4. Allocate info
-        VkMemoryAllocateInfo memory_alloc_info = {
-            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-            .pNext = nullptr,
-            .allocationSize = memory_requirements.size,
-            .memoryTypeIndex = image_requirement_index
-        };
-
-        vk_check(vkAllocateMemory(
-                   p_device, &memory_alloc_info, nullptr, &new_image.device_memory),
-                 "vkAllocateMemory");
-
-        // 5. bind image memory
-        vk_check(vkBindImageMemory(p_device, new_image.image, new_image.device_memory, 0),"vkBindImageMemory");
-        
-        return new_image;
-    }
-
     int bytes_per_texture_format(VkFormat p_format) {
         switch (p_format) {
             case VK_FORMAT_R8_SINT:
@@ -1154,19 +1028,19 @@ namespace vk {
                                &buffer_image_copy);
     }
 
-    VkImageView create_image2d_view(const VkDevice& p_device, const VkImage& p_image, VkFormat p_format, VkImageAspectFlags p_aspect_flags) {
+    VkImageView create_image2d_view(const VkDevice& p_device, const VkImage& p_image, const image_configuration_information& p_config) {
         VkImageViewCreateInfo view_info = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
             .image = p_image,
             .viewType = VK_IMAGE_VIEW_TYPE_2D,
-            .format = p_format,
+            .format = p_config.format,
             .components = { .r = VK_COMPONENT_SWIZZLE_IDENTITY,
                             .g = VK_COMPONENT_SWIZZLE_IDENTITY,
                             .b = VK_COMPONENT_SWIZZLE_IDENTITY,
                             .a = VK_COMPONENT_SWIZZLE_IDENTITY },
-            .subresourceRange = { .aspectMask = p_aspect_flags,
+            .subresourceRange = { .aspectMask = to_image_aspect_flags(p_config.aspect),
                                   .baseMipLevel = 0,
                                   .levelCount = 1,
                                   .baseArrayLayer = 0,

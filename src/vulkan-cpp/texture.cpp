@@ -20,19 +20,8 @@ namespace vk {
         command_buffer temp_command_buffer = command_buffer(p_device, copy_command_enumeration);
 
         // 2. loading texture
-        std::println("Created 2d image handlers");
-        // sampled_image texture_image = create_sample_image2d(p_device, p_config);
-        // image_configuration_information image_properties_config = {
-        //     .extent = { .width = p_config.width, .height = p_config.height },
-        //     .format = p_config.format,
-        //     .property = memory_property::device_local_bit,
-        //     .aspect = image_aspect_flags::color_bit,
-        //     .usage = p_config.usage,
-        //     .layer_count = 1,
-        //     .physical_device = p_config.physical_device,
-        // };
+
         sample_image texture_image = sample_image(p_device, p_config);
-        std::println("Searched for bytes per pixel format!!");
         int bytes_per_pixel = bytes_per_texture_format(p_config.format);
 
         // 3. getting layer size
@@ -50,18 +39,15 @@ namespace vk {
         };
 
         buffer_handle staging_buffer = create_buffer(p_device, staging_buffer_config);
-        std::println("Created staging buffer");
 
         // 5. write data to the staging buffer with specific size specified
         write(p_device, staging_buffer, p_data, image_size);
-        std::println("Wrote staging buffer");
 
         // 6. start recording to this command buffer
         VkImageLayout old_layout = VK_IMAGE_LAYOUT_UNDEFINED;
         VkImageLayout new_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
         VkFormat texture_format = p_config.format;
 
-        std::println("before command record!!! #1");
         temp_command_buffer.begin(command_usage::one_time_submit);
 
         // 6.1 -- transition image layout
@@ -116,12 +102,8 @@ namespace vk {
             m_texture_loaded = false;
             return;
         }
-        else {
-            std::println("{} loaded!!!", p_texture_info.filepath.string());
-        }
 
         // 2. create vulkan image handlers + loading in the image data
-
         uint32_t property_flag = memory_property::device_local_bit;
 
         image_configuration_information config_image = {
@@ -133,25 +115,12 @@ namespace vk {
             .physical_device = p_texture_info.physical
         };
 
-        // m_image_handle = create_texture_with_data(p_device, config_image, image_pixel_data);
         m_image = create_texture_with_data(p_device, config_image, image_pixel_data);;
-
-        // 3.) Create Image View
-        VkImageAspectFlags aspect_flags = VK_IMAGE_ASPECT_COLOR_BIT;
-
-        filter_range sampler_range = { .min = VK_FILTER_LINEAR,
-                                          .max = VK_FILTER_LINEAR };
-
-        VkSamplerAddressMode addr_mode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-
-        // m_image_handle.sampler = create_sampler(p_device, sampler_range, addr_mode);
-
 
         m_texture_loaded = true;
     }
 
     void texture::destroy() {
-        // free_image(m_device, m_image_handle);
         m_image.destroy();
     }
 };

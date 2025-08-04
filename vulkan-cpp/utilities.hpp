@@ -71,21 +71,6 @@ namespace vk {
                                         uint32_t p_type_filter,
                                         VkMemoryPropertyFlags p_property_flag);
 
-    //! @return image view handler that is creating a gpu resource for 2d image
-    //! @return this returns a created image view handler if the image is
-    //! already created for you
-    image create_image2d_view(
-      const VkDevice& p_device,
-      const swapchain_image_enumeration& p_enumerate_image);
-    sampled_image create_depth_image2d(
-      const VkDevice& p_device,
-      const image_enumeration& p_enumerate_image,
-      uint32_t p_memory_type_index);
-
-    VkSampler create_sampler(const VkDevice& p_device,
-                             const filter_range& p_range,
-                             VkSamplerAddressMode p_address_mode);
-
     VkSemaphore create_semaphore(const VkDevice& p_device);
 
     //! @brief Requests memory requirements from the physical hardware device
@@ -111,9 +96,9 @@ namespace vk {
 	// since that can vary.
 	uint32_t select_memory_requirements(const VkPhysicalDevice& p_physical, VkMemoryRequirements p_memory_requirements, memory_property p_property = memory_property::device_local_bit);
 
-    void free_image(const VkDevice& p_driver, sampled_image p_image);
+    // void free_image(const VkDevice& p_driver, sampled_image p_image);
 
-    void free_image(const VkDevice& p_driver, image p_image);
+    // void free_image(const VkDevice& p_driver, image p_image);
 
     VkCommandBufferLevel to_vk_command_buffer_level(
       const command_levels& p_level);
@@ -181,10 +166,6 @@ namespace vk {
     //! shader resource is acecssing
     VkDescriptorType to_descriptor_type(const buffer& p_type);
 
-    //! @brief Returns vk::sample_image which contains the VkImage, VkImage, and VKSampler handlers
-    //! with image 2D specifications
-    sampled_image create_sample_image2d(const VkDevice& p_device, const image_configuration& p_config);
-
 	//! @brief passes a vulkan format
 	//! @return the amount of bytes per vulkan format specification
 	int bytes_per_texture_format(VkFormat p_format);
@@ -207,5 +188,7 @@ namespace vk {
 	 * @param p_height is the height of the image
 	*/
 	void copy(const VkCommandBuffer& p_command_buffer, const VkImage& p_image, const buffer_handle& p_buffer, uint32_t p_width, uint32_t p_height);
+
+	VkImageView create_image2d_view(const VkDevice& p_device, const VkImage& p_image, const image_configuration_information& p_info);
 
 };

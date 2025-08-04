@@ -29,9 +29,6 @@ namespace vk {
 
         device_queue m_present_queue;
 
-        std::vector<image> m_swapchain_images;
-        std::vector<sampled_image> m_swapchain_depth_images;
-
         // std::vector<VkFramebuffer> m_swapchain_framebuffers{};
     };
 };

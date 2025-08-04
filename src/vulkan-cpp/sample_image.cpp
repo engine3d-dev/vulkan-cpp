@@ -1,11 +1,10 @@
 #include <vulkan-cpp/sample_image.hpp>
 #include <vulkan-cpp/utilities.hpp>
 #include <stdexcept>
+#include <print>
 
 namespace vk {
     sample_image::sample_image(const VkDevice& p_device, const image_configuration_information& p_image_properties) : m_device(p_device) {
-        // VkImageUsageFlags usage =
-        //       VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 
         // 1. creating VkImage handle
         VkImageCreateInfo image_ci = {
@@ -104,6 +103,13 @@ namespace vk {
     }
 
     sample_image::sample_image(const VkDevice& p_device, const VkImage& p_image, const image_configuration_information& p_image_properties) : m_device(p_device), m_image(p_image) {
+        
+        if(m_image == nullptr) {
+            std::println("VkImage is nullptr");
+        }
+        else {
+            std::println("VkImage not nullptr");
+        }
         // Needs to create VkImageView after VkImage
         // because VkImageView expects a VkImage to be binded to a singl VkDeviceMemory beforehand
         VkImageViewCreateInfo image_view_ci = {
@@ -125,6 +131,32 @@ namespace vk {
         };
 
         vk_check(vkCreateImageView(p_device, &image_view_ci, nullptr, &m_image_view),"vkCreateImage");
+
+        // Create VkSampler handler
+        VkSamplerCreateInfo sampler_info = {
+            .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .magFilter = p_image_properties.range.min,
+            .minFilter = p_image_properties.range.max,
+            .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+            .addressModeU = p_image_properties.addrses_mode_u,
+            .addressModeV = p_image_properties.addrses_mode_v,
+            .addressModeW = p_image_properties.addrses_mode_w,
+            .mipLodBias = 0.0f,
+            .anisotropyEnable = false,
+            .maxAnisotropy = 1,
+            .compareEnable = false,
+            .compareOp = VK_COMPARE_OP_ALWAYS,
+            .minLod = 0.0f,
+            .maxLod = 0.0f,
+            .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+            .unnormalizedCoordinates = false
+        };
+
+        vk_check(vkCreateSampler(p_device, &sampler_info, nullptr, &m_sampler), "vkCreateSampler");
+
+        m_only_destroy_image_view = true;
     }
 
     void sample_image::destroy() {
@@ -132,9 +164,16 @@ namespace vk {
             vkDestroyImageView(m_device, m_image_view, nullptr);
         }
 
-        if (m_image != nullptr) {
+        // Boolean check is to make sure we might only want
+        // to destroy vk::sample_image resources.
+        
+        // Example of this is the swapchain may pass in
+        // its images and we should only destruct the VkImageView
+        // and not the swapchain's images directly
+        if (m_image != nullptr and !m_only_destroy_image_view) {
             vkDestroyImage(m_device, m_image, nullptr);
         }
+        
         if (m_sampler != nullptr) {
             vkDestroySampler(m_device, m_sampler, nullptr);
         }

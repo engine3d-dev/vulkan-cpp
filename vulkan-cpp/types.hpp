@@ -137,39 +137,39 @@ namespace vk {
     };
 
     // raw image handlers
-    struct image {
-        VkImage image = nullptr;
-        VkImageView view = nullptr;
-    };
+    // struct image {
+    //     VkImage image = nullptr;
+    //     VkImageView view = nullptr;
+    // };
 
     // sampler + raw image handlers
-    struct sampled_image {
-        VkImage image = nullptr;
-        VkImageView view = nullptr;
-        VkSampler sampler = nullptr;
-        VkDeviceMemory device_memory = nullptr;
-    };
+    // struct sampled_image {
+    //     VkImage image = nullptr;
+    //     VkImageView view = nullptr;
+    //     VkSampler sampler = nullptr;
+    //     VkDeviceMemory device_memory = nullptr;
+    // };
 
     //! @brief enumeration if an image is provided
-    struct swapchain_image_enumeration {
-        VkImage image = nullptr;
-        VkFormat format;
-        // VkImageAspectFlags aspect;
-        image_aspect_flags aspect;
-        uint32_t layer_count = 0;
-        uint32_t mip_levels = 1;
-    };
+    // struct swapchain_image_enumeration {
+    //     VkImage image = nullptr;
+    //     VkFormat format;
+    //     // VkImageAspectFlags aspect;
+    //     image_aspect_flags aspect;
+    //     uint32_t layer_count = 0;
+    //     uint32_t mip_levels = 1;
+    // };
 
     // Image enumeration for creating a brand new VkImage/VkImageView handlers
-    struct image_enumeration {
-        uint32_t width = -1;
-        uint32_t height = -1;
-        VkFormat format;
-        // VkImageAspectFlags aspect;
-        image_aspect_flags aspect;
-        uint32_t layer_count = 1;
-        uint32_t mip_levels = 1;
-    };
+    // struct image_enumeration {
+    //     uint32_t width = -1;
+    //     uint32_t height = -1;
+    //     VkFormat format;
+    //     // VkImageAspectFlags aspect;
+    //     image_aspect_flags aspect;
+    //     uint32_t layer_count = 1;
+    //     uint32_t mip_levels = 1;
+    // };
 
     /**
      * @param renderpass vulkan requires framebuffers to know renderpasses up
@@ -631,6 +631,28 @@ namespace vk {
         uint32_t offset;
         uint32_t range;
     };
+
+    struct image_extent {
+        uint32_t width=1;
+        uint32_t height=1;
+    };
+
+    struct image_configuration_information {
+        image_extent extent;
+        VkFormat format;
+        memory_property property=memory_property::device_local_bit;
+        image_aspect_flags aspect=image_aspect_flags::color_bit;
+        VkImageUsageFlags usage;
+        uint32_t mip_levels=1;
+        uint32_t layer_count=1;
+        uint32_t array_layers=1;
+        VkPhysicalDevice physical_device=nullptr;
+        filter_range range{.min = VK_FILTER_LINEAR, .max = VK_FILTER_LINEAR};
+        VkSamplerAddressMode addrses_mode_u=VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        VkSamplerAddressMode addrses_mode_v=VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        VkSamplerAddressMode addrses_mode_w=VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    };
+
 
 
 };
