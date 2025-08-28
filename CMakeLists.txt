@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.27)
 project(vulkan-cpp CXX)
 
 build_library(
-    DIRECTORIES src demos/12-loading-models
+    DIRECTORIES
+    src
     ENABLE_TESTS OFF
 
     PACKAGES

@@ -20,6 +20,9 @@ namespace vk {
         //! @return the presentation index for the presentation queue
         uint32_t queue_present_index(const VkSurfaceKHR& p_surface);
 
+        //! @return physical device memory requirements
+        [[nodiscard]] VkPhysicalDeviceMemoryProperties memory_properties() const;
+
 
         operator VkPhysicalDevice() { return m_physical_device; }
 

@@ -90,11 +90,11 @@ namespace vk {
       const VkImage& p_image,
 	  memory_property p_property = memory_property::device_local_bit);
 	
-	uint32_t buffer_memory_requirement(const VkPhysicalDevice& p_physical, const VkDevice& p_device, const buffer_handle& p_buffer, memory_property p_property = memory_property::device_local_bit);
+	// uint32_t buffer_memory_requirement(const VkPhysicalDevice& p_physical, const VkDevice& p_device, const buffer_handle& p_buffer, memory_property p_property = memory_property::device_local_bit);
 	
 	//! @brief Whether the memory requirement is for retrieved by a VkImage or VkBuffer handle, you just pass the memory requirements to this function rather then the handle
 	// since that can vary.
-	uint32_t select_memory_requirements(const VkPhysicalDevice& p_physical, VkMemoryRequirements p_memory_requirements, memory_property p_property = memory_property::device_local_bit);
+	// uint32_t select_memory_requirements(const VkPhysicalDevice& p_physical, VkMemoryRequirements p_memory_requirements, memory_property p_property = memory_property::device_local_bit);
 
     // void free_image(const VkDevice& p_driver, sampled_image p_image);
 
@@ -130,37 +130,39 @@ namespace vk {
 
 	VkFormat to_format(const format& p_format);
 
-	buffer_handle create_buffer(const VkDevice& p_device, const buffer_configuration& p_info);
+	// buffer_handle create_buffer(const VkDevice& p_device, const buffer_configuration& p_info);
 
-	/**
-     * @brief maps the current buffer handler to some block of memory and the
-     * byte size for that chunk
-     */
-    void write(const VkDevice& p_device, const buffer_handle& p_buffer,
-               const void* p_data,
-               size_t p_size_in_bytes);
+	// /**
+  //    * @brief maps the current buffer handler to some block of memory and the
+  //    * byte size for that chunk
+  //    */
+  //   void write(const VkDevice& p_device, const buffer_handle& p_buffer,
+  //              const void* p_data,
+  //              size_t p_size_in_bytes);
 
-    /**
-     * @brief Maps buffer handler to chunk of data of type, that is
-     * std::span<uint32_t>.
-     */
-    void write(const VkDevice& p_device, const buffer_handle& p_buffer,
-               const std::span<uint32_t>& p_in_buffer);
+  //   /**
+  //    * @brief Maps buffer handler to chunk of data of type, that is
+  //    * std::span<uint32_t>.
+  //    */
+  //   void write(const VkDevice& p_device, const buffer_handle& p_buffer,
+  //              const std::span<uint32_t>& p_in_buffer);
 
-    /**
-     * @brief Maps buffer handler to data chunks that contain vertices
-     */
-    void write(const VkDevice& p_device, const buffer_handle& p_buffer,
-               const std::span<vertex_input>& p_in_buffer);
+  //   /**
+  //    * @brief Maps buffer handler to data chunks that contain vertices
+  //    */
+  //   void write(const VkDevice& p_device, const buffer_handle& p_buffer,
+  //              const std::span<vertex_input>& p_in_buffer);
 		
-	//! @brief Maps to the buffer handle some arbitrary data
-	void write(const VkDevice& p_device, const buffer_handle& p_buffer, const void* p_data, size_t p_size_in_bytes);
-	
-	//! @brief Copies from one buffer source into another buffer source with a
-    //! specific size of bytes to be stored the buffer that is being copied to
-    void copy(const VkDevice& p_device, const buffer_copy_info& p_info, size_t p_size_of_bytes);
+	// //! @brief Maps to the buffer handle some arbitrary data
+	// void write(const VkDevice& p_device, const buffer_handle& p_buffer, const void* p_data, size_t p_size_in_bytes);
 
-	void free_buffer(const VkDevice& p_driver, buffer_handle& p_buffer);
+	// void write(const VkDevice& p_device, const buffer_handle& p_buffer, const void* p_data, const write_info& p_info);
+	
+	// //! @brief Copies from one buffer source into another buffer source with a
+  //   //! specific size of bytes to be stored the buffer that is being copied to
+    void copy(const VkDevice& p_device, const buffer_copy_info& p_info, size_t p_size_of_bytes);
+    void copy(const VkCommandBuffer& p_command_buffer, const VkImage& p_image, const VkBuffer& p_buffer, uint32_t p_width, uint32_t p_height);
+	// void free_buffer(const VkDevice& p_driver, buffer_handle& p_buffer);
 
 	//! @return Returns the VkDescriptorType that represents a "handle" the
     //! shader resource is acecssing
@@ -179,6 +181,8 @@ namespace vk {
 	 * @param p_new is the dst image layout to transition image into
 	*/
 	void image_memory_barrier(const VkCommandBuffer& p_command_buffer, const VkImage& p_image, VkFormat p_format, VkImageLayout p_old, VkImageLayout p_new);
+    
+	void image_memory_barrier(const VkCommandBuffer& p_command_buffer, const VkImage& p_image, const image_barrier_info& p_info);
 
 	/**
 	 * @param p_command_buffer command buffer must be in record mode beforehand when copying command buffer
@@ -187,8 +191,10 @@ namespace vk {
 	 * @param p_width is the width of the image
 	 * @param p_height is the height of the image
 	*/
-	void copy(const VkCommandBuffer& p_command_buffer, const VkImage& p_image, const buffer_handle& p_buffer, uint32_t p_width, uint32_t p_height);
+	// void copy(const VkCommandBuffer& p_command_buffer, const VkImage& p_image, const buffer_handle& p_buffer, uint32_t p_width, uint32_t p_height);
+  // void copy(const VkCommandBuffer& p_command_buffer, const VkImage& p_image, const buffer_handle& p_buffer, const copy_info& p_info);
 
 	VkImageView create_image2d_view(const VkDevice& p_device, const VkImage& p_image, const image_configuration_information& p_info);
 
+	uint32_t select_memory_requirements(VkPhysicalDeviceMemoryProperties p_physical_memory_props, VkMemoryRequirements p_memory_requirements, memory_property p_property);
 };

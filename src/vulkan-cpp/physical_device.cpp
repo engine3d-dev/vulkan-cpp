@@ -57,4 +57,10 @@ namespace vk {
 
         return presentation_index;
     }
+
+    VkPhysicalDeviceMemoryProperties physical_device::memory_properties() const {
+        VkPhysicalDeviceMemoryProperties physical_memory_properties;
+        vkGetPhysicalDeviceMemoryProperties(m_physical_device, &physical_memory_properties);
+        return physical_memory_properties;
+    }
 };

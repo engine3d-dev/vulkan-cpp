@@ -2,12 +2,13 @@
 #include <filesystem>
 #include <vulkan/vulkan.h>
 #include <vulkan-cpp/types.hpp>
+#include <vulkan-cpp/buffer.hpp>
 #include <vulkan-cpp/sample_image.hpp>
 
 namespace vk {
     struct texture_info {
         // for getting image memory requirements for the texture
-        VkPhysicalDevice physical;
+        VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
         std::filesystem::path filepath;
     };
     class texture {

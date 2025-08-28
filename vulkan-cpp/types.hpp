@@ -6,6 +6,8 @@
 #include <array>
 #include <glm/glm.hpp>
 
+#include <vulkan/vulkan.hpp>
+
 namespace vk {
     // Alias for VkFormat
     // using format = VkFormat;
@@ -549,48 +551,26 @@ namespace vk {
         }
     };
 
-    //! @brief vulkan buffer struct to define the handlers and memory
-    //! specifications required for buffer handlers in vulkan
-    struct buffer_handle {
-        VkBuffer handle = nullptr;
-        VkDeviceMemory device_memory = nullptr;
-        uint32_t allocation_size = 0; // device allocation size
-    };
-
-    struct buffer_configuration {
-        VkDeviceSize device_size;
-        VkBufferUsageFlags usage;
-        // VkMemoryPropertyFlags property_flags;
-        memory_property property_flags;
-        VkPhysicalDevice physical=nullptr;
-    };
-
     //! @brief struct for copying from staging buffer to a destination
     struct buffer_copy_info {
-        buffer_handle src;
-        buffer_handle dst;
+        VkBuffer src;
+        VkBuffer dst;
     };
 
-    // The class will not contain VkPhysicalDevice handle
-    // using it only to get memory requirement for the buffer memory requirements
 
-    /**
-     * @brief vk::vertex_buffer specification for creation of the vertex buffer
-     * @param physical_handle is the physical device for selecting buffer memory requirements for allocations
-     * @param vertices is the data to copy to the vertex buffer handle
-    */
-    struct vertex_buffer_info {
-        VkPhysicalDevice physical_handle=nullptr;
+    struct vertex_buffer_settings {
+        VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
         std::span<vertex_input> vertices;
     };
 
-    struct index_buffer_info {
-        VkPhysicalDevice physical_handle=nullptr;
+    struct index_buffer_settings {
+        VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
         std::span<uint32_t> indices;
     };
 
     struct uniform_buffer_info {
-        VkPhysicalDevice physical_handle=nullptr;
+        // VkPhysicalDevice physical_handle=nullptr;
+        VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
         uint32_t size_bytes=0;
     };
 
@@ -614,7 +594,6 @@ namespace vk {
         uint32_t mip_levels=1;
         uint32_t array_layers=1;
 		VkImageUsageFlags usage;
-		// VkMemoryPropertyFlagBits property;
         memory_property property;
         VkPhysicalDevice physical_device=nullptr;
 	};
@@ -643,16 +622,49 @@ namespace vk {
         memory_property property=memory_property::device_local_bit;
         image_aspect_flags aspect=image_aspect_flags::color_bit;
         VkImageUsageFlags usage;
+        VkImageCreateFlags image_flags=0;
+        VkImageViewType view_type=VK_IMAGE_VIEW_TYPE_2D;
         uint32_t mip_levels=1;
         uint32_t layer_count=1;
         uint32_t array_layers=1;
-        VkPhysicalDevice physical_device=nullptr;
+        // VkPhysicalDevice physical_device=nullptr;
+        VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
         filter_range range{.min = VK_FILTER_LINEAR, .max = VK_FILTER_LINEAR};
         VkSamplerAddressMode addrses_mode_u=VK_SAMPLER_ADDRESS_MODE_REPEAT;
         VkSamplerAddressMode addrses_mode_v=VK_SAMPLER_ADDRESS_MODE_REPEAT;
         VkSamplerAddressMode addrses_mode_w=VK_SAMPLER_ADDRESS_MODE_REPEAT;
     };
 
+    struct buffer_settings {
+        VkDeviceSize device_size=0;
+        VkPhysicalDeviceMemoryProperties physical_memory_properties;
+        memory_property property_flags;
+        VkBufferUsageFlags usage;
+        VkSharingMode share_mode=VK_SHARING_MODE_EXCLUSIVE;
+    };
+
+
+    // Used by vk::copy(const VkCommandBuffer& p_current,  )
+    struct copy_info {
+        uint32_t width;
+        uint32_t height;
+        uint32_t array_layers=1;
+    };
+
+    struct image_barrier_info {
+        VkFormat format;
+        VkImageLayout old_layout;
+        VkImageLayout new_layout;
+        uint32_t level_count=1;
+        VkImageAspectFlagBits aspect=VK_IMAGE_ASPECT_COLOR_BIT;
+        uint32_t base_array_count=0;
+        uint32_t layer_count=1;
+    };
+
+    struct write_info {
+        uint64_t offset=0;
+        uint64_t size_bytes=0;
+    };
 
 
 };

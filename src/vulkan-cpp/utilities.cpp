@@ -448,48 +448,49 @@ namespace vk {
         return -1;
     }
 
-    uint32_t select_memory_requirements(const VkPhysicalDevice& p_physical, VkMemoryRequirements p_memory_requirements, memory_property p_property) {
-        // VkMemoryRequirements memory_requirements;
-        // vkGetImageMemoryRequirements(p_device, p_image.image, &memory_requirements);
+    // uint32_t select_memory_requirements(const VkPhysicalDevice& p_physical, VkMemoryRequirements p_memory_requirements, memory_property p_property) {
+    //     // VkMemoryRequirements memory_requirements;
+    //     // vkGetImageMemoryRequirements(p_device, p_image.image, &memory_requirements);
 
-        uint32_t type_filter = p_memory_requirements.memoryTypeBits;
-        VkMemoryPropertyFlags property_flag = to_memory_property_flags(p_property);
+    //     uint32_t type_filter = p_memory_requirements.memoryTypeBits;
+    //     VkMemoryPropertyFlags property_flag = to_memory_property_flags(p_property);
 
-        VkPhysicalDeviceMemoryProperties mem_props;
-        vkGetPhysicalDeviceMemoryProperties(p_physical, &mem_props);
+    //     // This can be provided up front outside of the implementation
+    //     VkPhysicalDeviceMemoryProperties mem_props;
+    //     vkGetPhysicalDeviceMemoryProperties(p_physical, &mem_props);
 
-        for (uint32_t i = 0; i < mem_props.memoryTypeCount; i++) {
-            if ((type_filter & (1 << i)) and
-                (mem_props.memoryTypes[i].propertyFlags & property_flag) ==
-                  property_flag) {
-                return i;
-            }
-        }
+    //     for (uint32_t i = 0; i < mem_props.memoryTypeCount; i++) {
+    //         if ((type_filter & (1 << i)) and
+    //             (mem_props.memoryTypes[i].propertyFlags & property_flag) ==
+    //               property_flag) {
+    //             return i;
+    //         }
+    //     }
 
-        return -1;
-    }
+    //     return -1;
+    // }
 
-    uint32_t buffer_memory_requirement(const VkPhysicalDevice& p_physical, const VkDevice& p_device, const buffer_handle& p_buffer, memory_property p_property) {
-        VkMemoryRequirements memory_requirements;
-        // vkGetImageMemoryRequirements(p_device, p_buffer.handle, &memory_requirements);
-        vkGetBufferMemoryRequirements(p_device, p_buffer.handle, &memory_requirements);
+    // uint32_t buffer_memory_requirement(const VkPhysicalDevice& p_physical, const VkDevice& p_device, const buffer_handle& p_buffer, memory_property p_property) {
+    //     VkMemoryRequirements memory_requirements;
+    //     // vkGetImageMemoryRequirements(p_device, p_buffer.handle, &memory_requirements);
+    //     vkGetBufferMemoryRequirements(p_device, p_buffer.handle, &memory_requirements);
 
-        uint32_t type_filter = memory_requirements.memoryTypeBits;
-        VkMemoryPropertyFlags property_flag = to_memory_property_flags(p_property);
+    //     uint32_t type_filter = memory_requirements.memoryTypeBits;
+    //     VkMemoryPropertyFlags property_flag = to_memory_property_flags(p_property);
 
-        VkPhysicalDeviceMemoryProperties mem_props;
-        vkGetPhysicalDeviceMemoryProperties(p_physical, &mem_props);
+    //     VkPhysicalDeviceMemoryProperties mem_props;
+    //     vkGetPhysicalDeviceMemoryProperties(p_physical, &mem_props);
 
-        for (uint32_t i = 0; i < mem_props.memoryTypeCount; i++) {
-            if ((type_filter & (1 << i)) and
-                (mem_props.memoryTypes[i].propertyFlags & property_flag) ==
-                  property_flag) {
-                return i;
-            }
-        }
+    //     for (uint32_t i = 0; i < mem_props.memoryTypeCount; i++) {
+    //         if ((type_filter & (1 << i)) and
+    //             (mem_props.memoryTypes[i].propertyFlags & property_flag) ==
+    //               property_flag) {
+    //             return i;
+    //         }
+    //     }
 
-        return -1;
-    }
+    //     return -1;
+    // }
 
 
 
@@ -674,78 +675,89 @@ namespace vk {
         }
     }
 
-    buffer_handle create_buffer(const VkDevice& p_device, const buffer_configuration& p_info) {
-        buffer_handle handler = {};
+    // buffer_handle create_buffer(const VkDevice& p_device, const buffer_configuration& p_info) {
+    //     buffer_handle handler = {};
 
-        handler.allocation_size = p_info.device_size;
+    //     handler.allocation_size = p_info.device_size;
 
-        VkBufferCreateInfo buffer_ci = {
-            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .size = handler.allocation_size, // size in bytes
-            .usage = p_info.usage,
-            .sharingMode = VK_SHARING_MODE_EXCLUSIVE
-        };
+    //     VkBufferCreateInfo buffer_ci = {
+    //         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+    //         .pNext = nullptr,
+    //         .flags = 0,
+    //         .size = handler.allocation_size, // size in bytes
+    //         .usage = p_info.usage,
+    //         .sharingMode = VK_SHARING_MODE_EXCLUSIVE
+    //     };
 
-        vk_check(vkCreateBuffer(p_device, &buffer_ci, nullptr, &handler.handle),"vkCreateBuffer");
+    //     vk_check(vkCreateBuffer(p_device, &buffer_ci, nullptr, &handler.handle),"vkCreateBuffer");
 
-        // 2. retrieving buffer memory requirements
-        VkMemoryRequirements memory_requirements = {};
-        vkGetBufferMemoryRequirements(p_device, handler.handle, &memory_requirements);
+    //     // 2. retrieving buffer memory requirements
+    //     VkMemoryRequirements memory_requirements = {};
+    //     vkGetBufferMemoryRequirements(p_device, handler.handle, &memory_requirements);
 
-        // 3. selecting memory requirements from current physical device
-        // memory_property property;
-        uint32_t memory_type_index = select_memory_requirements(p_info.physical, memory_requirements, p_info.property_flags);
+    //     // 3. selecting memory requirements from current physical device
+    //     // memory_property property;
+    //     uint32_t memory_type_index = select_memory_requirements(p_info.physical, memory_requirements, p_info.property_flags);
 
-        // 4. allocatring the necessary memory based on memory requirements for the buffer handles
-        VkMemoryAllocateInfo memory_alloc_info = {
-            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-            .allocationSize = memory_requirements.size,
-            .memoryTypeIndex = memory_type_index
-        };
+    //     // 4. allocatring the necessary memory based on memory requirements for the buffer handles
+    //     VkMemoryAllocateInfo memory_alloc_info = {
+    //         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+    //         .allocationSize = memory_requirements.size,
+    //         .memoryTypeIndex = memory_type_index
+    //     };
 
-        vk_check(vkAllocateMemory(p_device, &memory_alloc_info, nullptr, &handler.device_memory),"vkAllocateMemory");
+    //     vk_check(vkAllocateMemory(p_device, &memory_alloc_info, nullptr, &handler.device_memory),"vkAllocateMemory");
 
-        // 5. bind memory resource of this buffer handle
-        vk_check(vkBindBufferMemory(p_device, handler.handle, handler.device_memory, 0),"vkBindBufferMemory");
+    //     // 5. bind memory resource of this buffer handle
+    //     vk_check(vkBindBufferMemory(p_device, handler.handle, handler.device_memory, 0),"vkBindBufferMemory");
 
-        return handler;
-    }
+    //     return handler;
+    // }
 
-    void write(const VkDevice& p_device, const buffer_handle& p_buffer, const std::span<vertex_input>& p_in_buffer) {
-        // does equivalent to doing sizeof(p_in_buffer[0]) * p_in_buffer.size();
-        VkDeviceSize buffer_size =
-          p_in_buffer
-            .size_bytes();
-        void* mapped = nullptr;
-        vk_check(vkMapMemory(
-                   p_device, p_buffer.device_memory, 0, buffer_size, 0, &mapped),
-                 "vkMapMemory");
-        memcpy(mapped, p_in_buffer.data(), buffer_size);
-        vkUnmapMemory(p_device, p_buffer.device_memory);
-    }
+    // void write(const VkDevice& p_device, const buffer_handle& p_buffer, const std::span<vertex_input>& p_in_buffer) {
+    //     // does equivalent to doing sizeof(p_in_buffer[0]) * p_in_buffer.size();
+    //     VkDeviceSize buffer_size =
+    //       p_in_buffer
+    //         .size_bytes();
+    //     void* mapped = nullptr;
+    //     vk_check(vkMapMemory(
+    //                p_device, p_buffer.device_memory, 0, buffer_size, 0, &mapped),
+    //              "vkMapMemory");
+    //     memcpy(mapped, p_in_buffer.data(), buffer_size);
+    //     vkUnmapMemory(p_device, p_buffer.device_memory);
+    // }
 
-    void write(const VkDevice& p_device, const buffer_handle& p_buffer, const std::span<uint32_t>& p_in_buffer) {
-        VkDeviceSize buffer_size = p_in_buffer.size_bytes();
-        void* mapped = nullptr;
-        vk_check(vkMapMemory(
-                   p_device, p_buffer.device_memory, 0, buffer_size, 0, &mapped),
-                 "vkMapMemory");
-        memcpy(mapped, p_in_buffer.data(), buffer_size);
-        vkUnmapMemory(p_device, p_buffer.device_memory);
-    }
+    // void write(const VkDevice& p_device, const buffer_handle& p_buffer, const std::span<uint32_t>& p_in_buffer) {
+    //     VkDeviceSize buffer_size = p_in_buffer.size_bytes();
+    //     void* mapped = nullptr;
+    //     vk_check(vkMapMemory(
+    //                p_device, p_buffer.device_memory, 0, buffer_size, 0, &mapped),
+    //              "vkMapMemory");
+    //     memcpy(mapped, p_in_buffer.data(), buffer_size);
+    //     vkUnmapMemory(p_device, p_buffer.device_memory);
+    // }
 
-    void write(const VkDevice& p_device, const buffer_handle& p_buffer, const void* p_data, size_t p_size_in_bytes) {
-        void* mapped = nullptr;
-        vk_check(
-          vkMapMemory(
-            p_device, p_buffer.device_memory, 0, p_size_in_bytes, 0, &mapped),
-          "vkMapMemory");
+    // void write(const VkDevice& p_device, const buffer_handle& p_buffer, const void* p_data, size_t p_size_in_bytes) {
+    //     void* mapped = nullptr;
+    //     vk_check(
+    //       vkMapMemory(
+    //         p_device, p_buffer.device_memory, 0, p_size_in_bytes, 0, &mapped),
+    //       "vkMapMemory");
 
-        memcpy(mapped, p_data, p_size_in_bytes);
-        vkUnmapMemory(p_device, p_buffer.device_memory);
-    }
+    //     memcpy(mapped, p_data, p_size_in_bytes);
+    //     vkUnmapMemory(p_device, p_buffer.device_memory);
+    // }
+
+    // void write(const VkDevice& p_device, const buffer_handle& p_buffer, const void* p_data, const write_info& p_info) {
+    //     void* mapped = nullptr;
+    //     vk_check(
+    //       vkMapMemory(
+    //         p_device, p_buffer.device_memory, p_info.offset, p_info.size_bytes, 0, &mapped),
+    //       "vkMapMemory");
+
+    //     memcpy(mapped, p_data, p_info.size_bytes);
+    //     vkUnmapMemory(p_device, p_buffer.device_memory);
+    // }
 
     VkCommandPool create_single_command_pool(const VkDevice& p_device, uint32_t p_queue_family_index) {
         // uint32_t graphics_queue_index = physical.read_queue_family_indices().graphics;
@@ -783,7 +795,7 @@ namespace vk {
         VkBufferCopy copy_region{};
         copy_region.size = (VkDeviceSize)p_size_of_bytes;
         vkCmdCopyBuffer(
-          copy_command_buffer, p_info.src.handle, p_info.dst.handle, 1, &copy_region);
+          copy_command_buffer, p_info.src, p_info.dst, 1, &copy_region);
         copy_command_buffer.end();
         VkCommandBuffer temp = copy_command_buffer;
         VkSubmitInfo submit_info{};
@@ -799,15 +811,15 @@ namespace vk {
         copy_command_buffer.destroy();
     }
 
-    void free_buffer(const VkDevice& p_driver, buffer_handle& p_buffer) {
-        if (p_buffer.handle != nullptr) {
-            vkDestroyBuffer(p_driver, p_buffer.handle, nullptr);
-        }
+    // void free_buffer(const VkDevice& p_driver, buffer_handle& p_buffer) {
+    //     if (p_buffer.handle != nullptr) {
+    //         vkDestroyBuffer(p_driver, p_buffer.handle, nullptr);
+    //     }
 
-        if (p_buffer.device_memory != nullptr) {
-            vkFreeMemory(p_driver, p_buffer.device_memory, nullptr);
-        }
-    }
+    //     if (p_buffer.device_memory != nullptr) {
+    //         vkFreeMemory(p_driver, p_buffer.device_memory, nullptr);
+    //     }
+    // }
 
     VkDescriptorType to_descriptor_type(const buffer& p_type) {
         switch (p_type) {
@@ -1007,7 +1019,161 @@ namespace vk {
                              &image_memory_barrier);
     }
 
-    void copy(const VkCommandBuffer& p_command_buffer, const VkImage& p_image, const buffer_handle& p_buffer, uint32_t p_width, uint32_t p_height) {
+    void image_memory_barrier(const VkCommandBuffer& p_command_buffer,
+                              const VkImage& p_image,
+                              const image_barrier_info& p_info) {
+        VkImageMemoryBarrier image_memory_barrier = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = 0,
+            .dstAccessMask = 0,
+            .oldLayout = p_info.old_layout,
+            .newLayout = p_info.new_layout,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = p_image,
+            .subresourceRange = { .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                                  .baseMipLevel = 0,
+                                  .levelCount = p_info.level_count,
+                                  .baseArrayLayer = p_info.base_array_count,
+                                  .layerCount = p_info.layer_count }
+        };
+
+        VkPipelineStageFlags source_stage;
+        VkPipelineStageFlags dst_stages;
+
+        if (p_info.new_layout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL ||
+            (p_info.format == VK_FORMAT_D16_UNORM) ||
+            (p_info.format == VK_FORMAT_X8_D24_UNORM_PACK32) ||
+            (p_info.format == VK_FORMAT_D32_SFLOAT) ||
+            (p_info.format == VK_FORMAT_S8_UINT) ||
+            (p_info.format == VK_FORMAT_D16_UNORM_S8_UINT) ||
+            (p_info.format == VK_FORMAT_D24_UNORM_S8_UINT)) {
+            image_memory_barrier.subresourceRange.aspectMask =
+              VK_IMAGE_ASPECT_DEPTH_BIT;
+
+            if (has_stencil_attachment(p_info.format)) {
+                image_memory_barrier.subresourceRange.aspectMask |=
+                  VK_IMAGE_ASPECT_STENCIL_BIT;
+            }
+        }
+        else {
+            image_memory_barrier.subresourceRange.aspectMask =
+              VK_IMAGE_ASPECT_COLOR_BIT;
+        }
+
+        if (p_info.old_layout == VK_IMAGE_LAYOUT_UNDEFINED &&
+            p_info.new_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+            image_memory_barrier.srcAccessMask = 0;
+            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+            source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        }
+        else if (p_info.old_layout == VK_IMAGE_LAYOUT_UNDEFINED &&
+                 p_info.new_layout == VK_IMAGE_LAYOUT_GENERAL) {
+            image_memory_barrier.srcAccessMask = 0;
+            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+            source_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        }
+
+        if (p_info.old_layout == VK_IMAGE_LAYOUT_UNDEFINED &&
+            p_info.new_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+            image_memory_barrier.srcAccessMask = 0;
+            image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+            source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            dst_stages = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        } // Convert back from read-only to updateable
+        else if (p_info.old_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL &&
+                 p_info.new_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+            image_memory_barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+            image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+            source_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            dst_stages = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        } // Convert from updateable texture to shader read-only
+        else if (p_info.old_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
+                 p_info.new_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+            image_memory_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+            source_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        } // Convert depth texture from undefined state to depth-stencil buffer
+        else if (p_info.old_layout == VK_IMAGE_LAYOUT_UNDEFINED &&
+                 p_info.new_layout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+            image_memory_barrier.srcAccessMask = 0;
+            image_memory_barrier.dstAccessMask =
+              VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+              VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+            source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            dst_stages = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        } // Wait for render pass to complete
+        else if (p_info.old_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL &&
+                 p_info.new_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+            image_memory_barrier.srcAccessMask =
+              0; // VK_ACCESS_SHADER_READ_BIT;
+            image_memory_barrier.dstAccessMask = 0;
+            source_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            dst_stages = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
+            dst_stages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+            source_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        } // Convert back from read-only to color attachment
+        else if (p_info.old_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL &&
+                 p_info.new_layout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
+            image_memory_barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+            image_memory_barrier.dstAccessMask =
+              VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+            source_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            dst_stages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        } // Convert from updateable texture to shader read-only
+        else if (p_info.old_layout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL &&
+                 p_info.new_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+            image_memory_barrier.srcAccessMask =
+              VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+            source_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        } // Convert back from read-only to depth attachment
+        else if (p_info.old_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL &&
+                 p_info.new_layout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+            image_memory_barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+            image_memory_barrier.dstAccessMask =
+              VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+            source_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            dst_stages = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+        } // Convert from updateable depth texture to shader read-only
+        else if (p_info.old_layout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL &&
+                 p_info.new_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+            image_memory_barrier.srcAccessMask =
+              VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+            source_stage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        }
+
+        vkCmdPipelineBarrier(p_command_buffer,
+                             source_stage,
+                             dst_stages,
+                             0,
+                             0,
+                             nullptr,
+                             0,
+                             nullptr,
+                             1,
+                             &image_memory_barrier);
+    }
+
+    void copy(const VkCommandBuffer& p_command_buffer, const VkImage& p_image, const VkBuffer& p_buffer, uint32_t p_width, uint32_t p_height) {
         VkBufferImageCopy buffer_image_copy = {
             .bufferOffset = 0,
             .bufferRowLength = 0,
@@ -1021,7 +1187,28 @@ namespace vk {
         };
 
         vkCmdCopyBufferToImage(p_command_buffer,
-                               p_buffer.handle,
+                               p_buffer,
+                               p_image,
+                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                               1,
+                               &buffer_image_copy);
+    }
+
+    void copy(const VkCommandBuffer& p_command_buffer, const VkImage& p_image, const VkBuffer& p_buffer, const copy_info& p_info) {
+        VkBufferImageCopy buffer_image_copy = {
+            .bufferOffset = 0,
+            .bufferRowLength = 0,
+            .bufferImageHeight = 0,
+            .imageSubresource = { .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                                  .mipLevel = 0,
+                                  .baseArrayLayer = p_info.array_layers,
+                                  .layerCount = 1 },
+            .imageOffset = { .x = 0, .y = 0, .z = 0 },
+            .imageExtent = { .width = p_info.width, .height = p_info.height, .depth = 1 }
+        };
+
+        vkCmdCopyBufferToImage(p_command_buffer,
+                               p_buffer,
                                p_image,
                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                1,
@@ -1051,6 +1238,21 @@ namespace vk {
         vk_check(vkCreateImageView(p_device, &view_info, nullptr, &image_view), "vkCreateImageView");
 
         return image_view;
+    }
+
+    uint32_t select_memory_requirements(VkPhysicalDeviceMemoryProperties p_physical_memory_props, VkMemoryRequirements p_memory_requirements, memory_property p_property) {
+        uint32_t memory_bits = p_memory_requirements.memoryTypeBits;
+        VkMemoryPropertyFlags property_flag = to_memory_property_flags(p_property);
+
+        for(uint32_t i = 0; i < p_physical_memory_props.memoryTypeCount; i++) {
+            if ((memory_bits & (1 << i)) and
+                (p_physical_memory_props.memoryTypes[i].propertyFlags & property_flag) ==
+                  property_flag) {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
 }

@@ -3,28 +3,26 @@
 
 namespace vk {
 
-    index_buffer::index_buffer(const VkDevice& p_device, const index_buffer_info& p_index_info) : m_device(p_device) {
-        m_indices_count = p_index_info.indices.size();
+    index_buffer::index_buffer(const VkDevice& p_device, const index_buffer_settings& p_info) : m_device(p_device) {
+        m_indices_count = p_info.indices.size();
 
         uint32_t property_flags = memory_property::host_visible_bit | memory_property::host_cached_bit;
-        
-        buffer_configuration config = {
-            .device_size = p_index_info.indices.size_bytes(),
-            .usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+        buffer_settings index_buffer_settings = {
+            .device_size = p_info.indices.size_bytes(),
+            .physical_memory_properties = p_info.phsyical_memory_properties,
             .property_flags = (memory_property)property_flags,
-            .physical = p_index_info.physical_handle
+            .usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
         };
 
-        m_index_buffer = create_buffer(m_device, config);
-
-        write(m_device, m_index_buffer, p_index_info.indices);
+        m_index_buffer = buffer_handler(m_device, index_buffer_settings);
+        m_index_buffer.write(p_info.indices);
     }
 
     void index_buffer::bind(const VkCommandBuffer& p_current) {
-        vkCmdBindIndexBuffer(p_current,m_index_buffer.handle, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdBindIndexBuffer(p_current,m_index_buffer, 0, VK_INDEX_TYPE_UINT32);
     }
 
     void index_buffer::destroy() {
-        free_buffer(m_device, m_index_buffer);
+        m_index_buffer.destroy();
     }
 }

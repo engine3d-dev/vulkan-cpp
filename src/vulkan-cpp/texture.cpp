@@ -31,17 +31,27 @@ namespace vk {
 
         // 4. transfer data from staging buffer
         uint32_t property_flag = memory_property::host_visible_bit | memory_property::host_cached_bit;
-        buffer_configuration staging_buffer_config = {
+        // buffer_configuration staging_buffer_config = {
+        //     .device_size = (uint32_t)image_size,
+        //     .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        //     .property_flags = (memory_property)property_flag,
+        //     .physical = p_config.physical_device
+        // };
+
+        buffer_settings staging_buffer_config = {
             .device_size = (uint32_t)image_size,
-            .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            .physical_memory_properties = p_config.phsyical_memory_properties,
             .property_flags = (memory_property)property_flag,
-            .physical = p_config.physical_device
+            .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            // .physical = p_config.physical_device
         };
 
-        buffer_handle staging_buffer = create_buffer(p_device, staging_buffer_config);
+        // buffer_handle staging_buffer = create_buffer(p_device, staging_buffer_config);
+        buffer_handler staging(p_device, staging_buffer_config);
 
         // 5. write data to the staging buffer with specific size specified
-        write(p_device, staging_buffer, p_data, image_size);
+        // write(p_device, staging, p_data, image_size);
+        staging.write(p_data, image_size);
 
         // 6. start recording to this command buffer
         VkImageLayout old_layout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -54,7 +64,7 @@ namespace vk {
         image_memory_barrier(temp_command_buffer, texture_image, texture_format, old_layout, new_layout);
 
         // 6.2 -- copy buffer to image handles
-        copy(temp_command_buffer, texture_image, staging_buffer, p_config.extent.width, p_config.extent.height);
+        copy(temp_command_buffer, texture_image, staging, p_config.extent.width, p_config.extent.height);
 
         // 6.3 -- transition image layout back to the layout specification
         old_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
@@ -83,7 +93,8 @@ namespace vk {
         vkQueueWaitIdle(temp_graphics_queue);
 
         temp_command_buffer.destroy();
-        free_buffer(p_device, staging_buffer);
+        // free_buffer(p_device, staging_buffer);
+        staging.destroy();
 
         return texture_image;
     }
@@ -112,7 +123,8 @@ namespace vk {
             .property = (memory_property)property_flag,
             .aspect = image_aspect_flags::color_bit,
             .usage = (VkImageUsageFlags)(VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT),
-            .physical_device = p_texture_info.physical
+            // .physical_device = p_texture_info.physical
+            .phsyical_memory_properties = p_texture_info.phsyical_memory_properties
         };
 
         m_image = create_texture_with_data(p_device, config_image, image_pixel_data);;

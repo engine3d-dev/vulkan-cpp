@@ -4,18 +4,19 @@
 #include <print>
 
 namespace vk {
+
     sample_image::sample_image(const VkDevice& p_device, const image_configuration_information& p_image_properties) : m_device(p_device) {
 
         // 1. creating VkImage handle
         VkImageCreateInfo image_ci = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
             .pNext = nullptr,
-            .flags = 0,
+            .flags = p_image_properties.image_flags,
             .imageType = VK_IMAGE_TYPE_2D,
             .format = p_image_properties.format,
             .extent = { .width = p_image_properties.extent.width, .height = p_image_properties.extent.height, .depth = 1 },
             .mipLevels = p_image_properties.mip_levels,
-            .arrayLayers = 1,
+            .arrayLayers = p_image_properties.array_layers,
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .tiling = VK_IMAGE_TILING_OPTIMAL,
             .usage = p_image_properties.usage,
@@ -29,14 +30,10 @@ namespace vk {
                  "vkCreateImage");
 
         // 2. get image memory requirements from physical device
-
-        if(p_image_properties.physical_device == nullptr) {
-            throw std::runtime_error("sample_image tried to invoke physical device failed!!");
-        }
         VkMemoryRequirements memory_requirements;
         vkGetImageMemoryRequirements(p_device, m_image, &memory_requirements);
-        uint32_t memory_type_index = vk::image_memory_requirements(p_image_properties.physical_device, p_device, m_image);
-
+        // uint32_t memory_type_index = vk::image_memory_requirements(p_image_properties.physical_device, p_device, m_image);
+        uint32_t memory_index = select_memory_requirements(p_image_properties.phsyical_memory_properties, memory_requirements, p_image_properties.property);
 
 
         // 4. Allocate info
@@ -44,7 +41,7 @@ namespace vk {
             .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
             .pNext = nullptr,
             .allocationSize = memory_requirements.size,
-            .memoryTypeIndex = memory_type_index
+            .memoryTypeIndex = memory_index
         };
 
         vk_check(vkAllocateMemory(
@@ -62,7 +59,8 @@ namespace vk {
             .pNext = nullptr,
             .flags = 0,
             .image = m_image,
-            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            // .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            .viewType = p_image_properties.view_type,
             .format = p_image_properties.format,
             .components = { .r = VK_COMPONENT_SWIZZLE_IDENTITY,
                             .g = VK_COMPONENT_SWIZZLE_IDENTITY,
