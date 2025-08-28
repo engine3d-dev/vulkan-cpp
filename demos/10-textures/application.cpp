@@ -239,7 +239,7 @@ main() {
             .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
             .mip_levels = 1,
             .layer_count = 1,
-            .physical_device = physical_device
+            .phsyical_memory_properties = physical_device.memory_properties(),
         };
 
 
@@ -269,7 +269,7 @@ main() {
             .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
             .mip_levels = 1,
             .layer_count = 1,
-            .physical_device = physical_device
+            .phsyical_memory_properties = physical_device.memory_properties(),
         };
         swapchain_depth_images[i] = vk::sample_image(logical_device, image_config);
     }
@@ -473,8 +473,8 @@ main() {
         vk::vertex_input{{0.5f, 0.5f, 0.f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
         vk::vertex_input{{-0.5f, 0.5f, 0.f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
     };
-    vk::vertex_buffer_info vertex_info = {
-        .physical_handle = physical_device,
+    vk::vertex_buffer_settings vertex_info = {
+        .phsyical_memory_properties = physical_device.memory_properties(),
         .vertices = vertices,
     };
     vk::vertex_buffer test_vbo(logical_device, vertex_info);
@@ -484,8 +484,8 @@ main() {
         0, 1, 2, 2, 3, 0
     };
 
-    vk::index_buffer_info index_info = {
-        .physical_handle = physical_device,
+    vk::index_buffer_settings index_info = {
+        .phsyical_memory_properties = physical_device.memory_properties(),
         .indices = indices,
     };
     vk::index_buffer test_ibo(logical_device, index_info);
@@ -497,7 +497,8 @@ main() {
 
     // Setting up descriptor sets for handling uniforms
     vk::uniform_buffer_info test_ubo_info = {
-        .physical_handle = physical_device,
+        // .physical_handle = physical_device,
+        .phsyical_memory_properties = physical_device.memory_properties(),
         .size_bytes = sizeof(global_uniform)
     };
     vk::uniform_buffer test_ubo = vk::uniform_buffer(logical_device, test_ubo_info);
@@ -515,7 +516,7 @@ main() {
 
     // Loading a texture -- for testing
     vk::texture_info config_texture = {
-        .physical = physical_device,
+        .phsyical_memory_properties = physical_device.memory_properties(),
         .filepath = std::filesystem::path("asset_samples/container_diffuse.png")
     };
     vk::texture texture1(logical_device, config_texture);

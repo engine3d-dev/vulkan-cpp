@@ -110,7 +110,7 @@ namespace std {
 class obj_model {
 public:
     obj_model() = default;
-    obj_model(const std::filesystem::path& p_filename, const VkDevice& p_device, const VkPhysicalDevice& p_physical) {
+    obj_model(const std::filesystem::path& p_filename, const VkDevice& p_device, const vk::physical_device& p_physical) {
         tinyobj::attrib_t attrib;
         std::vector<tinyobj::shape_t> shapes;
         std::vector<tinyobj::material_t> materials;
@@ -186,13 +186,13 @@ public:
                 indices.push_back(unique_vertices[vertex]);
             }
         }
-        vk::vertex_buffer_info vertex_info = {
-            .physical_handle = p_physical,
+        vk::vertex_buffer_settings vertex_info = {
+            .phsyical_memory_properties = p_physical.memory_properties(),
             .vertices = vertices
         };
 
-        vk::index_buffer_info index_info = {
-            .physical_handle = p_physical,
+        vk::index_buffer_settings index_info = {
+            .phsyical_memory_properties = p_physical.memory_properties(),
             .indices = indices
         };
         m_vertex_buffer = vk::vertex_buffer(p_device, vertex_info);
@@ -378,7 +378,7 @@ main() {
             .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
             .mip_levels = 1,
             .layer_count = 1,
-            .physical_device = physical_device
+            .phsyical_memory_properties = physical_device.memory_properties(),
         };
 
 
@@ -393,7 +393,7 @@ main() {
             .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
             .mip_levels = 1,
             .layer_count = 1,
-            .physical_device = physical_device
+            .phsyical_memory_properties = physical_device.memory_properties(),
         };
         swapchain_depth_images[i] = vk::sample_image(logical_device, image_config);
     }
@@ -590,49 +590,12 @@ main() {
 	};
 	vk::pipeline main_graphics_pipeline(logical_device, pipeline_configuration);
 
-	if(main_graphics_pipeline.alive()) {
-		std::println("Main graphics pipeline alive() = {}", main_graphics_pipeline.alive());
-	}
-
-
-    // std::array<vk::vertex_input, 8> vertices = {
-    //     vk::vertex_input{{-0.5f, -0.5f, 0.f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-    //     vk::vertex_input{{0.5f, -0.5f, 0.f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-    //     vk::vertex_input{{0.5f, 0.5f, 0.f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-    //     vk::vertex_input{{-0.5f, 0.5f, 0.f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
-
-    //     vk::vertex_input{{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-    //     vk::vertex_input{{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-    //     vk::vertex_input{{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-    //     vk::vertex_input{{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}
-    // };
-    // vk::vertex_buffer_info vertex_info = {
-    //     .physical_handle = physical_device,
-    //     .vertices = vertices,
-    // };
-    // vk::vertex_buffer test_vbo(logical_device, vertex_info);
-
-    // std::array<uint32_t, 12> indices = {
-    //     0, 1, 2, 2, 3, 0,
-    //     4, 5, 6, 6, 7, 4
-    // };
-
-    // vk::index_buffer_info index_info = {
-    //     .physical_handle = physical_device,
-    //     .indices = indices,
-    // };
-    // vk::index_buffer test_ibo(logical_device, index_info);
-
-
     // Loading mesh
-
     obj_model test_model(std::filesystem::path("asset_samples/viking_room.obj"), logical_device, physical_device);
-
-    std::println("Obj Model Load Status = {}", test_model.loaded());
 
     // Setting up descriptor sets for handling uniforms
     vk::uniform_buffer_info test_ubo_info = {
-        .physical_handle = physical_device,
+        .phsyical_memory_properties = physical_device.memory_properties(),
         .size_bytes = sizeof(global_uniform)
     };
     vk::uniform_buffer test_ubo = vk::uniform_buffer(logical_device, test_ubo_info);
@@ -648,12 +611,10 @@ main() {
 
     // Loading a texture -- for testing
     vk::texture_info config_texture = {
-        .physical = physical_device,
+        .phsyical_memory_properties = physical_device.memory_properties(),
         .filepath = std::filesystem::path("asset_samples/viking_room.png")
     };
     vk::texture texture1(logical_device, config_texture);
-
-    std::println("texture1.valid = {}", texture1.loaded());
 
     // Moving update call here because now we add textures to set0
     std::array<vk::write_image_descriptor, 1> sample_images = {

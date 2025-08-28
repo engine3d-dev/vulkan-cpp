@@ -87,11 +87,7 @@ main() {
       initialize_instance_extensions();
 
     vk::debug_message_utility debug_callback_info = {
-        // .severity essentially takes in vk::message::verbose,
-        // vk::message::warning, vk::message::error
         .severity = vk::message::verbose | vk::message::warning | vk::message::error,
-        // .message_type essentially takes in vk::debug. Like:
-        // vk::debug::general, vk::debug::validation, vk::debug::performance
         .message_type = vk::debug::general | vk::debug::validation | vk::debug::performance,
         .callback = debug_callback
     };
@@ -150,7 +146,6 @@ main() {
     };
 
     vk::device logical_device(physical_device, logical_device_enumeration);
-    std::println("Logical device creation successful!!!");
 
     // Presentation queue family uses graphics queue
     vk::queue_enumeration present_queue_enumerate = {
@@ -158,8 +153,6 @@ main() {
         .index = queue_indices.graphics,
     };
     vk::device_queue presesnt_queue(logical_device, present_queue_enumerate);
-    std::println("device graphics queue creation successful!!!");
-    
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();

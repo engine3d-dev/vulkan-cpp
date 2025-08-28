@@ -89,11 +89,7 @@ main() {
       initialize_instance_extensions();
 
     vk::debug_message_utility debug_callback_info = {
-        // .severity essentially takes in vk::message::verbose,
-        // vk::message::warning, vk::message::error
         .severity = vk::message::verbose | vk::message::warning | vk::message::error,
-        // .message_type essentially takes in vk::debug. Like:
-        // vk::debug::general, vk::debug::validation, vk::debug::performance
         .message_type = vk::debug::general | vk::debug::validation | vk::debug::performance,
         .callback = debug_callback
     };
@@ -132,12 +128,8 @@ main() {
     // We provide a selection of format support that we want to check is supported on current hardware device.
     VkFormat depth_format = vk::select_depth_format(physical_device, format_support);
 
-    if(depth_format != VK_FORMAT_UNDEFINED) {
-        std::println("Depth format specifically was able to be found!!!");
-    }
-
     vk::queue_indices queue_indices = physical_device.family_indices();
-    std::println("Graphics Queue Family Index = {}", (int)queue_indices.graphics);
+    std::println("Graphics Queue Family Index = {}", queue_indices.graphics);
     std::println("Compute Queue Family Index = {}", queue_indices.compute);
     std::println("Transfer Queue Family Index = {}", queue_indices.transfer);
 

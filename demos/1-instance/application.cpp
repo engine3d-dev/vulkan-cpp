@@ -82,11 +82,7 @@ main() {
       initialize_instance_extensions();
 
     vk::debug_message_utility debug_callback_info = {
-        // .severity essentially takes in vk::message::verbose,
-        // vk::message::warning, vk::message::error
         .severity = vk::message::verbose | vk::message::warning | vk::message::error,
-        // .message_type essentially takes in vk::debug. Like:
-        // vk::debug::general, vk::debug::validation, vk::debug::performance
         .message_type = vk::debug::general | vk::debug::validation | vk::debug::performance,
         .callback = debug_callback
     };
@@ -100,14 +96,7 @@ main() {
 
     vk::instance api_instance(config, debug_callback_info);
 
-    if(api_instance.alive()) {
-        std::println("\napi_instance alive and initiated!!!");
-    }
-
     std::span<const vk::layer_properties> properties = api_instance.validation();
-    std::println("=============================================");
-    std::println("Validation Layers");
-    std::println("=============================================\n\n");
     for(vk::layer_properties property : properties) {
         std::println("Validation Layer Name:\t\t{}", property.name);
         std::println("Validation Layer Description: {}", property.description);
@@ -115,8 +104,9 @@ main() {
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
-
+        
     }
+
     glfwDestroyWindow(window);
     api_instance.destroy();
     return 0;

@@ -23,12 +23,19 @@
 #include <vulkan-cpp/uniform_buffer.hpp>
 #include <vulkan-cpp/descriptor_resource.hpp>
 #include <vulkan-cpp/texture.hpp>
-#include <vulkan-cpp/sample_image.hpp>
 
 #include <chrono>
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/hash.hpp>
+
+// loading tinyobjloader library here
+#include <tiny_obj_loader.h>
+
+#include <vulkan-cpp/sample_image.hpp>
+#include <vulkan-cpp/skybox_texture.hpp>
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 debug_callback(
@@ -80,6 +87,166 @@ struct global_uniform {
     glm::mat4 proj;
 };
 
+struct skybox_camera_data {
+    glm::vec4 forward;
+    glm::vec4 right;
+    glm::vec4 up;
+};
+
+template<typename T, typename... Rest>
+void hash_combine(size_t& seed, const T& v, const Rest&... rest) {
+    seed ^= std::hash<T>()(v) + 0x9e3779b9 + (seed << 6) + (seed << 2);
+    (hash_combine(seed, rest), ...);
+}
+
+
+namespace std {
+
+    template<>
+    struct hash<vk::vertex_input> {
+        size_t operator()(const vk::vertex_input& vertex) const {
+            size_t seed = 0;
+            hash_combine(
+              seed, vertex.position, vertex.color, vertex.normals, vertex.uv);
+            return seed;
+        }
+    };
+}
+
+// This is how we are going to load a .obj model for this demo
+// Example of how you might want to have your own classes for loading geometry-meshes
+class obj_model {
+public:
+    obj_model() = default;
+    obj_model(const std::filesystem::path& p_filename, const VkDevice& p_device, const vk::physical_device& p_physical) {
+        tinyobj::attrib_t attrib;
+        std::vector<tinyobj::shape_t> shapes;
+        std::vector<tinyobj::material_t> materials;
+        std::string warn, err;
+
+        //! @note If we return the constructor then we can check if the mesh
+        //! loaded successfully
+        //! @note We also receive hints if the loading is successful!
+        //! @note Return default constructor automatically returns false means
+        //! that mesh will return the boolean as false because it wasnt
+        //! successful
+        if (!tinyobj::LoadObj(&attrib,
+                              &shapes,
+                              &materials,
+                              &warn,
+                              &err,
+                              p_filename.string().c_str())) {
+            std::println("Could not load model from path {}", p_filename.string());
+            m_is_loaded = false;
+            return;
+        }
+
+        std::vector<vk::vertex_input> vertices;
+        std::vector<uint32_t> indices;
+        std::unordered_map<vk::vertex_input, uint32_t> unique_vertices{};
+
+        for (const auto& shape : shapes) {
+            for (const auto& index : shape.mesh.indices) {
+                vk::vertex_input vertex{};
+
+                // vertices.push_back(vertex);
+                if (!unique_vertices.contains(vertex)) {
+                    unique_vertices[vertex] =
+                      static_cast<uint32_t>(vertices.size());
+                    vertices.push_back(vertex);
+                }
+
+                if (index.vertex_index >= 0) {
+                    vertex.position = {
+                        attrib.vertices[3 * index.vertex_index + 0],
+                        attrib.vertices[3 * index.vertex_index + 1],
+                        attrib.vertices[3 * index.vertex_index + 2]
+                    };
+
+                    vertex.color = {
+                        attrib.colors[3 * index.vertex_index + 0],
+                        attrib.colors[3 * index.vertex_index + 1],
+                        attrib.colors[3 * index.vertex_index + 2]
+                    };
+                }
+
+                if (index.normal_index >= 0) {
+                    vertex.normals = {
+                        attrib.normals[3 * index.normal_index + 0],
+                        attrib.normals[3 * index.normal_index + 1],
+                        attrib.normals[3 * index.normal_index + 2]
+                    };
+                }
+
+                if (index.texcoord_index >= 0) {
+                    vertex.uv = {
+                        attrib.texcoords[2 * index.texcoord_index + 0],
+                        1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
+                    };
+                }
+
+                if (!unique_vertices.contains(vertex)) {
+                    unique_vertices[vertex] =
+                      static_cast<uint32_t>(vertices.size());
+                    vertices.push_back(vertex);
+                }
+
+                indices.push_back(unique_vertices[vertex]);
+            }
+        }
+        vk::vertex_buffer_settings vertex_info = {
+            .phsyical_memory_properties = p_physical.memory_properties(),
+            .vertices = vertices
+        };
+
+        vk::index_buffer_settings index_info = {
+            .phsyical_memory_properties = p_physical.memory_properties(),
+            .indices = indices
+        };
+        m_vertex_buffer = vk::vertex_buffer(p_device, vertex_info);
+        m_index_buffer = vk::index_buffer(p_device, index_info);
+        m_is_loaded = true;
+    }
+
+    [[nodiscard]] bool loaded() const { return m_is_loaded; }
+
+    void bind(const VkCommandBuffer& p_command) {
+        m_vertex_buffer.bind(p_command);
+        if(m_index_buffer.size() > 0) {
+            m_index_buffer.bind(p_command);
+        }
+    }
+
+    void draw(const VkCommandBuffer& p_command) {
+        if(m_index_buffer.size() > 0) {
+            vkCmdDrawIndexed(p_command, static_cast<uint32_t>(m_index_buffer.size()), 1, 0, 0, 0);
+        }
+        else {
+            vkCmdDraw(p_command, m_vertex_buffer.size(), 1, 0, 0);
+        }
+    }
+
+    void destroy() {
+        m_vertex_buffer.destroy();
+        m_index_buffer.destroy();
+    }
+
+private:
+    bool m_is_loaded=false;
+    vk::vertex_buffer m_vertex_buffer{};
+    vk::index_buffer m_index_buffer{};
+};
+
+// template<size_t arr_size>
+// void write(const VkDevice& p_device, const vk::buffer_handle& p_buffer, const std::array<float, arr_size>& p_in_buffer) {
+// }
+
+
+// void write_array(const VkDevice& p_device, const vk::buffer_handle& p_buffer) {
+//     std::array<float, 256> buffer_to_write;
+//     write<256>(p_device, p_buffer, buffer_to_write);
+// }
+
 int
 main() {
     //! @note Just added the some test code to test the conan-starter setup code
@@ -98,7 +265,7 @@ main() {
 
     int width = 800;
     int height = 600;
-    std::string title = "Hello Window";
+    std::string title = "Skybox Example";
     GLFWwindow* window =
       glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 
@@ -220,6 +387,7 @@ main() {
 
     // Setting up the images
     for (uint32_t i = 0; i < swapchain_images.size(); i++) {
+
         vk::image_configuration_information swapchain_image_config = {
             .extent = {swapchain_extent.width, swapchain_extent.width},
             .format = surface_properties.format.format,
@@ -227,7 +395,6 @@ main() {
             .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
             .mip_levels = 1,
             .layer_count = 1,
-            // .physical_device = physical_device
             .phsyical_memory_properties = physical_device.memory_properties(),
         };
 
@@ -334,17 +501,17 @@ main() {
 	// Now creating a vulkan graphics pipeline for the shader loading
 	std::array<vk::shader_source, 2> shader_sources = {
 		vk::shader_source{
-			.filename = "shader_samples/sample4/test.vert.spv",
+			.filename = "shader_samples/sample6/test.vert.spv",
 			.stage = vk::shader_stage::vertex
 		},
 		vk::shader_source{
-			.filename = "shader_samples/sample4/test.frag.spv",
+			.filename = "shader_samples/sample6/test.frag.spv",
 			.stage = vk::shader_stage::fragment
 		},
 	};
 
     // Setting up vertex attributes in the test shaders
-    std::array<vk::vertex_attribute_entry, 3> attribute_entries = {
+    std::array<vk::vertex_attribute_entry, 4> attribute_entries = {
         vk::vertex_attribute_entry{
             .location = 0,
             .format = vk::format::rgb32_sfloat,
@@ -359,6 +526,11 @@ main() {
             .location = 2,
             .format = vk::format::rg32_sfloat,
             .stride = offsetof(vk::vertex_input, uv)
+        },
+        vk::vertex_attribute_entry{
+            .location = 3,
+            .format = vk::format::rgb32_sfloat,
+            .stride = offsetof(vk::vertex_input, normals)
         }
     };
 
@@ -438,41 +610,10 @@ main() {
 		std::println("Main graphics pipeline alive() = {}", main_graphics_pipeline.alive());
 	}
 
+    // Loading mesh
+    obj_model test_model(std::filesystem::path("asset_samples/viking_room.obj"), logical_device, physical_device);
 
-    // Setting up vertex buffer
-    std::array<vk::vertex_input, 8> vertices = {
-        vk::vertex_input{{-0.5f, -0.5f, 0.f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-        vk::vertex_input{{0.5f, -0.5f, 0.f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-        vk::vertex_input{{0.5f, 0.5f, 0.f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-        vk::vertex_input{{-0.5f, 0.5f, 0.f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
-
-        vk::vertex_input{{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-        vk::vertex_input{{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-        vk::vertex_input{{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-        vk::vertex_input{{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}
-    };
-    vk::vertex_buffer_settings vertex_info = {
-        .phsyical_memory_properties = physical_device.memory_properties(),
-        .vertices = vertices,
-    };
-    vk::vertex_buffer test_vbo(logical_device, vertex_info);
-    std::println("vertex_buffer.alive() = {}", test_vbo.alive());
-
-    std::array<uint32_t, 12> indices = {
-        0, 1, 2, 2, 3, 0,
-        4, 5, 6, 6, 7, 4
-    };
-
-    vk::index_buffer_settings index_info = {
-        .phsyical_memory_properties = physical_device.memory_properties(),
-        .indices = indices,
-    };
-    vk::index_buffer test_ibo(logical_device, index_info);
-    std::println("index_buffer.alive() = {}", test_ibo.alive());
-
-    // Dummy uniform struct just for testing if update works when mapping some data
-    // camera_ubo global_ubo = {};
-    // test_ubo.update(&global_ubo);
+    std::println("Obj Model Load Status = {}", test_model.loaded());
 
     // Setting up descriptor sets for handling uniforms
     vk::uniform_buffer_info test_ubo_info = {
@@ -493,7 +634,7 @@ main() {
     // Loading a texture -- for testing
     vk::texture_info config_texture = {
         .phsyical_memory_properties = physical_device.memory_properties(),
-        .filepath = std::filesystem::path("asset_samples/container_diffuse.png")
+        .filepath = std::filesystem::path("asset_samples/viking_room.png")
     };
     vk::texture texture1(logical_device, config_texture);
 
@@ -508,6 +649,145 @@ main() {
         }
     };
     set0_resource.update(uniforms, sample_images);
+
+    // ----------------------------------------
+    // Creating Skybox Resources
+    // 1. Creating Skybox Camera Uniform
+    // 2. Loading Skybox Shader Resources
+    // 3. Loading Skybox Descriptor for GPU Resource Lookup
+    // 4. Create Graphics Pipeline with those three information up front
+    // ----------------------------------------
+
+    // 1. loading uniforms for skybox
+    vk::uniform_buffer_info skybox_ubo_info = {
+        .phsyical_memory_properties = physical_device.memory_properties(),
+        .size_bytes = sizeof(skybox_camera_data)
+    };
+    vk::uniform_buffer skybox_ubo = vk::uniform_buffer(logical_device, skybox_ubo_info);
+
+    std::println("skybox_ubo.alive() = {}", skybox_ubo.alive());
+
+
+    // loading in skybox shaders, vertex attributes
+    std::array<vk::shader_source, 2> skybox_shader_sources = {
+		vk::shader_source{
+			.filename = "shader_samples/sample6/test.vert.spv",
+			.stage = vk::shader_stage::vertex
+		},
+		vk::shader_source{
+			.filename = "shader_samples/sample6/test.frag.spv",
+			.stage = vk::shader_stage::fragment
+		},
+	};
+
+    // Setting up vertex attributes in the test shaders
+    // To render triangle, we do not need to set any vertex attributes
+	vk::shader_resource_info skybox_shader_info = {
+		.sources = skybox_shader_sources,
+	};
+	vk::shader_resource skybox_resource(logical_device, skybox_shader_info);
+
+    // for skybox no vertex attributes needed
+    // geometry_resource.vertex_attributes(skybox_vertex_attributes);
+
+    // Creating skybox descriptors
+    std::vector<vk::descriptor_entry> skybox_descriptor_entries = {
+    vk::descriptor_entry{
+            // specifies "layout (set = 0, binding = 0) uniform CameraData" in skybox.vert shader
+            .type = vk::buffer::uniform,
+            .binding_point = {
+                .binding = 0,
+                .stage = vk::shader_stage::vertex,
+            },
+            .descriptor_count = 1,
+        },
+        vk::descriptor_entry{
+            // specifies "layout (set = 0, binding = 0) uniform CameraData" in skybox.vert shader
+            .type = vk::buffer::combined_image_sampler,
+            .binding_point = {
+                .binding = 1,
+                .stage = vk::shader_stage::fragment,
+            },
+            .descriptor_count = 1,
+        },
+    };
+
+    // in skybox shader, this descriptor set is for set 0 in the skybox shader
+    vk::descriptor_layout skybox_layout = {
+        .slot = 0, // indicate that this is descriptor set 0
+        .allocate_count = image_count, // the count how many descriptor
+                                            // set layout able to be allocated
+        .max_sets = image_count, // max of descriptor sets able to allocate
+        .size_bytes = skybox_ubo_info.size_bytes, // size of bytes of the uniforms utilized by this descriptor sets
+        .entries = skybox_descriptor_entries,      // specifies pool sizes and descriptor layout
+    };
+    
+    // descriptor for skybox-specific resources on the GPU
+    vk::descriptor_resource skybox_descriptor(logical_device, skybox_layout);
+
+    // Pass the layouts to the skybox graphics pipeline
+    std::array<VkDescriptorSetLayout, 1> skybox_layouts = {
+        skybox_descriptor.layout()
+    };
+
+    // Creating skybox graphics pipeline
+	vk::pipeline_settings skybox_pipeline_configuration = {
+		.renderpass = main_renderpass,
+		.shader_modules = geometry_resource.handles(),
+		.vertex_attributes = geometry_resource.vertex_attributes(),
+		.vertex_bind_attributes = geometry_resource.vertex_bind_attributes(),
+        .descriptor_layouts = skybox_layouts
+	};
+
+    // skybox renderpass and graphics pipeline specification
+    
+    // separate render operation for the skybox
+    vk::renderpass skybox_renderpass;
+
+    // separate graphics pipeline for loading the skybox shaders
+    vk::pipeline skybox_graphics_pipeline(logical_device, skybox_pipeline_configuration);
+
+
+
+
+
+    // Loading Skybox
+
+    std::array<std::string, 6> faces = {
+        "asset_samples/skybox/front.jpg",
+        "asset_samples/skybox/back.jpg",
+        "asset_samples/skybox/top.jpg",
+        "asset_samples/skybox/bottom.jpg",
+        "asset_samples/skybox/right.jpg",
+        "asset_samples/skybox/left.jpg"
+    };
+
+    // std::array<vk::texture, 6> skybox_textures;
+    // for(size_t i = 0; i < faces.size(); i++) {
+    //     vk::texture_info skybox_texture_info = {
+    //         .physical = physical_device,
+    //         .filepath = std::filesystem::path(faces[i]),
+    //     };
+    //     skybox_textures[i] = vk::texture(logical_device, skybox_texture_info);
+
+    //     if(skybox_textures[i].loaded()) {
+    //         std::println("Skybox Texture[{}] {} loaded!", i, faces[i]);
+    //     }
+    //     else {
+    //         std::println("Skybox Texture {} not loaded!!!", faces[i]);
+    //     }
+    // }
+
+
+    // vk::skybox_texture_info skybox_properties = {
+    //     .physical_handle = physical_device,
+    //     .faces = faces,
+    // };
+    // vk::skybox_texture skybox_textures(logical_device, skybox_properties);
+
+    // vk::buffer_handle test_buffer;
+    // write_array(logical_device, test_buffer);
+
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -527,12 +807,12 @@ main() {
         };
         main_renderpass.begin(begin_renderpass);
 
-		// Binding a graphics pipeline -- before drawing stuff
+        // Binding a graphics pipeline -- before drawing stuff
 		// Inside of this graphics pipeline bind, is where you want to do the drawing stuff to
 		main_graphics_pipeline.bind(current);
 
-        test_vbo.bind(current);
-        test_ibo.bind(current);
+        // Must be binded before descriptor resource gets binded
+        test_model.bind(current);
 
         static auto start_time = std::chrono::high_resolution_clock::now();
 
@@ -548,13 +828,22 @@ main() {
         ubo.proj[1][1] *= -1;
         test_ubo.update(&ubo);
 
+        // Last thing that we set is going to be the skybox
+        // This is setting the skybox uniform within the skybox.vert shader
+        skybox_camera_data skybox_uniform_data = {
+            .forward = { 1.f, 0.f, 0.f, 0.f},
+            .right = { 0.f, -1.f, 0.f, 0.f},
+            .up = { 0.f, 0.f, 1.f, 0.f},
+        };
+        skybox_ubo.update(&skybox_uniform_data);
+
         // Before we can send stuff to the GPU, since we already updated the descriptor set 0 beforehand, we must bind that descriptor resource before making any of the draw calls
         // Something to note: You cannot update descriptor sets in the process of a current-recording command buffers or else that becomes undefined behavior
         set0_resource.bind(current, current_frame, main_graphics_pipeline.layout());
 
         // Drawing-call to render actual triangle to the screen
-		// vkCmdDraw(current, 3, 1, 0, 0);
-        vkCmdDrawIndexed(current, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+        // vkCmdDrawIndexed(current, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+        test_model.draw(current);
 
         main_renderpass.end(current);
         current.end();
@@ -571,11 +860,22 @@ main() {
     logical_device.wait();
     main_swapchain.destroy();
 
+    // for(auto& skybox_texture : skybox_textures) {
+    //     if(skybox_texture.loaded()) {
+    //         skybox_texture.destroy(); 
+    //     }
+    // }
+
+    skybox_ubo.destroy();
+    skybox_descriptor.destroy();
+    skybox_resource.destroy();
+    skybox_graphics_pipeline.destroy();
+    // skybox_textures.destroy();
+
     texture1.destroy();
     set0_resource.destroy();
     test_ubo.destroy();
-    test_ibo.destroy();
-    test_vbo.destroy();
+    test_model.destroy();
 
     for (auto& command : swapchain_command_buffers) {
         command.destroy();
@@ -584,7 +884,6 @@ main() {
 	for (auto& fb : swapchain_framebuffers) {
 		fb.destroy();
 	}
-
 
     for (auto& image : swapchain_images) {
         image.destroy();

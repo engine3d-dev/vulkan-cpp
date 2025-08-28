@@ -225,7 +225,7 @@ main() {
             .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
             .mip_levels = 1,
             .layer_count = 1,
-            .physical_device = physical_device
+            .phsyical_memory_properties = physical_device.memory_properties()
         };
 
 
@@ -254,7 +254,7 @@ main() {
             .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
             .mip_levels = 1,
             .layer_count = 1,
-            .physical_device = physical_device
+            .phsyical_memory_properties = physical_device.memory_properties()
         };
         swapchain_depth_images[i] = vk::sample_image(logical_device, image_config);
     }
@@ -400,8 +400,8 @@ main() {
             {1.f, 1.f, 1.f},
         }
     };
-    vk::vertex_buffer_info vertex_info = {
-        .physical_handle = physical_device,
+    vk::vertex_buffer_settings vertex_info = {
+        .phsyical_memory_properties = physical_device.memory_properties(),
         .vertices = vertices,
     };
     vk::vertex_buffer test_vbo(logical_device, vertex_info);
