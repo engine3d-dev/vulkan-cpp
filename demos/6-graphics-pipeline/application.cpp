@@ -420,3 +420,13 @@ main() {
     api_instance.destroy();
     return 0;
 }
+
+template<typename T>
+static size_t destroy_function(const void* p_child_object) {
+    if(p_child_object != nullptr) {
+        const auto* obj = static_cast<const T*>(p_child_object);
+        obj->~T();
+    }
+
+    return sizeof(T);
+}

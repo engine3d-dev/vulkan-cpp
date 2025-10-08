@@ -28,13 +28,12 @@ class VulkanCpp(ConanFile):
         self.requires("glm/1.0.1")
         self.requires("stb/cci.20230920")
         self.requires("tinyobjloader/2.0.0-rc10")
-    
-    # This is how exporting the sources work
+
+
     def export_sources(self):
         copy(self,"CMakeLists.txt", self.recipe_folder, self.export_sources_folder)
         copy(self,"src/CMakeLists.txt", self.recipe_folder, self.export_sources_folder)
         copy(self,"*.hpp", self.recipe_folder, self.export_sources_folder)
-        copy(self,"*.h", self.recipe_folder, self.export_sources_folder)
         copy(self,"*.cpp", self.recipe_folder, self.export_sources_folder)
 
     def build(self):
