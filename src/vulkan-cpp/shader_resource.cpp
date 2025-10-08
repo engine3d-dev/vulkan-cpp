@@ -32,10 +32,6 @@ namespace vk {
 
         return binary_blob;
     }
-
-    shader_resource::shader_resource() {
-        throw std::runtime_error("Cannot construct an empty shader_resource -- default constructor called");
-    }
     
     shader_resource::shader_resource(const VkDevice& p_device, const shader_resource_info& p_info) : m_device(p_device) {
         m_shader_module_handlers.resize(p_info.sources.size());

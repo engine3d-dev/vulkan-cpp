@@ -542,8 +542,8 @@ namespace vk {
     struct vertex_input {
         glm::vec3 position;
         glm::vec3 color;
-        glm::vec2 uv;
         glm::vec3 normals;
+        glm::vec2 uv;
 
         bool operator==(const vertex_input& other) const {
             return position == other.position and color == other.color and

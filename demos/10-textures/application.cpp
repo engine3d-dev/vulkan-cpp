@@ -80,6 +80,10 @@ struct global_uniform {
     glm::mat4 proj;
 };
 
+struct material_uniform {
+    glm::vec4 color;
+};
+
 int
 main() {
     //! @note Just added the some test code to test the conan-starter setup code
@@ -442,9 +446,40 @@ main() {
         .entries = entries,      // specifies pool sizes and descriptor layout
     };
     vk::descriptor_resource set0_resource(logical_device, set0_layout);
+    std::vector<vk::descriptor_entry> set1_entries = {
+    vk::descriptor_entry{
+            // specifies "layout (set = 0, binding = 0) uniform GlobalUbo"
+            .type = vk::buffer::uniform,
+            .binding_point = {
+                .binding = 0,
+                .stage = vk::shader_stage::vertex,
+            },
+            .descriptor_count = 1,
+        },
+        vk::descriptor_entry{
+            // layout (set = 0, binding = 1) uniform sampler2D
+            .type = vk::buffer::combined_image_sampler,
+            .binding_point = {
+                .binding = 1,
+                .stage = vk::shader_stage::fragment,
+            },
+            .descriptor_count = 1,
+        }
+    };
+    vk::descriptor_layout set1_layout = {
+        .slot = 1, // indicate that this is descriptor set 0
+        .allocate_count = image_count, // the count how many descriptor
+                                            // set layout able to be allocated
+        .max_sets = image_count, // max of descriptor sets able to allocate
+        .size_bytes = sizeof(material_uniform), // size of bytes of the uniforms utilized by this descriptor sets
+        .entries = set1_entries,      // specifies pool sizes and descriptor layout
+    };
 
-    std::array<VkDescriptorSetLayout, 1> layouts = {
-        set0_resource.layout()
+    vk::descriptor_resource set1_resource(logical_device, set1_layout);
+
+    std::array<VkDescriptorSetLayout, 2> layouts = {
+        set0_resource.layout(),
+        set1_resource.layout()
     };
 
 	/*
@@ -468,10 +503,10 @@ main() {
 
     // Setting up vertex buffer
     std::array<vk::vertex_input, 4> vertices = {
-        vk::vertex_input{{-0.5f, -0.5f, 0.f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-        vk::vertex_input{{0.5f, -0.5f, 0.f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-        vk::vertex_input{{0.5f, 0.5f, 0.f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-        vk::vertex_input{{-0.5f, 0.5f, 0.f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
+        vk::vertex_input{{-0.5f, -0.5f, 0.f}, {1.0f, 0.0f, 0.0f}, {0.f, 0.f, 0.f}, {1.0f, 0.0f}},
+        vk::vertex_input{{0.5f, -0.5f, 0.f}, {0.0f, 1.0f, 0.0f}, {0.f, 0.f, 0.f}, {0.0f, 0.0f}},
+        vk::vertex_input{{0.5f, 0.5f, 0.f}, {0.0f, 0.0f, 1.0f}, {0.f, 0.f, 0.f}, {0.0f, 1.0f}},
+        vk::vertex_input{{-0.5f, 0.5f, 0.f}, {1.0f, 1.0f, 1.0f}, {0.f, 0.f, 0.f}, {1.0f, 1.0f}}
     };
     vk::vertex_buffer_settings vertex_info = {
         .phsyical_memory_properties = physical_device.memory_properties(),
@@ -491,20 +526,14 @@ main() {
     vk::index_buffer test_ibo(logical_device, index_info);
     std::println("index_buffer.alive() = {}", test_ibo.alive());
 
-    // Dummy uniform struct just for testing if update works when mapping some data
-    // camera_ubo global_ubo = {};
-    // test_ubo.update(&global_ubo);
 
     // Setting up descriptor sets for handling uniforms
     vk::uniform_buffer_info test_ubo_info = {
-        // .physical_handle = physical_device,
         .phsyical_memory_properties = physical_device.memory_properties(),
         .size_bytes = sizeof(global_uniform)
     };
     vk::uniform_buffer test_ubo = vk::uniform_buffer(logical_device, test_ubo_info);
-    // std::array<vk::uniform_buffer, 1> uniforms = {
-    //     test_ubo
-    // };
+
     std::array<vk::write_buffer_descriptor, 1> uniforms = {
         vk::write_buffer_descriptor{
             .dst_binding = 0,
@@ -524,11 +553,19 @@ main() {
     std::println("texture1.valid = {}", texture1.loaded());
 
     // Moving update call here because now we add textures to set0
-    // std::array<vk::sample_image, 1> sample_images = {
-    //     texture1
-    // };
-
-    // Moving update call here because now we add textures to set0
+    vk::uniform_buffer_info material_ubfo_info = {
+        .phsyical_memory_properties = physical_device.memory_properties(),
+        .size_bytes = sizeof(material_uniform)
+    };
+    vk::uniform_buffer material_ubo = vk::uniform_buffer(logical_device, material_ubfo_info);
+    std::array<vk::write_buffer_descriptor, 1> uniforms_set1 = {
+        vk::write_buffer_descriptor{
+            .dst_binding = 0,
+            .buffer = material_ubo,
+            .offset = 0,
+            .range = material_ubo.size_bytes()
+        }
+    };
     std::array<vk::write_image_descriptor, 1> sample_images = {
         vk::write_image_descriptor{
             .dst_binding = 1,
@@ -537,7 +574,8 @@ main() {
         }
     };
 
-    set0_resource.update(uniforms, sample_images);
+    set0_resource.update(uniforms);
+    set1_resource.update(uniforms_set1, sample_images);
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -581,7 +619,7 @@ main() {
         // Before we can send stuff to the GPU, since we already updated the descriptor set 0 beforehand, we must bind that descriptor resource before making any of the draw calls
         // Something to note: You cannot update descriptor sets in the process of a current-recording command buffers or else that becomes undefined behavior
         set0_resource.bind(current, current_frame, main_graphics_pipeline.layout());
-
+        set1_resource.bind(current, current_frame, main_graphics_pipeline.layout());
         // Drawing-call to render actual triangle to the screen
 		// vkCmdDraw(current, 3, 1, 0, 0);
         vkCmdDrawIndexed(current, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
@@ -603,7 +641,9 @@ main() {
 
     texture1.destroy();
     set0_resource.destroy();
+    set1_resource.destroy();
     test_ubo.destroy();
+    material_ubo.destroy();
     test_ibo.destroy();
     test_vbo.destroy();
 

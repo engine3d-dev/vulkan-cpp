@@ -24,7 +24,7 @@ namespace vk {
     */
     class shader_resource {
     public:
-        shader_resource();
+        shader_resource() = default;
         shader_resource(const VkDevice& p_device, const shader_resource_info& p_info);
 
         [[nodiscard]] bool is_valid() const { return m_is_resource_valid; }

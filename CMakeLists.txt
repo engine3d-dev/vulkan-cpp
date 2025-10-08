@@ -4,6 +4,13 @@ project(vulkan-cpp CXX)
 build_library(
     DIRECTORIES
     src
+    # demos/6-graphics-pipeline
+    # demos/8-index-uniform-buffers
+    # demos/9-uniforms
+    # demos/10-textures
+    # demos/11-depth-buffering
+    # demos/12-loading-models
+    # demos/13-skybox
     ENABLE_TESTS OFF
 
     PACKAGES
