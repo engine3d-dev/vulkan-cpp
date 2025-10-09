@@ -12,6 +12,7 @@ namespace vk {
     */
     class device_present_queue {
     public:
+        device_present_queue() = default;
         device_present_queue(const VkDevice& p_device, const VkSwapchainKHR& p_swapchain_context, const queue_enumeration& p_config);
 
         void wait_idle();
@@ -19,10 +20,10 @@ namespace vk {
         uint32_t acquire_next_image();
 
         //! @brief Submit commands to this specific present queue (without asynchronously)
-        void submit_sync(const VkCommandBuffer& p_command);
+        void submit_sync(std::span<const VkCommandBuffer> p_commands);
 
         //! @brief Submit commands to this specific present queue (asynchronously)
-        void submit_async(const VkCommandBuffer& p_command, VkPipelineStageFlags p_flags=VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+        void submit_async(std::span<const VkCommandBuffer> p_commands, VkPipelineStageFlags p_flags=VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
 
         //! @brief Displays specific image to the presentation frame with specific frame index
         void present_frame(uint32_t p_frame_idx);
