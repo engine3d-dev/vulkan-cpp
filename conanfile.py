@@ -28,6 +28,7 @@ class VulkanCpp(ConanFile):
         self.requires("glm/1.0.1")
         self.requires("stb/cci.20230920")
         self.requires("tinyobjloader/2.0.0-rc10")
+        self.requires("boost-ext-ut/2.3.1")
 
 
     def export_sources(self):
