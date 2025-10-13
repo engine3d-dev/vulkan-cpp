@@ -29,16 +29,28 @@ namespace vk {
                  "vkAllocateCommandBuffers");
     }
 
-    void command_buffer::begin(command_usage p_usage) {
+    void command_buffer::begin(command_usage p_usage, std::span<const command_inherit_info> p_inherit_info) {
         // Resets to zero if get called every frame
         if(m_begin_end_count == 2) {
             m_begin_end_count = 0;
         }
         m_begin_end_count++;
+
+        std::vector<VkCommandBufferInheritanceInfo> inheritance_infos(p_inherit_info.size());
+
+        for(size_t i = 0; i < inheritance_infos.size(); i++) {
+            inheritance_infos[i] = {
+                .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO,
+                .renderPass = p_inherit_info[i].renderpass,
+                .subpass = p_inherit_info[i].subpass_index,
+                .framebuffer = p_inherit_info[i].framebuffer
+            };
+        }
+
         VkCommandBufferBeginInfo command_begin_info = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
             .pNext = nullptr,
-            .flags = to_command_usage_flag_bits(p_usage)
+            .flags = static_cast<VkCommandBufferUsageFlags>(p_usage)
         };
         vk_check(
           vkBeginCommandBuffer(m_command_buffer, &command_begin_info),
@@ -48,6 +60,10 @@ namespace vk {
     void command_buffer::end() {
         m_begin_end_count++;
         vkEndCommandBuffer(m_command_buffer);
+    }
+
+    void command_buffer::execute(std::span<const VkCommandBuffer> p_commands) {
+        vkCmdExecuteCommands(m_command_buffer, static_cast<uint32_t>(p_commands.size()), p_commands.data());
     }
 
     void command_buffer::destroy() {

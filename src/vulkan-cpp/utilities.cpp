@@ -276,18 +276,37 @@ namespace vk {
     }
 
     VkCommandBufferUsageFlags to_command_usage_flag_bits(command_usage p_command_usage_flag) {
-        switch(p_command_usage_flag) {
-        case command_usage::one_time_submit:
-            return VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-        case command_usage::renderpass_continue_bit:
-            return VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
-        case command_usage::simulatneous_use_bit:
-            return VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-        case command_usage::max_bit:
-            return VK_COMMAND_BUFFER_USAGE_FLAG_BITS_MAX_ENUM;
+        VkCommandBufferUsageFlags command_usage_flags;
+        if(command_usage_flags & command_usage::one_time_submit) {
+            command_usage_flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
         }
 
-        throw std::runtime_error("Invalid command_usage specified");
+        if(command_usage_flags & command_usage::renderpass_continue_bit) {
+            command_usage_flags |= VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
+        }
+
+        if(command_usage_flags & command_usage::simulatneous_use_bit) {
+            command_usage_flags |= VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+        }
+
+        if(command_usage_flags & command_usage::max_bit) {
+            command_usage_flags |= VK_COMMAND_BUFFER_USAGE_FLAG_BITS_MAX_ENUM;
+        }
+
+        // switch(p_command_usage_flag) {
+        // case command_usage::one_time_submit:
+        //     return VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+        // case command_usage::renderpass_continue_bit:
+        //     return VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
+        // case command_usage::simulatneous_use_bit:
+        //     return VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+        // case command_usage::max_bit:
+        //     return VK_COMMAND_BUFFER_USAGE_FLAG_BITS_MAX_ENUM;
+        // }
+
+        // throw std::runtime_error("Invalid command_usage specified");
+
+        return command_usage_flags;
     }
 
     VkImageAspectFlags to_image_aspect_flags(image_aspect_flags p_flag) {
@@ -628,6 +647,8 @@ namespace vk {
                 return VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL;
             case image_layout::present_src_khr:
                 return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+            case image_layout::shader_read_only_optimal:
+                return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         }
     }
 
