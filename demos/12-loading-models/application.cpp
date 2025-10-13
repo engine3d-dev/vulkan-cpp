@@ -420,8 +420,8 @@ main() {
           .layout = vk::image_layout::color_optimal,
           .samples = vk::sample_bit::count_1,
           .load = vk::attachment_load::clear,
-          .store = vk::attachment_store::dont_care,
-          .stencil_load = vk::attachment_load::clear,
+          .store = vk::attachment_store::store,
+          .stencil_load = vk::attachment_load::dont_care,
           .stencil_store = vk::attachment_store::dont_care,
           .initial_layout = vk::image_layout::undefined,
           .final_layout = vk::image_layout::present_src_khr,
@@ -432,10 +432,10 @@ main() {
           .samples = vk::sample_bit::count_1,
           .load = vk::attachment_load::clear,
           .store = vk::attachment_store::dont_care,
-          .stencil_load = vk::attachment_load::clear,
+          .stencil_load = vk::attachment_load::dont_care,
           .stencil_store = vk::attachment_store::dont_care,
           .initial_layout = vk::image_layout::undefined,
-          .final_layout = vk::image_layout::present_src_khr,
+          .final_layout = vk::image_layout::depth_stencil_read_only_optimal,
         },
     };
 
@@ -694,8 +694,6 @@ main() {
     set0_resource.destroy();
     test_ubo.destroy();
     test_model.destroy();
-    // test_ibo.destroy();
-    // test_vbo.destroy();
 
     for (auto& command : swapchain_command_buffers) {
         command.destroy();
