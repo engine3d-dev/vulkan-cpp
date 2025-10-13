@@ -309,6 +309,7 @@ namespace vk {
         depth_stencil_read_only_optimal =
           4, // VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_READ_ONLY_OPTIMAL
         present_src_khr = 5, // VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+        shader_read_only_optimal=6
     };
 
     // enum class format : uint64_t {
@@ -419,11 +420,12 @@ namespace vk {
         subpass_contents subpass;
     };
 
+    //! @brief Bits that 1-to-1 map to VkCommandUsageFlags
     enum command_usage : uint8_t {
-        one_time_submit = 0x00000001,
-        renderpass_continue_bit = 0x00000002,
-        simulatneous_use_bit = 0x00000004,
-        max_bit = 0x7F // represents max_enum
+        one_time_submit = 0x00000001,           // Represents VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
+        renderpass_continue_bit = 0x00000002,   // Represents VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT
+        simulatneous_use_bit = 0x00000004,      // Represents VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT
+        max_bit = 0x7F                          // Represents VK_COMMAND_BUFFER_USAGE_FLAG_BITS_MAX_ENUM
     };
 
     /**

@@ -50,15 +50,15 @@ namespace vk {
         return image_acquired;
     }
 
-    void device_present_queue::submit_sync(const VkCommandBuffer& p_command) {
+    void device_present_queue::submit_sync(std::span<const VkCommandBuffer> p_commands) {
         VkSubmitInfo submit_info = {
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
             .pNext = nullptr,
             .waitSemaphoreCount = 0,
             .pWaitSemaphores = nullptr,
             .pWaitDstStageMask = nullptr,
-            .commandBufferCount = 1,
-            .pCommandBuffers = &p_command,
+            .commandBufferCount = static_cast<uint32_t>(p_commands.size()),
+            .pCommandBuffers = p_commands.data(),
             .signalSemaphoreCount = 0,
             .pSignalSemaphores = nullptr,
         };
@@ -69,15 +69,15 @@ namespace vk {
 
     }
 
-    void device_present_queue::submit_async(const VkCommandBuffer& p_command, VkPipelineStageFlags p_flags) {
+    void device_present_queue::submit_async(std::span<const VkCommandBuffer> p_commands, VkPipelineStageFlags p_flags) {
         VkSubmitInfo submit_info = {
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
             .pNext = nullptr,
             .waitSemaphoreCount = 1,
             .pWaitSemaphores = &m_presentation_completed,
             .pWaitDstStageMask = &p_flags,
-            .commandBufferCount = 1,
-            .pCommandBuffers = &p_command,
+            .commandBufferCount = static_cast<uint32_t>(p_commands.size()),
+            .pCommandBuffers = p_commands.data(),
             .signalSemaphoreCount = 1,
             .pSignalSemaphores = &m_work_completed,
         };
