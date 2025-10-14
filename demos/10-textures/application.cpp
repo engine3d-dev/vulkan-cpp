@@ -446,40 +446,8 @@ main() {
         .entries = entries,      // specifies pool sizes and descriptor layout
     };
     vk::descriptor_resource set0_resource(logical_device, set0_layout);
-    std::vector<vk::descriptor_entry> set1_entries = {
-    vk::descriptor_entry{
-            // specifies "layout (set = 0, binding = 0) uniform GlobalUbo"
-            .type = vk::buffer::uniform,
-            .binding_point = {
-                .binding = 0,
-                .stage = vk::shader_stage::vertex,
-            },
-            .descriptor_count = 1,
-        },
-        vk::descriptor_entry{
-            // layout (set = 0, binding = 1) uniform sampler2D
-            .type = vk::buffer::combined_image_sampler,
-            .binding_point = {
-                .binding = 1,
-                .stage = vk::shader_stage::fragment,
-            },
-            .descriptor_count = 1,
-        }
-    };
-    vk::descriptor_layout set1_layout = {
-        .slot = 1, // indicate that this is descriptor set 0
-        .allocate_count = image_count, // the count how many descriptor
-                                            // set layout able to be allocated
-        .max_sets = image_count, // max of descriptor sets able to allocate
-        .size_bytes = sizeof(material_uniform), // size of bytes of the uniforms utilized by this descriptor sets
-        .entries = set1_entries,      // specifies pool sizes and descriptor layout
-    };
-
-    vk::descriptor_resource set1_resource(logical_device, set1_layout);
-
-    std::array<VkDescriptorSetLayout, 2> layouts = {
-        set0_resource.layout(),
-        set1_resource.layout()
+    std::array<VkDescriptorSetLayout, 1> layouts = {
+        set0_resource.layout()
     };
 
 	/*
@@ -574,8 +542,7 @@ main() {
         }
     };
 
-    set0_resource.update(uniforms);
-    set1_resource.update(uniforms_set1, sample_images);
+    set0_resource.update(uniforms, sample_images);
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -619,7 +586,6 @@ main() {
         // Before we can send stuff to the GPU, since we already updated the descriptor set 0 beforehand, we must bind that descriptor resource before making any of the draw calls
         // Something to note: You cannot update descriptor sets in the process of a current-recording command buffers or else that becomes undefined behavior
         set0_resource.bind(current, current_frame, main_graphics_pipeline.layout());
-        set1_resource.bind(current, current_frame, main_graphics_pipeline.layout());
         // Drawing-call to render actual triangle to the screen
 		// vkCmdDraw(current, 3, 1, 0, 0);
         vkCmdDrawIndexed(current, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
@@ -628,7 +594,8 @@ main() {
         current.end();
 
         // Submitting and then presenting to the screen
-        presentation_queue.submit_async(current);
+        std::array<VkCommandBuffer, 1> commands = {current};
+        presentation_queue.submit_async(commands);
         presentation_queue.present_frame(current_frame);
     }
 
@@ -641,7 +608,6 @@ main() {
 
     texture1.destroy();
     set0_resource.destroy();
-    set1_resource.destroy();
     test_ubo.destroy();
     material_ubo.destroy();
     test_ibo.destroy();

@@ -558,7 +558,8 @@ main() {
         current.end();
 
         // Submitting and then presenting to the screen
-        presentation_queue.submit_async(current);
+        std::array<const VkCommandBuffer, 1> commands = {current};
+        presentation_queue.submit_async(commands);
         presentation_queue.present_frame(current_frame);
     }
 

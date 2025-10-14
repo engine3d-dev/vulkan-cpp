@@ -381,7 +381,8 @@ main() {
         current.end();
 
         // Submitting and then presenting to the screen
-        presentation_queue.submit_async(current);
+        std::array<const VkCommandBuffer, 1> commands = {current};
+        presentation_queue.submit_async(commands);
         presentation_queue.present_frame(current_frame);
     }
 
@@ -421,12 +422,12 @@ main() {
     return 0;
 }
 
-template<typename T>
-static size_t destroy_function(const void* p_child_object) {
-    if(p_child_object != nullptr) {
-        const auto* obj = static_cast<const T*>(p_child_object);
-        obj->~T();
-    }
+// template<typename T>
+// static size_t destroy_function(const void* p_child_object) {
+//     if(p_child_object != nullptr) {
+//         const auto* obj = static_cast<const T*>(p_child_object);
+//         obj->~T();
+//     }
 
-    return sizeof(T);
-}
+//     return sizeof(T);
+// }

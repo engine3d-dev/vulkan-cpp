@@ -344,7 +344,7 @@ main() {
 	};
 
     // Setting up vertex attributes in the test shaders
-    std::array<vk::vertex_attribute_entry, 3> attribute_entries = {
+    std::array<vk::vertex_attribute_entry, 4> attribute_entries = {
         vk::vertex_attribute_entry{
             .location = 0,
             .format = vk::format::rgb32_sfloat,
@@ -359,6 +359,11 @@ main() {
             .location = 2,
             .format = vk::format::rg32_sfloat,
             .stride = offsetof(vk::vertex_input, uv)
+        },
+        vk::vertex_attribute_entry{
+            .location = 3,
+            .format = vk::format::rgb32_sfloat,
+            .stride = offsetof(vk::vertex_input, normals)
         }
     };
 
@@ -441,15 +446,15 @@ main() {
 
     // Setting up vertex buffer
     std::array<vk::vertex_input, 8> vertices = {
-        vk::vertex_input{{-0.5f, -0.5f, 0.f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-        vk::vertex_input{{0.5f, -0.5f, 0.f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-        vk::vertex_input{{0.5f, 0.5f, 0.f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-        vk::vertex_input{{-0.5f, 0.5f, 0.f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
+        vk::vertex_input{{-0.5f, -0.5f, 0.f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.f}, {1.0f, 0.0f}},
+        vk::vertex_input{{0.5f, -0.5f, 0.f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 0.f}, {0.0f, 0.0f}},
+        vk::vertex_input{{0.5f, 0.5f, 0.f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.f}, {0.0f, 1.0f}},
+        vk::vertex_input{{-0.5f, 0.5f, 0.f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 0.f}, {1.0f, 1.0f}},
 
-        vk::vertex_input{{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-        vk::vertex_input{{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-        vk::vertex_input{{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-        vk::vertex_input{{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}
+        vk::vertex_input{{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.f}, {1.0f, 0.0f}},
+        vk::vertex_input{{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f, 0.f}, {0.0f, 0.0f}},
+        vk::vertex_input{{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 0.f}, {0.0f, 1.0f}},
+        vk::vertex_input{{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.f}, {1.0f, 1.0f}}
     };
     vk::vertex_buffer_settings vertex_info = {
         .phsyical_memory_properties = physical_device.memory_properties(),
@@ -560,7 +565,8 @@ main() {
         current.end();
 
         // Submitting and then presenting to the screen
-        presentation_queue.submit_async(current);
+        std::array<const VkCommandBuffer, 1> commands = {current };
+        presentation_queue.submit_async(commands);
         presentation_queue.present_frame(current_frame);
     }
 
