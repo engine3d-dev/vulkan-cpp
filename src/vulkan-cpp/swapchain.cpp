@@ -4,7 +4,13 @@
 #include <print>
 
 namespace vk {
-    swapchain::swapchain(const VkDevice& p_device, const VkSurfaceKHR& p_surface, const swapchain_enumeration& p_settings, const surface_enumeration& p_surface_properties) : m_device(p_device), m_surface_handler(p_surface), m_surface_enumeration(p_surface_properties) {
+    swapchain::swapchain(const VkDevice& p_device,
+                         const VkSurfaceKHR& p_surface,
+                         const swapchain_enumeration& p_settings,
+                         const surface_enumeration& p_surface_properties)
+      : m_device(p_device)
+      , m_surface_handler(p_surface)
+      , m_surface_enumeration(p_surface_properties) {
 
         m_image_size = surface_image_size(m_surface_enumeration.capabilities);
 
@@ -28,22 +34,16 @@ namespace vk {
                            VK_IMAGE_USAGE_TRANSFER_DST_BIT),
             .queueFamilyIndexCount = 1,
             .pQueueFamilyIndices = &p_settings.present_index,
-            .preTransform =
-              m_surface_enumeration.capabilities.currentTransform,
+            .preTransform = m_surface_enumeration.capabilities.currentTransform,
             .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
             .presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR,
             .clipped = true
         };
 
-        vk_check(vkCreateSwapchainKHR(m_device, &swapchain_ci, nullptr, &m_swapchain_handler),"vkCreateSwapchainKHR");
-
-
-
+        vk_check(vkCreateSwapchainKHR(
+                   m_device, &swapchain_ci, nullptr, &m_swapchain_handler),
+                 "vkCreateSwapchainKHR");
     }
-
-    // VkFramebuffer swapchain::active_framebuffer(uint32_t p_index) {
-    //     return m_swapchain_framebuffers[p_index];
-    // }
 
     void swapchain::destroy() {
         vkDestroySwapchainKHR(m_device, m_swapchain_handler, nullptr);

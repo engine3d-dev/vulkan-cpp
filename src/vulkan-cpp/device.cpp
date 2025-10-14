@@ -3,14 +3,16 @@
 
 namespace vk {
 
-    device::device(const VkPhysicalDevice& p_physical, const device_enumeration& p_config) {
+    device::device(const VkPhysicalDevice& p_physical,
+                   const device_enumeration& p_config) {
 
         VkDeviceQueueCreateInfo device_queue_ci = {
             .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
             .queueFamilyIndex = p_config.queue_family_index,
-            .queueCount = static_cast<uint32_t>(p_config.queue_priorities.size()),
+            .queueCount =
+              static_cast<uint32_t>(p_config.queue_priorities.size()),
             .pQueuePriorities = p_config.queue_priorities.data(),
         };
 
@@ -32,7 +34,8 @@ namespace vk {
         features.robustBufferAccess = false;
         create_info.pEnabledFeatures = &features;
 
-        vk_check(vkCreateDevice(p_physical, &create_info, nullptr, &m_device),"vkCreateDevice");
+        vk_check(vkCreateDevice(p_physical, &create_info, nullptr, &m_device),
+                 "vkCreateDevice");
     }
 
     void device::wait() {
@@ -41,7 +44,7 @@ namespace vk {
 
     void device::destroy() {
 
-        if(m_device != nullptr) {
+        if (m_device != nullptr) {
             vkDestroyDevice(m_device, nullptr);
         }
     }

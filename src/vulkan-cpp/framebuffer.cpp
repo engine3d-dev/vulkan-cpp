@@ -17,13 +17,14 @@ namespace vk {
             .layers = 1
         };
 
-        vk::vk_check(vkCreateFramebuffer(m_device,&framebuffer_ci, nullptr,&m_framebuffer), "vkCreateFramebuffer");
+        vk::vk_check(vkCreateFramebuffer(
+                       m_device, &framebuffer_ci, nullptr, &m_framebuffer),
+                     "vkCreateFramebuffer");
     }
 
     void framebuffer::destroy() {
-        if(m_framebuffer != nullptr) {
+        if (m_framebuffer != nullptr) {
             vkDestroyFramebuffer(m_device, m_framebuffer, nullptr);
         }
-        
     }
 };

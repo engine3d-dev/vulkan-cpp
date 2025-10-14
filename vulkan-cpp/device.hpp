@@ -6,15 +6,17 @@ namespace vk {
     /**
      * @name device
      * @brief represents a vulkan logical device
-    */
+     */
     class device {
         struct queue_family {
-            VkQueue graphics=nullptr;
-            VkQueue compute=nullptr;
-            VkQueue transfer=nullptr;
+            VkQueue graphics = nullptr;
+            VkQueue compute = nullptr;
+            VkQueue transfer = nullptr;
         };
+
     public:
-        device(const VkPhysicalDevice& p_physical, const device_enumeration& p_config);
+        device(const VkPhysicalDevice& p_physical,
+               const device_enumeration& p_config);
 
         [[nodiscard]] queue_family family() const { return m_queue_family; }
 
@@ -27,7 +29,7 @@ namespace vk {
         operator VkDevice() { return m_device; }
 
     private:
-        VkDevice m_device=nullptr;
+        VkDevice m_device = nullptr;
         queue_family m_queue_family{};
     };
 };

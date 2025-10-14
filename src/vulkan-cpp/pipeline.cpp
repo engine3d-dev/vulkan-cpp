@@ -3,31 +3,37 @@
 #include <vector>
 
 namespace vk {
-    pipeline::pipeline(const VkDevice& p_device, const pipeline_settings& p_info) : m_device(p_device) {
+    pipeline::pipeline(const VkDevice& p_device,
+                       const pipeline_settings& p_info)
+      : m_device(p_device) {
         create(p_info);
     }
 
     void pipeline::create(const pipeline_settings& p_info) {
-        std::vector<VkPipelineShaderStageCreateInfo> pipeline_shader_stages(p_info.shader_modules.size());
+        std::vector<VkPipelineShaderStageCreateInfo> pipeline_shader_stages(
+          p_info.shader_modules.size());
 
-        uint32_t shader_src_index=0;
+        uint32_t shader_src_index = 0;
 
         // 1. Load in and setup the VKShaderModule handlers for VkPipeline
-        for(const shader_handle& src : p_info.shader_modules) {
+        for (const shader_handle& src : p_info.shader_modules) {
             VkShaderStageFlags stage = to_shader_stage(src.stage);
-            pipeline_shader_stages[shader_src_index] = VkPipelineShaderStageCreateInfo{
-                .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-                .stage = (VkShaderStageFlagBits)stage,
-                .module = src.module,
-                .pName = "main"
-            };
+            pipeline_shader_stages[shader_src_index] =
+              VkPipelineShaderStageCreateInfo{
+                  .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                  .stage = (VkShaderStageFlagBits)stage,
+                  .module = src.module,
+                  .pName = "main"
+              };
 
             shader_src_index++;
         }
 
         // 2. Setting up the vertex attribute details for VkPipeline
-        std::span<const VkVertexInputBindingDescription> bind_attributes = p_info.vertex_bind_attributes;
-        std::span<const VkVertexInputAttributeDescription> attributes = p_info.vertex_attributes;
+        std::span<const VkVertexInputBindingDescription> bind_attributes =
+          p_info.vertex_bind_attributes;
+        std::span<const VkVertexInputAttributeDescription> attributes =
+          p_info.vertex_attributes;
 
         VkPipelineVertexInputStateCreateInfo vertex_input_info = {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
@@ -53,7 +59,8 @@ namespace vk {
         };
 
         //! @note Rasterization
-        // Keep in mind: if lineWidth is zero, validation layers will occur because cant be zero. Must be set to 1.0f
+        // Keep in mind: if lineWidth is zero, validation layers will occur
+        // because cant be zero. Must be set to 1.0f
         VkPipelineRasterizationStateCreateInfo rasterizer_ci = {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
             .depthClampEnable = false,
@@ -160,9 +167,12 @@ namespace vk {
         //     pipeline_layout_ci.setLayoutCount = 0;
         //     pipeline_layout_ci.pSetLayouts = nullptr;
         // }
-        pipeline_layout_ci.setLayoutCount = static_cast<uint32_t>(p_info.descriptor_layouts.size());
+        pipeline_layout_ci.setLayoutCount =
+          static_cast<uint32_t>(p_info.descriptor_layouts.size());
         pipeline_layout_ci.pSetLayouts = p_info.descriptor_layouts.data();
-        vk_check(vkCreatePipelineLayout(m_device, &pipeline_layout_ci, nullptr, &m_pipeline_layout),"vkCreatePipelineLayout");
+        vk_check(vkCreatePipelineLayout(
+                   m_device, &pipeline_layout_ci, nullptr, &m_pipeline_layout),
+                 "vkCreatePipelineLayout");
 
         VkGraphicsPipelineCreateInfo graphics_pipeline_ci = {
             .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -186,24 +196,22 @@ namespace vk {
             .basePipelineIndex = -1
         };
 
-        vk::vk_check(vkCreateGraphicsPipelines(m_device,
-                                               nullptr,
-                                               1,
-                                               &graphics_pipeline_ci,
-                                               nullptr,
-                                               &m_pipeline),
-                     "vkCreateGraphicsPipelines");
+        vk::vk_check(
+          vkCreateGraphicsPipelines(
+            m_device, nullptr, 1, &graphics_pipeline_ci, nullptr, &m_pipeline),
+          "vkCreateGraphicsPipelines");
     }
 
     void pipeline::bind(const VkCommandBuffer& p_command) {
-        vkCmdBindPipeline(p_command, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+        vkCmdBindPipeline(
+          p_command, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
     }
 
     void pipeline::destroy() {
-        if(m_pipeline_layout != nullptr) {
+        if (m_pipeline_layout != nullptr) {
             vkDestroyPipelineLayout(m_device, m_pipeline_layout, nullptr);
         }
-        if(m_pipeline != nullptr) {
+        if (m_pipeline != nullptr) {
             vkDestroyPipeline(m_device, m_pipeline, nullptr);
         }
     }

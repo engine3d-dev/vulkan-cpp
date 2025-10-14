@@ -3,10 +3,13 @@
 
 namespace vk {
 
-    index_buffer::index_buffer(const VkDevice& p_device, const index_buffer_settings& p_info) : m_device(p_device) {
+    index_buffer::index_buffer(const VkDevice& p_device,
+                               const index_buffer_settings& p_info)
+      : m_device(p_device) {
         m_indices_count = p_info.indices.size();
 
-        uint32_t property_flags = memory_property::host_visible_bit | memory_property::host_cached_bit;
+        uint32_t property_flags =
+          memory_property::host_visible_bit | memory_property::host_cached_bit;
         buffer_settings index_buffer_settings = {
             .device_size = p_info.indices.size_bytes(),
             .physical_memory_properties = p_info.phsyical_memory_properties,
@@ -21,7 +24,8 @@ namespace vk {
     }
 
     void index_buffer::bind(const VkCommandBuffer& p_current) {
-        vkCmdBindIndexBuffer(p_current,m_index_buffer, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdBindIndexBuffer(
+          p_current, m_index_buffer, 0, VK_INDEX_TYPE_UINT32);
     }
 
     void index_buffer::destroy() {

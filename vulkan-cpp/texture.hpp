@@ -18,21 +18,21 @@ namespace vk {
 
         [[nodiscard]] bool loaded() const { return m_texture_loaded; }
 
-        // [[nodiscard]] sampled_image data() const { return m_image_handle; }
         [[nodiscard]] sample_image image() const { return m_image; }
 
-        [[nodiscard]] uint32_t width() const {return m_width; }
+        [[nodiscard]] uint32_t width() const { return m_width; }
 
-        [[nodiscard]] uint32_t height() const {return m_height; }
+        [[nodiscard]] uint32_t height() const { return m_height; }
 
         void destroy();
+
     private:
-        VkDevice m_device=nullptr;
-        bool m_texture_loaded=false;
+        VkDevice m_device = nullptr;
+        bool m_texture_loaded = false;
         // sampled_image m_image_handle{};
         sample_image m_image{};
-        uint32_t m_width=0;
-        uint32_t m_height=0;
+        uint32_t m_width = 0;
+        uint32_t m_height = 0;
     };
 
 };

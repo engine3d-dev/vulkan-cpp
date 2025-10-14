@@ -12,8 +12,9 @@ namespace vk {
      * @param p_renderpass_attachment is a vk::attachment to specify the
      * individual attachment operation that handle in creating
      * VkAttachmentDescription, VkAttachmentReference, and VkSubpassDescription
-     * 
-     * @param p_enable_subpass because subpasses are optional, this is a boolean to enable if we want to apply subpasses
+     *
+     * @param p_enable_subpass because subpasses are optional, this is a boolean
+     * to enable if we want to apply subpasses
      */
 
     class renderpass {
@@ -23,7 +24,8 @@ namespace vk {
                    std::span<attachment> p_renderpass_attachments,
                    bool p_enable_subpasses = true);
 
-        void create(std::span<const attachment> p_renderpass_attachments, bool p_enable_subpass=true);
+        void create(std::span<const attachment> p_renderpass_attachments,
+                    bool p_enable_subpass = true);
 
         [[nodiscard]] bool alive() const { return m_renderpass; }
 

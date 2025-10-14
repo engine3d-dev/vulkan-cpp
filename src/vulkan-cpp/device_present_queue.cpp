@@ -4,8 +4,14 @@
 
 namespace vk {
 
-    device_present_queue::device_present_queue(const VkDevice& p_device, const VkSwapchainKHR& p_swapchain_context, const queue_enumeration& p_config) : m_device(p_device), m_swapchain(p_swapchain_context) {
-        vkGetDeviceQueue(m_device, p_config.family, p_config.index, &m_queue_handler);
+    device_present_queue::device_present_queue(
+      const VkDevice& p_device,
+      const VkSwapchainKHR& p_swapchain_context,
+      const queue_enumeration& p_config)
+      : m_device(p_device)
+      , m_swapchain(p_swapchain_context) {
+        vkGetDeviceQueue(
+          m_device, p_config.family, p_config.index, &m_queue_handler);
 
         m_work_completed = create_semaphore(m_device);
         m_presentation_completed = create_semaphore(m_device);
@@ -21,12 +27,13 @@ namespace vk {
         bool return_value = false;
 
         // If the bool is set to true meaning its out of date
-        // Then we set the internal variable tracking the acquired next image state to false, and return false
-        // This is for ensuring that we do not need to set the boolean ourselves.
-        // Should we handle this state to reset to false if checked or user should set the state???
-        if(m_out_of_date) {
+        // Then we set the internal variable tracking the acquired next image
+        // state to false, and return false This is for ensuring that we do not
+        // need to set the boolean ourselves. Should we handle this state to
+        // reset to false if checked or user should set the state???
+        if (m_out_of_date) {
             return_value = m_out_of_date;
-            if(p_is_reset) {
+            if (p_is_reset) {
                 m_out_of_date = false;
             }
             return return_value;
@@ -37,9 +44,15 @@ namespace vk {
 
     uint32_t device_present_queue::acquire_next_image() {
         wait_idle();
-        
+
         uint32_t image_acquired;
-        VkResult acquired_next_image_res = vkAcquireNextImageKHR(m_device, m_swapchain, std::numeric_limits<uint32_t>::max(), m_presentation_completed, nullptr, &image_acquired);
+        VkResult acquired_next_image_res =
+          vkAcquireNextImageKHR(m_device,
+                                m_swapchain,
+                                std::numeric_limits<uint32_t>::max(),
+                                m_presentation_completed,
+                                nullptr,
+                                &image_acquired);
 
         if (acquired_next_image_res == VK_ERROR_OUT_OF_DATE_KHR) {
             m_out_of_date = true;
@@ -50,7 +63,8 @@ namespace vk {
         return image_acquired;
     }
 
-    void device_present_queue::submit_sync(std::span<const VkCommandBuffer> p_commands) {
+    void device_present_queue::submit_sync(
+      std::span<const VkCommandBuffer> p_commands) {
         VkSubmitInfo submit_info = {
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
             .pNext = nullptr,
@@ -63,13 +77,13 @@ namespace vk {
             .pSignalSemaphores = nullptr,
         };
 
-        VkResult res =
-          vkQueueSubmit(m_queue_handler, 1, &submit_info, nullptr);
+        VkResult res = vkQueueSubmit(m_queue_handler, 1, &submit_info, nullptr);
         vk_check(res, "vkQueueSubmit");
-
     }
 
-    void device_present_queue::submit_async(std::span<const VkCommandBuffer> p_commands, VkPipelineStageFlags p_flags) {
+    void device_present_queue::submit_async(
+      std::span<const VkCommandBuffer> p_commands,
+      VkPipelineStageFlags p_flags) {
         VkSubmitInfo submit_info = {
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
             .pNext = nullptr,
@@ -106,7 +120,7 @@ namespace vk {
 
     void device_present_queue::destroy() {
         vkDeviceWaitIdle(m_device);
-        vkDestroySemaphore(m_device,m_presentation_completed, nullptr);
+        vkDestroySemaphore(m_device, m_presentation_completed, nullptr);
         vkDestroySemaphore(m_device, m_work_completed, nullptr);
     }
 };
