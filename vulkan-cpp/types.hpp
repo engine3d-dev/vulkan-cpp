@@ -510,10 +510,37 @@ namespace vk {
     };
 
     enum class shader_stage {
-        vertex,
-        fragment,
-        compute,
+        vertex = VK_SHADER_STAGE_VERTEX_BIT,
+        fragment = VK_SHADER_STAGE_FRAGMENT_BIT,
+        compute = VK_SHADER_STAGE_COMPUTE_BIT,
+        geometry = VK_SHADER_STAGE_GEOMETRY_BIT,
+        all_graphics = VK_SHADER_STAGE_ALL_GRAPHICS,
+        all = VK_SHADER_STAGE_ALL,
+        raygen_khr = VK_SHADER_STAGE_RAYGEN_BIT_KHR,
+        raygen_nv = VK_SHADER_STAGE_RAYGEN_BIT_NV,
+        any_hit_kht = VK_SHADER_STAGE_ANY_HIT_BIT_KHR,
+        closest_hit_khr = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR,
+        miss_bit_khr = VK_SHADER_STAGE_MISS_BIT_KHR,
+        intersection_khr = VK_SHADER_STAGE_INTERSECTION_BIT_KHR,
+        callable_bit_khr = VK_SHADER_STAGE_CALLABLE_BIT_KHR,
+        task_bit_ext = VK_SHADER_STAGE_TASK_BIT_EXT,
+        mesh_bit_ext = VK_SHADER_STAGE_MESH_BIT_EXT,
+        supass_shading_huawei = VK_SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI,
         undefined
+    };
+
+
+    enum class descriptor_layout_flag {
+        update_after_bind_pool = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT, // represents VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT
+        push_descriptor_khr = VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR, // represents VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR
+        descriptor_buffer_bit_ext = VK_DESCRIPTOR_SET_LAYOUT_CREATE_DESCRIPTOR_BUFFER_BIT_EXT, // represents VK_DESCRIPTOR_SET_LAYOUT_CREATE_DESCRIPTOR_BUFFER_BIT_EXT
+        embedded_immutable_samplers_bit_ext = VK_DESCRIPTOR_SET_LAYOUT_CREATE_EMBEDDED_IMMUTABLE_SAMPLERS_BIT_EXT, // represents VK_DESCRIPTOR_SET_LAYOUT_CREATE_EMBEDDED_IMMUTABLE_SAMPLERS_BIT_EXT
+        indirect_bindable_bit_nv = VK_DESCRIPTOR_SET_LAYOUT_CREATE_INDIRECT_BINDABLE_BIT_NV, // represents VK_DESCRIPTOR_SET_LAYOUT_CREATE_INDIRECT_BINDABLE_BIT_NV
+        host_only_pool_bit_ext = VK_DESCRIPTOR_SET_LAYOUT_CREATE_HOST_ONLY_POOL_BIT_EXT, // represents VK_DESCRIPTOR_SET_LAYOUT_CREATE_HOST_ONLY_POOL_BIT_EXT
+        per_stage_bit_nv = VK_DESCRIPTOR_SET_LAYOUT_CREATE_PER_STAGE_BIT_NV, // represents VK_DESCRIPTOR_SET_LAYOUT_CREATE_PER_STAGE_BIT_NV
+        update_after_bind_pool_bit_ext = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT, // represents VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT
+        host_only_pool_bit_valve = VK_DESCRIPTOR_SET_LAYOUT_CREATE_HOST_ONLY_POOL_BIT_VALVE, // represents VK_DESCRIPTOR_SET_LAYOUT_CREATE_HOST_ONLY_POOL_BIT_VALVE
+        flag_bits_max_enum = VK_DESCRIPTOR_SET_LAYOUT_CREATE_FLAG_BITS_MAX_ENUM // represents VK_DESCRIPTOR_SET_LAYOUT_CREATE_FLAG_BITS_MAX_ENUM
     };
 
     //! @brief high-level specification for a shader source

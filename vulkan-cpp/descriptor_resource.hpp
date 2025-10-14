@@ -6,29 +6,6 @@
 #include <vulkan-cpp/sample_image.hpp>
 
 namespace vk {
-    /*
-        std::vector<descriptor_entry> entries = {
-            descriptor_binding_entry{
-                // specifies "layout (set = 0, binding = 0) uniform GlobalUbo"
-                .type = vk::buffer::uniform,
-                .binding_point = { .binding = 0, .stage = shader_stage::vertex },
-                .descriptor_count = 1,
-            }
-        };
-
-        descriptor_layout set0_layout = {
-            .slot = 0, // layout(set = 0)
-            .allocate_count = m_image_count, // the count how many descriptor
-                                                // set layout able to be allocated
-            .max_sets =
-                m_image_count, // max of descriptor sets able to allocate
-            .size_bytes =
-                sizeof(camera_ubo), // size of bytes of the uniforms utilized by
-                                    // this descriptor sets
-            .entry = entries      // specifies pool sizes and descriptor layout
-        };
-        vk::descriptor_resource set_resource0(logical_device, set0_layout);
-    */
 
     /**
      * @param slot is the slot specific to the number slot for the descriptor. Ex. layout (set = 0)

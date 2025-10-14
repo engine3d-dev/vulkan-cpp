@@ -29,7 +29,7 @@ namespace vk {
                 .binding = bind.binding,
                 .descriptorType = type,
                 .descriptorCount = entry.descriptor_count,
-                .stageFlags = to_shader_stage(bind.stage),
+                .stageFlags = static_cast<VkShaderStageFlags>(bind.stage),
             };
         }
 
