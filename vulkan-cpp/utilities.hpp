@@ -45,14 +45,14 @@ namespace vk {
     //! @return a selected format with specific tiling and feature flags
     VkFormat select_compatible_formats(
       const VkPhysicalDevice& p_physical,
-      const std::span<VkFormat>& p_format_selection,
+      std::span<const VkFormat> p_format_selection,
       VkImageTiling p_tiling,
       VkFormatFeatureFlags p_feature_flag);
 
     //! @return the depth format which checks for compatible formats and is
     //! specific to the depth stencil attachment specified
     VkFormat select_depth_format(const VkPhysicalDevice& p_physical,
-                                 const std::span<VkFormat>& p_format_selection);
+                                 std::span<const VkFormat> p_format_selection);
 
     //! @return surface_enumeration which contains VkSurfaceCapabilities and
     //! VkSurfaceFormatKHR for the swapchain
@@ -129,40 +129,11 @@ namespace vk {
 	VkShaderStageFlags to_shader_stage(const shader_stage& p_stage);
 
 	VkFormat to_format(const format& p_format);
-
-	// buffer_handle create_buffer(const VkDevice& p_device, const buffer_configuration& p_info);
-
-	// /**
-  //    * @brief maps the current buffer handler to some block of memory and the
-  //    * byte size for that chunk
-  //    */
-  //   void write(const VkDevice& p_device, const buffer_handle& p_buffer,
-  //              const void* p_data,
-  //              size_t p_size_in_bytes);
-
-  //   /**
-  //    * @brief Maps buffer handler to chunk of data of type, that is
-  //    * std::span<uint32_t>.
-  //    */
-  //   void write(const VkDevice& p_device, const buffer_handle& p_buffer,
-  //              const std::span<uint32_t>& p_in_buffer);
-
-  //   /**
-  //    * @brief Maps buffer handler to data chunks that contain vertices
-  //    */
-  //   void write(const VkDevice& p_device, const buffer_handle& p_buffer,
-  //              const std::span<vertex_input>& p_in_buffer);
-		
-	// //! @brief Maps to the buffer handle some arbitrary data
-	// void write(const VkDevice& p_device, const buffer_handle& p_buffer, const void* p_data, size_t p_size_in_bytes);
-
-	// void write(const VkDevice& p_device, const buffer_handle& p_buffer, const void* p_data, const write_info& p_info);
 	
-	// //! @brief Copies from one buffer source into another buffer source with a
-  //   //! specific size of bytes to be stored the buffer that is being copied to
+	//! @brief Copies from one buffer source into another buffer source with a
+    //! specific size of bytes to be stored the buffer that is being copied to
     void copy(const VkDevice& p_device, const buffer_copy_info& p_info, size_t p_size_of_bytes);
     void copy(const VkCommandBuffer& p_command_buffer, const VkImage& p_image, const VkBuffer& p_buffer, uint32_t p_width, uint32_t p_height);
-	// void free_buffer(const VkDevice& p_driver, buffer_handle& p_buffer);
 
 	//! @return Returns the VkDescriptorType that represents a "handle" the
     //! shader resource is acecssing
@@ -192,7 +163,6 @@ namespace vk {
 	 * @param p_height is the height of the image
 	*/
 	// void copy(const VkCommandBuffer& p_command_buffer, const VkImage& p_image, const buffer_handle& p_buffer, uint32_t p_width, uint32_t p_height);
-  // void copy(const VkCommandBuffer& p_command_buffer, const VkImage& p_image, const buffer_handle& p_buffer, const copy_info& p_info);
 
 	VkImageView create_image2d_view(const VkDevice& p_device, const VkImage& p_image, const image_configuration_information& p_info);
 

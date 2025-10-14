@@ -29,7 +29,7 @@ namespace vk {
 
         [[nodiscard]] bool is_valid() const { return m_is_resource_valid; }
 
-        void vertex_attributes(const std::span<const vertex_attribute>& p_attributes);
+        void vertex_attributes(std::span<const vertex_attribute> p_attributes);
 
         //! @return the handlers of vulkan shader modules for each individual shader source loaded altogether
         [[nodiscard]] std::span<const shader_handle> handles() const { return m_shader_module_handlers; }

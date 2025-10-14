@@ -15,7 +15,9 @@ namespace vk {
         };
 
         m_index_buffer = buffer_handler(m_device, index_buffer_settings);
-        m_index_buffer.write(p_info.indices);
+
+        std::span<const uint32_t> indices = p_info.indices;
+        m_index_buffer.write(indices);
     }
 
     void index_buffer::bind(const VkCommandBuffer& p_current) {

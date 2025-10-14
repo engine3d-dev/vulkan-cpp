@@ -61,7 +61,7 @@ namespace vk {
         m_is_resource_valid = true;
     }
 
-    void shader_resource::vertex_attributes(const std::span<const vertex_attribute>& p_attributes) {
+    void shader_resource::vertex_attributes(std::span<const vertex_attribute> p_attributes) {
         /*
             -- These comments are a reminder to myself --
             - this function simplifies the need to separately define vertex attributes and the vertex binding attributes as shown below:

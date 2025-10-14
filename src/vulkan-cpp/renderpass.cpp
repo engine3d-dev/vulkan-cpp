@@ -5,13 +5,13 @@
 namespace vk {
 
     renderpass::renderpass(const VkDevice& p_device,
-                           const std::span<attachment> p_renderpass_attachments,
+                           std::span<attachment> p_renderpass_attachments,
                            bool p_enable_subpasses) : m_device(p_device) {
 
         create(p_renderpass_attachments, p_enable_subpasses);
     }
 
-    void renderpass::create(const std::span<const attachment>& p_renderpass_attachments, bool p_enable_subpasses) {
+    void renderpass::create(std::span<const attachment> p_renderpass_attachments, bool p_enable_subpasses) {
         // 1. Specifically for setting up the attachment description
         std::vector<VkAttachmentDescription> attachment_description(
           p_renderpass_attachments.size());

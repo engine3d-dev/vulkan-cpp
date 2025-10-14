@@ -120,7 +120,7 @@ namespace vk {
         return queue_family_properties;
     }
 
-    VkFormat select_compatible_formats(const VkPhysicalDevice& p_physical, const std::span<VkFormat>& p_format_selection, VkImageTiling p_tiling, VkFormatFeatureFlags p_feature_flag) {
+    VkFormat select_compatible_formats(const VkPhysicalDevice& p_physical, std::span<const VkFormat> p_format_selection, VkImageTiling p_tiling, VkFormatFeatureFlags p_feature_flag) {
         VkFormat format = VK_FORMAT_UNDEFINED;
 
         for (size_t i = 0; i < p_format_selection.size(); i++) {
@@ -143,7 +143,7 @@ namespace vk {
         return format;
     }
 
-    VkFormat select_depth_format(const VkPhysicalDevice& p_physical, const std::span<VkFormat>& p_format_selection) {
+    VkFormat select_depth_format(const VkPhysicalDevice& p_physical, std::span<const VkFormat> p_format_selection) {
 
         VkFormat format = select_compatible_formats(
           p_physical,
@@ -198,32 +198,6 @@ namespace vk {
             flags |= VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV;
         }
 
-
-
-        // switch (p_flag) {
-        // case memory_property::device_local_bit:
-        //     return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-        // case memory_property::host_visible_bit:
-        //     return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-        // case memory_property::host_coherent_bit:
-        //     return VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-        // case memory_property::host_cached_bit:
-        //     return VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
-        // case memory_property::lazily_allocated_bit:
-        //     return VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
-        // case memory_property::device_protected_bit:
-        //     return VK_MEMORY_PROPERTY_PROTECTED_BIT;
-        // case memory_property::device_coherent_bit_amd:
-        //     return VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD;
-        // case memory_property::device_uncached_bit_amd:
-        //     return VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD;
-        // case memory_property::rdma_capable_bit_nv:
-        //     return VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV;
-        // case memory_property::flag_bits_max_enum:
-        //     return VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM;
-        // }
-
-        // throw std::runtime_error("Invalid memory property flag set!");
         return flags;
     }
 
@@ -292,19 +266,6 @@ namespace vk {
         if(command_usage_flags & command_usage::max_bit) {
             command_usage_flags |= VK_COMMAND_BUFFER_USAGE_FLAG_BITS_MAX_ENUM;
         }
-
-        // switch(p_command_usage_flag) {
-        // case command_usage::one_time_submit:
-        //     return VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-        // case command_usage::renderpass_continue_bit:
-        //     return VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
-        // case command_usage::simulatneous_use_bit:
-        //     return VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-        // case command_usage::max_bit:
-        //     return VK_COMMAND_BUFFER_USAGE_FLAG_BITS_MAX_ENUM;
-        // }
-
-        // throw std::runtime_error("Invalid command_usage specified");
 
         return command_usage_flags;
     }
@@ -375,35 +336,6 @@ namespace vk {
         return sampler;
     }
 
-    // image create_image2d_view(const VkDevice& p_device, const swapchain_image_enumeration& p_enumerate_image) {
-    //     VkImageViewCreateInfo image_view_ci = {
-    //         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-    //         .pNext = nullptr,
-    //         .flags = 0,
-    //         .image = p_enumerate_image.image,
-    //         .viewType = VK_IMAGE_VIEW_TYPE_2D,
-    //         .format = p_enumerate_image.format,
-    //         .components = { .r = VK_COMPONENT_SWIZZLE_IDENTITY,
-    //                         .g = VK_COMPONENT_SWIZZLE_IDENTITY,
-    //                         .b = VK_COMPONENT_SWIZZLE_IDENTITY,
-    //                         .a = VK_COMPONENT_SWIZZLE_IDENTITY },
-    //         .subresourceRange = { .aspectMask = to_image_aspect_flags(p_enumerate_image.aspect),
-    //                               .baseMipLevel = 0,
-    //                               .levelCount = p_enumerate_image.mip_levels,
-    //                               .baseArrayLayer = 0,
-    //                               .layerCount = p_enumerate_image.layer_count },
-    //     };
-
-    //     image image2d{};
-    //     image2d.image = p_enumerate_image.image;
-
-    //     VkImageView image_view;
-    //     vk_check(
-    //       vkCreateImageView(p_device, &image_view_ci, nullptr, &image2d.view),
-    //       "vkCreateImageView");
-    //     return image2d;
-    // }
-
     VkSemaphore create_semaphore(const VkDevice& p_device) {
         // creating semaphores
         VkSemaphoreCreateInfo semaphore_ci = {
@@ -418,33 +350,6 @@ namespace vk {
           "vkCreateSemaphore");
         return semaphore;
     }
-
-    // void free_image(const VkDevice& p_driver, sampled_image p_image) {
-    //     if (p_image.view != nullptr) {
-    //         vkDestroyImageView(p_driver, p_image.view, nullptr);
-    //     }
-
-    //     if (p_image.image != nullptr) {
-    //         vkDestroyImage(p_driver, p_image.image, nullptr);
-    //     }
-    //     if (p_image.sampler != nullptr) {
-    //         vkDestroySampler(p_driver, p_image.sampler, nullptr);
-    //     }
-
-    //     if (p_image.device_memory != nullptr) {
-    //         vkFreeMemory(p_driver, p_image.device_memory, nullptr);
-    //     }
-    // }
-
-    // void free_image(const VkDevice& p_driver, image p_image) {
-    //     if (p_image.view != nullptr) {
-    //         vkDestroyImageView(p_driver, p_image.view, nullptr);
-    //     }
-
-    //     if (p_image.image != nullptr) {
-    //         vkDestroyImage(p_driver, p_image.image, nullptr);
-    //     }
-    // }
 
     uint32_t image_memory_requirements(const VkPhysicalDevice& p_physical, const VkDevice& p_device, const VkImage& p_image, memory_property p_property) {
         VkMemoryRequirements memory_requirements;
@@ -466,52 +371,6 @@ namespace vk {
 
         return -1;
     }
-
-    // uint32_t select_memory_requirements(const VkPhysicalDevice& p_physical, VkMemoryRequirements p_memory_requirements, memory_property p_property) {
-    //     // VkMemoryRequirements memory_requirements;
-    //     // vkGetImageMemoryRequirements(p_device, p_image.image, &memory_requirements);
-
-    //     uint32_t type_filter = p_memory_requirements.memoryTypeBits;
-    //     VkMemoryPropertyFlags property_flag = to_memory_property_flags(p_property);
-
-    //     // This can be provided up front outside of the implementation
-    //     VkPhysicalDeviceMemoryProperties mem_props;
-    //     vkGetPhysicalDeviceMemoryProperties(p_physical, &mem_props);
-
-    //     for (uint32_t i = 0; i < mem_props.memoryTypeCount; i++) {
-    //         if ((type_filter & (1 << i)) and
-    //             (mem_props.memoryTypes[i].propertyFlags & property_flag) ==
-    //               property_flag) {
-    //             return i;
-    //         }
-    //     }
-
-    //     return -1;
-    // }
-
-    // uint32_t buffer_memory_requirement(const VkPhysicalDevice& p_physical, const VkDevice& p_device, const buffer_handle& p_buffer, memory_property p_property) {
-    //     VkMemoryRequirements memory_requirements;
-    //     // vkGetImageMemoryRequirements(p_device, p_buffer.handle, &memory_requirements);
-    //     vkGetBufferMemoryRequirements(p_device, p_buffer.handle, &memory_requirements);
-
-    //     uint32_t type_filter = memory_requirements.memoryTypeBits;
-    //     VkMemoryPropertyFlags property_flag = to_memory_property_flags(p_property);
-
-    //     VkPhysicalDeviceMemoryProperties mem_props;
-    //     vkGetPhysicalDeviceMemoryProperties(p_physical, &mem_props);
-
-    //     for (uint32_t i = 0; i < mem_props.memoryTypeCount; i++) {
-    //         if ((type_filter & (1 << i)) and
-    //             (mem_props.memoryTypes[i].propertyFlags & property_flag) ==
-    //               property_flag) {
-    //             return i;
-    //         }
-    //     }
-
-    //     return -1;
-    // }
-
-
 
     VkCommandBufferLevel to_vk_command_buffer_level(
       const command_levels& p_level) {
@@ -696,90 +555,6 @@ namespace vk {
         }
     }
 
-    // buffer_handle create_buffer(const VkDevice& p_device, const buffer_configuration& p_info) {
-    //     buffer_handle handler = {};
-
-    //     handler.allocation_size = p_info.device_size;
-
-    //     VkBufferCreateInfo buffer_ci = {
-    //         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-    //         .pNext = nullptr,
-    //         .flags = 0,
-    //         .size = handler.allocation_size, // size in bytes
-    //         .usage = p_info.usage,
-    //         .sharingMode = VK_SHARING_MODE_EXCLUSIVE
-    //     };
-
-    //     vk_check(vkCreateBuffer(p_device, &buffer_ci, nullptr, &handler.handle),"vkCreateBuffer");
-
-    //     // 2. retrieving buffer memory requirements
-    //     VkMemoryRequirements memory_requirements = {};
-    //     vkGetBufferMemoryRequirements(p_device, handler.handle, &memory_requirements);
-
-    //     // 3. selecting memory requirements from current physical device
-    //     // memory_property property;
-    //     uint32_t memory_type_index = select_memory_requirements(p_info.physical, memory_requirements, p_info.property_flags);
-
-    //     // 4. allocatring the necessary memory based on memory requirements for the buffer handles
-    //     VkMemoryAllocateInfo memory_alloc_info = {
-    //         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-    //         .allocationSize = memory_requirements.size,
-    //         .memoryTypeIndex = memory_type_index
-    //     };
-
-    //     vk_check(vkAllocateMemory(p_device, &memory_alloc_info, nullptr, &handler.device_memory),"vkAllocateMemory");
-
-    //     // 5. bind memory resource of this buffer handle
-    //     vk_check(vkBindBufferMemory(p_device, handler.handle, handler.device_memory, 0),"vkBindBufferMemory");
-
-    //     return handler;
-    // }
-
-    // void write(const VkDevice& p_device, const buffer_handle& p_buffer, const std::span<vertex_input>& p_in_buffer) {
-    //     // does equivalent to doing sizeof(p_in_buffer[0]) * p_in_buffer.size();
-    //     VkDeviceSize buffer_size =
-    //       p_in_buffer
-    //         .size_bytes();
-    //     void* mapped = nullptr;
-    //     vk_check(vkMapMemory(
-    //                p_device, p_buffer.device_memory, 0, buffer_size, 0, &mapped),
-    //              "vkMapMemory");
-    //     memcpy(mapped, p_in_buffer.data(), buffer_size);
-    //     vkUnmapMemory(p_device, p_buffer.device_memory);
-    // }
-
-    // void write(const VkDevice& p_device, const buffer_handle& p_buffer, const std::span<uint32_t>& p_in_buffer) {
-    //     VkDeviceSize buffer_size = p_in_buffer.size_bytes();
-    //     void* mapped = nullptr;
-    //     vk_check(vkMapMemory(
-    //                p_device, p_buffer.device_memory, 0, buffer_size, 0, &mapped),
-    //              "vkMapMemory");
-    //     memcpy(mapped, p_in_buffer.data(), buffer_size);
-    //     vkUnmapMemory(p_device, p_buffer.device_memory);
-    // }
-
-    // void write(const VkDevice& p_device, const buffer_handle& p_buffer, const void* p_data, size_t p_size_in_bytes) {
-    //     void* mapped = nullptr;
-    //     vk_check(
-    //       vkMapMemory(
-    //         p_device, p_buffer.device_memory, 0, p_size_in_bytes, 0, &mapped),
-    //       "vkMapMemory");
-
-    //     memcpy(mapped, p_data, p_size_in_bytes);
-    //     vkUnmapMemory(p_device, p_buffer.device_memory);
-    // }
-
-    // void write(const VkDevice& p_device, const buffer_handle& p_buffer, const void* p_data, const write_info& p_info) {
-    //     void* mapped = nullptr;
-    //     vk_check(
-    //       vkMapMemory(
-    //         p_device, p_buffer.device_memory, p_info.offset, p_info.size_bytes, 0, &mapped),
-    //       "vkMapMemory");
-
-    //     memcpy(mapped, p_data, p_info.size_bytes);
-    //     vkUnmapMemory(p_device, p_buffer.device_memory);
-    // }
-
     VkCommandPool create_single_command_pool(const VkDevice& p_device, uint32_t p_queue_family_index) {
         // uint32_t graphics_queue_index = physical.read_queue_family_indices().graphics;
         VkCommandPoolCreateInfo pool_ci = {
@@ -831,16 +606,6 @@ namespace vk {
         // vkDestroyCommandPool(driver, command_pool, nullptr);
         copy_command_buffer.destroy();
     }
-
-    // void free_buffer(const VkDevice& p_driver, buffer_handle& p_buffer) {
-    //     if (p_buffer.handle != nullptr) {
-    //         vkDestroyBuffer(p_driver, p_buffer.handle, nullptr);
-    //     }
-
-    //     if (p_buffer.device_memory != nullptr) {
-    //         vkFreeMemory(p_driver, p_buffer.device_memory, nullptr);
-    //     }
-    // }
 
     VkDescriptorType to_descriptor_type(const buffer& p_type) {
         switch (p_type) {

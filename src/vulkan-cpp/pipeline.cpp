@@ -26,11 +26,8 @@ namespace vk {
         }
 
         // 2. Setting up the vertex attribute details for VkPipeline
-        // const std::span<VkVertexInputAttributeDescription> vertex_attributes = m_shader_group.vertex_attributes();
-        // const std::span<VkVertexInputBindingDescription>
-        //   bind_vertex_attributes = m_shader_group.vertex_bind_attributes();
-        const std::span<const VkVertexInputBindingDescription> bind_attributes = p_info.vertex_bind_attributes;
-        const std::span<const VkVertexInputAttributeDescription> attributes = p_info.vertex_attributes;
+        std::span<const VkVertexInputBindingDescription> bind_attributes = p_info.vertex_bind_attributes;
+        std::span<const VkVertexInputAttributeDescription> attributes = p_info.vertex_attributes;
 
         VkPipelineVertexInputStateCreateInfo vertex_input_info = {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,

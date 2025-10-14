@@ -19,7 +19,7 @@ namespace vk {
          * @param span<T> writes some buffer data in the GPU's memory using vkMapMemory/vkUnmapMemory
         */
         template<typename T>
-        void write(const std::span<T>& p_in_data) {
+        void write(std::span<const T> p_in_data) {
             VkDeviceSize buffer_size = p_in_data.size_bytes();
             void* mapped = nullptr;
             vk_check(vkMapMemory(
