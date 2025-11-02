@@ -119,6 +119,48 @@ namespace vk {
         return texture_image;
     }
 
+
+	texture::texture(const VkDevice& p_device, const image_extent& p_extent, VkPhysicalDeviceMemoryProperties p_property) : m_device(p_device) {
+		command_enumeration settings = {
+			.levels = command_levels::primary,
+            .queue_index = 0,
+			.flags = command_pool_flags::reset,
+        };
+
+        // 1.) Load in extent dimensions
+        // Loading in raw white pixels for our texture.
+        // TODO: Take in a std::span<uint8_t> for pixels that will then be
+        // written to the texture
+        std::array<uint8_t, 4> white_color = { 0xFF, 0xFF, 0xFF, 0xFF };
+
+        m_width = p_extent.width;
+        m_height = p_extent.height;
+
+        // texture_properties properties = {
+        //     .width = m_width,
+        //     .height = m_height,
+        //     .usage = (VkImageUsageFlagBits)(VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+        //                                     VK_IMAGE_USAGE_SAMPLED_BIT),
+        //     .property = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        //     // .format = VK_FORMAT_R8G8B8A8_UNORM,
+        //     .format = VK_FORMAT_R8G8B8A8_SRGB
+        //     // .format = VK_FORMAT_R64G64B64A64_SFLOAT
+        // };
+		image_configuration_information config_image = {
+            .extent = { .width = p_extent.width, .height = p_extent.height },
+            .format = VK_FORMAT_R8G8B8A8_UNORM,
+            .property = memory_property::device_local_bit,
+            .aspect = image_aspect_flags::color_bit,
+            .usage = (VkImageUsageFlags)(VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                                         VK_IMAGE_USAGE_SAMPLED_BIT),
+            // .physical_device = p_texture_info.physical
+            .phsyical_memory_properties = p_property
+        };
+        m_image =
+          create_texture_with_data(m_device, config_image, white_color.data());
+        m_texture_loaded = true;
+	}
+
     texture::texture(const VkDevice& p_device,
                      const texture_info& p_texture_info)
       : m_device(p_device) {

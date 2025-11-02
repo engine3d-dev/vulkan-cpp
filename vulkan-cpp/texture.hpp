@@ -11,9 +11,16 @@ namespace vk {
         VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
         std::filesystem::path filepath;
     };
+
+    struct texture_extent {
+        uint32_t width=0;
+        uint32_t height=0;
+    };
+
     class texture {
     public:
         texture() = default;
+        texture(const VkDevice& p_device, const image_extent& p_extent, VkPhysicalDeviceMemoryProperties p_property);
         texture(const VkDevice& p_device, const texture_info& p_filepath);
 
         [[nodiscard]] bool loaded() const { return m_texture_loaded; }
