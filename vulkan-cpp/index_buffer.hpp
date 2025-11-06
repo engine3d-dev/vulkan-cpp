@@ -8,8 +8,8 @@ namespace vk {
     class index_buffer {
     public:
         index_buffer() = default;
-        // index_buffer(const VkDevice& p_device, const index_buffer_info& p_indices);
-        index_buffer(const VkDevice& p_device, const index_buffer_settings& p_info);
+        index_buffer(const VkDevice& p_device,
+                     const index_buffer_settings& p_info);
 
         [[nodiscard]] bool alive() const { return m_index_buffer; }
 
@@ -22,10 +22,9 @@ namespace vk {
         operator VkBuffer() { return m_index_buffer; }
 
         void destroy();
-        
 
     private:
-        VkDevice m_device=nullptr;
+        VkDevice m_device = nullptr;
         uint32_t m_indices_count = 0;
         buffer_handler m_index_buffer{};
     };

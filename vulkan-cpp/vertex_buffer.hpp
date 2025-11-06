@@ -5,14 +5,15 @@
 
 namespace vk {
     /**
-     * @brief vulkan implementation of vertex buffer that takes in vertices
+     * @brief vulkan implementation for loading in vertices to a vulkan buffer handle
      * 
-     * TODO: vk::copy(buffer_src, buffer_dst, size_bytes) should use vk::device_queue. As right now it just uses logical device to get the device queue
-    */
+     * This implementation automates handle in loading the vertices and its memories for it
+     */
     class vertex_buffer {
     public:
         vertex_buffer() = default;
-        vertex_buffer(const VkDevice& p_device, const vertex_buffer_settings& p_vertices);
+        vertex_buffer(const VkDevice& p_device,
+                      const vertex_buffer_settings& p_vertices);
 
         [[nodiscard]] uint32_t size_bytes() const { return m_size_bytes; }
 
@@ -29,9 +30,9 @@ namespace vk {
         void destroy();
 
     private:
-        VkDevice m_device=nullptr;
-        uint32_t m_size_bytes=0;
-        uint32_t m_size=0;
+        VkDevice m_device = nullptr;
+        uint32_t m_size_bytes = 0;
+        uint32_t m_size = 0;
         buffer_handler m_vertex_handler;
     };
 };

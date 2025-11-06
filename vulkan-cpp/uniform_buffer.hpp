@@ -6,13 +6,14 @@
 namespace vk {
     /**
      * @brief represents a vulkan uniform buffer
-     * 
+     *
      * Maps uniforms and gpu-specific resources
-    */
+     */
     class uniform_buffer {
     public:
         uniform_buffer() = default;
-        uniform_buffer(const VkDevice& p_device, const uniform_buffer_info& p_uniform_info);
+        uniform_buffer(const VkDevice& p_device,
+                       const uniform_buffer_info& p_uniform_info);
 
         [[nodiscard]] bool alive() const { return m_uniform_handle; }
 
@@ -27,9 +28,8 @@ namespace vk {
         void destroy();
 
     private:
-        uint32_t m_size_bytes=0;
-        VkDevice m_device=nullptr;
-        // buffer_handle m_uniform_buffer{};
+        uint32_t m_size_bytes = 0;
+        VkDevice m_device = nullptr;
         buffer_handler m_uniform_handle{};
     };
 };

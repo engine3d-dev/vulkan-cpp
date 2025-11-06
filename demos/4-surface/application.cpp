@@ -77,7 +77,7 @@ main() {
     std::string title = "Hello Window";
     GLFWwindow* window =
       glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
-    
+
     glfwMakeContextCurrent(window);
 
     std::array<const char*, 1> validation_layers = {
@@ -89,32 +89,36 @@ main() {
       initialize_instance_extensions();
 
     vk::debug_message_utility debug_callback_info = {
-        .severity = vk::message::verbose | vk::message::warning | vk::message::error,
-        .message_type = vk::debug::general | vk::debug::validation | vk::debug::performance,
+        .severity =
+          vk::message::verbose | vk::message::warning | vk::message::error,
+        .message_type =
+          vk::debug::general | vk::debug::validation | vk::debug::performance,
         .callback = debug_callback
     };
 
     vk::application_configuration config = {
         .name = "vulkan instance",
         .version = vk::api_version::vk_1_3, // specify to using vulkan 1.3
-        .validations = validation_layers, // .validation takes in a std::span<const char*>
-        .extensions = global_extensions // .extensions also takes in std::span<const char*>
+        .validations =
+          validation_layers, // .validation takes in a std::span<const char*>
+        .extensions =
+          global_extensions // .extensions also takes in std::span<const char*>
     };
 
     // 1. Setting up vk instance
     vk::instance api_instance(config, debug_callback_info);
 
-    if(api_instance.alive()) {
+    if (api_instance.alive()) {
         std::println("\napi_instance alive and initiated!!!");
     }
 
-
     // TODO: Implement this as a way to setup physical devices
-    // vk::enumerate_physical_devices(vk::instance) -> returns std::span<vk::physical_device>
+    // vk::enumerate_physical_devices(vk::instance) -> returns
+    // std::span<vk::physical_device>
 
     // setting up physical device
-    vk::physical_enumeration enumerate_devices {
-        .device_type = vk::physical::discrete
+    vk::physical_enumeration enumerate_devices{
+        .device_type = vk::physical::discrete,
     };
     vk::physical_device physical_device(api_instance, enumerate_devices);
 
@@ -122,21 +126,22 @@ main() {
     std::array<VkFormat, 3> format_support = {
         VK_FORMAT_D32_SFLOAT,
         VK_FORMAT_D32_SFLOAT_S8_UINT,
-        VK_FORMAT_D24_UNORM_S8_UINT
+        VK_FORMAT_D24_UNORM_S8_UINT,
     };
 
-    // We provide a selection of format support that we want to check is supported on current hardware device.
-    VkFormat depth_format = vk::select_depth_format(physical_device, format_support);
+    // We provide a selection of format support that we want to check is
+    // supported on current hardware device.
+    VkFormat depth_format =
+      vk::select_depth_format(physical_device, format_support);
 
     vk::queue_indices queue_indices = physical_device.family_indices();
     std::println("Graphics Queue Family Index = {}", queue_indices.graphics);
     std::println("Compute Queue Family Index = {}", queue_indices.compute);
     std::println("Transfer Queue Family Index = {}", queue_indices.transfer);
 
-
     // setting up logical device
-    std::array<float, 1> priorities = {0.f};
-    std::array<const char*, 1> extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+    std::array<float, 1> priorities = { 0.f };
+    std::array<const char*, 1> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
     vk::device_enumeration logical_device_enumeration = {
         .queue_priorities = priorities,
         .extensions = extensions,
@@ -160,7 +165,7 @@ main() {
 
     logical_device.wait();
     logical_device.destroy();
-    
+
     window_surface.destroy();
     glfwDestroyWindow(window);
     api_instance.destroy();

@@ -5,7 +5,10 @@
 
 namespace vk {
 
-    sample_image::sample_image(const VkDevice& p_device, const image_configuration_information& p_image_properties) : m_device(p_device) {
+    sample_image::sample_image(
+      const VkDevice& p_device,
+      const image_configuration_information& p_image_properties)
+      : m_device(p_device) {
 
         // 1. creating VkImage handle
         VkImageCreateInfo image_ci = {
@@ -14,7 +17,9 @@ namespace vk {
             .flags = p_image_properties.image_flags,
             .imageType = VK_IMAGE_TYPE_2D,
             .format = p_image_properties.format,
-            .extent = { .width = p_image_properties.extent.width, .height = p_image_properties.extent.height, .depth = 1 },
+            .extent = { .width = p_image_properties.extent.width,
+                        .height = p_image_properties.extent.height,
+                        .depth = 1 },
             .mipLevels = p_image_properties.mip_levels,
             .arrayLayers = p_image_properties.array_layers,
             .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -32,9 +37,13 @@ namespace vk {
         // 2. get image memory requirements from physical device
         VkMemoryRequirements memory_requirements;
         vkGetImageMemoryRequirements(p_device, m_image, &memory_requirements);
-        // uint32_t memory_type_index = vk::image_memory_requirements(p_image_properties.physical_device, p_device, m_image);
-        uint32_t memory_index = select_memory_requirements(p_image_properties.phsyical_memory_properties, memory_requirements, p_image_properties.property);
-
+        // uint32_t memory_type_index =
+        // vk::image_memory_requirements(p_image_properties.physical_device,
+        // p_device, m_image);
+        uint32_t memory_index = select_memory_requirements(
+          p_image_properties.phsyical_memory_properties,
+          memory_requirements,
+          p_image_properties.property);
 
         // 4. Allocate info
         VkMemoryAllocateInfo memory_alloc_info = {
@@ -51,9 +60,10 @@ namespace vk {
         // 5. bind image memory
         vk_check(vkBindImageMemory(p_device, m_image, m_device_memory, 0),
                  "vkBindImageMemory");
-        
+
         // Needs to create VkImageView after VkImage
-        // because VkImageView expects a VkImage to be binded to a singl VkDeviceMemory beforehand
+        // because VkImageView expects a VkImage to be binded to a singl
+        // VkDeviceMemory beforehand
         VkImageViewCreateInfo image_view_ci = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .pNext = nullptr,
@@ -66,14 +76,18 @@ namespace vk {
                             .g = VK_COMPONENT_SWIZZLE_IDENTITY,
                             .b = VK_COMPONENT_SWIZZLE_IDENTITY,
                             .a = VK_COMPONENT_SWIZZLE_IDENTITY },
-            .subresourceRange = { .aspectMask = to_image_aspect_flags(p_image_properties.aspect),
+            .subresourceRange = { .aspectMask = to_image_aspect_flags(
+                                    p_image_properties.aspect),
                                   .baseMipLevel = 0,
                                   .levelCount = 1,
                                   .baseArrayLayer = 0,
-                                  .layerCount = p_image_properties.layer_count },
+                                  .layerCount =
+                                    p_image_properties.layer_count },
         };
 
-        vk_check(vkCreateImageView(p_device, &image_view_ci, nullptr, &m_image_view),"vkCreateImage");
+        vk_check(
+          vkCreateImageView(p_device, &image_view_ci, nullptr, &m_image_view),
+          "vkCreateImage");
 
         // Create VkSampler handler
         VkSamplerCreateInfo sampler_info = {
@@ -97,19 +111,26 @@ namespace vk {
             .unnormalizedCoordinates = false
         };
 
-        vk_check(vkCreateSampler(p_device, &sampler_info, nullptr, &m_sampler), "vkCreateSampler");
+        vk_check(vkCreateSampler(p_device, &sampler_info, nullptr, &m_sampler),
+                 "vkCreateSampler");
     }
 
-    sample_image::sample_image(const VkDevice& p_device, const VkImage& p_image, const image_configuration_information& p_image_properties) : m_device(p_device), m_image(p_image) {
-        
-        if(m_image == nullptr) {
+    sample_image::sample_image(
+      const VkDevice& p_device,
+      const VkImage& p_image,
+      const image_configuration_information& p_image_properties)
+      : m_device(p_device)
+      , m_image(p_image) {
+
+        if (m_image == nullptr) {
             std::println("VkImage is nullptr");
         }
         else {
             std::println("VkImage not nullptr");
         }
         // Needs to create VkImageView after VkImage
-        // because VkImageView expects a VkImage to be binded to a singl VkDeviceMemory beforehand
+        // because VkImageView expects a VkImage to be binded to a singl
+        // VkDeviceMemory beforehand
         VkImageViewCreateInfo image_view_ci = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .pNext = nullptr,
@@ -121,14 +142,18 @@ namespace vk {
                             .g = VK_COMPONENT_SWIZZLE_IDENTITY,
                             .b = VK_COMPONENT_SWIZZLE_IDENTITY,
                             .a = VK_COMPONENT_SWIZZLE_IDENTITY },
-            .subresourceRange = { .aspectMask = to_image_aspect_flags(p_image_properties.aspect),
+            .subresourceRange = { .aspectMask = to_image_aspect_flags(
+                                    p_image_properties.aspect),
                                   .baseMipLevel = 0,
                                   .levelCount = p_image_properties.mip_levels,
                                   .baseArrayLayer = 0,
-                                  .layerCount = p_image_properties.layer_count },
+                                  .layerCount =
+                                    p_image_properties.layer_count },
         };
 
-        vk_check(vkCreateImageView(p_device, &image_view_ci, nullptr, &m_image_view),"vkCreateImage");
+        vk_check(
+          vkCreateImageView(p_device, &image_view_ci, nullptr, &m_image_view),
+          "vkCreateImage");
 
         // Create VkSampler handler
         VkSamplerCreateInfo sampler_info = {
@@ -152,7 +177,8 @@ namespace vk {
             .unnormalizedCoordinates = false
         };
 
-        vk_check(vkCreateSampler(p_device, &sampler_info, nullptr, &m_sampler), "vkCreateSampler");
+        vk_check(vkCreateSampler(p_device, &sampler_info, nullptr, &m_sampler),
+                 "vkCreateSampler");
 
         m_only_destroy_image_view = true;
     }
@@ -164,14 +190,14 @@ namespace vk {
 
         // Boolean check is to make sure we might only want
         // to destroy vk::sample_image resources.
-        
+
         // Example of this is the swapchain may pass in
         // its images and we should only destruct the VkImageView
         // and not the swapchain's images directly
         if (m_image != nullptr and !m_only_destroy_image_view) {
             vkDestroyImage(m_device, m_image, nullptr);
         }
-        
+
         if (m_sampler != nullptr) {
             vkDestroySampler(m_device, m_sampler, nullptr);
         }

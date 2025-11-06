@@ -127,14 +127,17 @@ main() {
     // std::span<vk::physical_device>
 
     // setting up physical device
-    vk::physical_enumeration enumerate_devices{ .device_type =
-                                                  vk::physical::discrete };
+    vk::physical_enumeration enumerate_devices{
+        .device_type = vk::physical::discrete,
+    };
     vk::physical_device physical_device(api_instance, enumerate_devices);
 
     // selecting depth format
-    std::array<VkFormat, 3> format_support = { VK_FORMAT_D32_SFLOAT,
-                                               VK_FORMAT_D32_SFLOAT_S8_UINT,
-                                               VK_FORMAT_D24_UNORM_S8_UINT };
+    std::array<VkFormat, 3> format_support = {
+        VK_FORMAT_D32_SFLOAT,
+        VK_FORMAT_D32_SFLOAT_S8_UINT,
+        VK_FORMAT_D24_UNORM_S8_UINT,
+    };
 
     // We provide a selection of format support that we want to check is
     // supported on current hardware device.
@@ -202,7 +205,7 @@ main() {
     uint32_t mip_levels = 1;
     for (uint32_t i = 0; i < swapchain_images.size(); i++) {
         vk::image_configuration_information swapchain_image_config = {
-            .extent = {swapchain_extent.width, swapchain_extent.width},
+            .extent = { swapchain_extent.width, swapchain_extent.width },
             .format = surface_properties.format.format,
             .aspect = vk::image_aspect_flags::color_bit,
             .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
@@ -210,12 +213,14 @@ main() {
             .layer_count = 1,
             .phsyical_memory_properties = physical_device.memory_properties(),
         };
-        // swapchain_images[i] = create_image2d_view(logical_device, enumerate_image_properties);
-        swapchain_images[i] = vk::sample_image(logical_device, images[i], swapchain_image_config);
+        // swapchain_images[i] = create_image2d_view(logical_device,
+        // enumerate_image_properties);
+        swapchain_images[i] =
+          vk::sample_image(logical_device, images[i], swapchain_image_config);
 
         // Creating Depth Images for depth buffering
         vk::image_configuration_information depth_image_config = {
-            .extent = {swapchain_extent.width, swapchain_extent.width},
+            .extent = { swapchain_extent.width, swapchain_extent.width },
             .format = depth_format,
             .aspect = vk::image_aspect_flags::depth_bit,
             .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
@@ -223,7 +228,8 @@ main() {
             .layer_count = 1,
             .phsyical_memory_properties = physical_device.memory_properties(),
         };
-        swapchain_depth_images[i] = vk::sample_image(logical_device, depth_image_config);
+        swapchain_depth_images[i] =
+          vk::sample_image(logical_device, depth_image_config);
     }
 
     // setting up command buffers
@@ -271,20 +277,21 @@ main() {
 
     std::println("renderpass created!!!");
 
-	std::vector<vk::framebuffer> swapchain_framebuffers(image_count);
-	for (uint32_t i = 0; i < swapchain_framebuffers.size(); i++) {
-		std::array<VkImageView, 2> image_view_attachments = {
-			swapchain_images[i].image_view(),
-			swapchain_depth_images[i].image_view()
-		};
+    std::vector<vk::framebuffer> swapchain_framebuffers(image_count);
+    for (uint32_t i = 0; i < swapchain_framebuffers.size(); i++) {
+        std::array<VkImageView, 2> image_view_attachments = {
+            swapchain_images[i].image_view(),
+            swapchain_depth_images[i].image_view()
+        };
 
-		vk::framebuffer_settings framebuffer_info = {
-			.renderpass = main_renderpass,
-			.views = image_view_attachments,
-			.extent = swapchain_extent
-		};
-		swapchain_framebuffers[i] = vk::framebuffer(logical_device, framebuffer_info);
-	}
+        vk::framebuffer_settings framebuffer_info = {
+            .renderpass = main_renderpass,
+            .views = image_view_attachments,
+            .extent = swapchain_extent
+        };
+        swapchain_framebuffers[i] =
+          vk::framebuffer(logical_device, framebuffer_info);
+    }
 
     std::println("Created VkFramebuffer's with size = {}",
                  swapchain_framebuffers.size());
@@ -322,7 +329,8 @@ main() {
         current.end();
 
         // Submitting and then presenting to the screen
-        presentation_queue.submit_async(current);
+        std::array<const VkCommandBuffer, 1> commands = { current };
+        presentation_queue.submit_async(commands);
         presentation_queue.present_frame(current_frame);
     }
 

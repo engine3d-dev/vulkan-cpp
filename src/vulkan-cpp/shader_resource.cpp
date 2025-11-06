@@ -32,15 +32,17 @@ namespace vk {
 
         return binary_blob;
     }
-    
-    shader_resource::shader_resource(const VkDevice& p_device, const shader_resource_info& p_info) : m_device(p_device) {
+
+    shader_resource::shader_resource(const VkDevice& p_device,
+                                     const shader_resource_info& p_info)
+      : m_device(p_device) {
         m_shader_module_handlers.resize(p_info.sources.size());
 
-        for(size_t i = 0; i < p_info.sources.size(); i++) {
+        for (size_t i = 0; i < p_info.sources.size(); i++) {
             const shader_source shader_src = p_info.sources[i];
             std::vector<char> blob = compile_binary_shader_source(shader_src);
 
-            if(blob.empty()) {
+            if (blob.empty()) {
                 m_is_resource_valid = false;
                 return;
             }
@@ -52,74 +54,51 @@ namespace vk {
                 .codeSize = static_cast<uint32_t>(binary.size_bytes()),
                 .pCode = (const uint32_t*)binary.data()
             };
-            
-            // Setting m_shader_module_handlers[i]'s stage and the VkShaderModule handle altogether
-            vk_check(vkCreateShaderModule(m_device, &shader_module_ci, nullptr, &m_shader_module_handlers[i].module),"vkCreateShaderModule");
+
+            // Setting m_shader_module_handlers[i]'s stage and the
+            // VkShaderModule handle altogether
+            vk_check(vkCreateShaderModule(m_device,
+                                          &shader_module_ci,
+                                          nullptr,
+                                          &m_shader_module_handlers[i].module),
+                     "vkCreateShaderModule");
             m_shader_module_handlers[i].stage = shader_src.stage;
         }
 
         m_is_resource_valid = true;
     }
 
-    void shader_resource::vertex_attributes(const std::span<const vertex_attribute>& p_attributes) {
-        /*
-            -- These comments are a reminder to myself --
-            - this function simplifies the need to separately define vertex attributes and the vertex binding attributes as shown below:
-            
-            - vertex attributes specify the types of data within the vertex
-            
-            - vertex binding attribute specifies the rate of reading that data layout specified by the vertex attributes
-
-            - Interpret the following vertex attributes below with this shader code with `layout(location = n)` specified
-            where by default these are set to binding zero by the shader
-
-            layout(location = 0) in vec3 inPosition;
-            layout(location = 1) in vec3 inColor;
-            layout(location = 2) in vec3 inNormals;
-            layout(location = 3) in vec2 inTexCoords;
-
-            m_shader_group.set_vertex_attributes(VkVertexInputAttributeDescription{
-                { .location = 0, .binding = 0, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = offsetof(vk::vertex, position), },
-                { .location = 1, .binding = 0, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = offsetof(vk::vertex, color), },
-                { .location = 2, .binding = 0, .format = VK_FORMAT_R32G32B32_SFLOAT, .offset = offsetof(vk::vertex, normals), },
-                { .location = 3, .binding = 0, .format = VK_FORMAT_R32G32_SFLOAT,    .offset = offsetof(vk::vertex, uv), },
-            });
-
-            m_shader_group.set_vertex_bind_attributes(VkVertexInputBindingDescription{
-                {.binding = 0, .stride = sizeof(vk::vertex), .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,},
-            });
-
-            Which gets handled in specifying the following below
-        */
+    void shader_resource::vertex_attributes(
+      std::span<const vertex_attribute> p_attributes) {
 
         m_vertex_binding_attributes.resize(p_attributes.size());
 
-        for(size_t i = 0; i < m_vertex_binding_attributes.size(); i++) {
+        for (size_t i = 0; i < m_vertex_binding_attributes.size(); i++) {
             // setting up vertex binding
             const vertex_attribute attribute = p_attributes[i];
             m_vertex_attributes.resize(attribute.entries.size());
             m_vertex_binding_attributes[i] = {
                 .binding = attribute.binding,
                 .stride = attribute.stride,
-                .inputRate = to_input_rate(attribute.input_rate)
+                .inputRate = to_input_rate(attribute.input_rate),
             };
 
             // then setting up the vertex attributes for the vertex data layouts
-            for(size_t j = 0; j < attribute.entries.size(); j++) {
+            for (size_t j = 0; j < attribute.entries.size(); j++) {
                 const vertex_attribute_entry entry = attribute.entries[j];
                 m_vertex_attributes[j] = {
                     .location = entry.location,
                     .binding = attribute.binding,
                     .format = to_format(entry.format),
-                    .offset = entry.stride
+                    .offset = entry.stride,
                 };
             }
         }
     }
 
     void shader_resource::destroy() {
-        for(auto& handle : m_shader_module_handlers) {
-            if(handle.module != nullptr) {
+        for (auto& handle : m_shader_module_handlers) {
+            if (handle.module != nullptr) {
                 vkDestroyShaderModule(m_device, handle.module, nullptr);
             }
         }

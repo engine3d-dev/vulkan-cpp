@@ -16,7 +16,7 @@ namespace vk {
         operator VkSurfaceKHR() { return m_surface_handler; }
 
     private:
-        VkInstance m_instance=nullptr;
-        VkSurfaceKHR m_surface_handler=nullptr;
+        VkInstance m_instance = nullptr;
+        VkSurfaceKHR m_surface_handler = nullptr;
     };
 };

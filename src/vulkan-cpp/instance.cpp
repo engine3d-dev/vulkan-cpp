@@ -45,7 +45,7 @@ namespace vk {
           static_cast<uint32_t>(p_config.extensions.size());
         instance_ci.ppEnabledExtensionNames = p_config.extensions.data();
 
-		// Only run validation layers if we are running vulkan-cpp in debug mode
+        // Only run validation layers if we are running vulkan-cpp in debug mode
 #if _DEBUG
         // Setting up validation layers
         instance_ci.enabledLayerCount =
@@ -59,16 +59,16 @@ namespace vk {
             .messageType = to_message_type(p_debug_message_utils.message_type),
             .pfnUserCallback = p_debug_message_utils.callback,
         };
-		
-		// This is to invoke the vulkan debug utils if it is a valid callback
-		// To ensure that we are not using an invalid debug callback
-		if(p_debug_message_utils.callback != nullptr) {
-			instance_ci.pNext =
-			(VkDebugUtilsMessengerCreateInfoEXT*)&debug_create_info;
-		}
-		else {
-			instance_ci.pNext = nullptr;
-		}
+
+        // This is to invoke the vulkan debug utils if it is a valid callback
+        // To ensure that we are not using an invalid debug callback
+        if (p_debug_message_utils.callback != nullptr) {
+            instance_ci.pNext =
+              (VkDebugUtilsMessengerCreateInfoEXT*)&debug_create_info;
+        }
+        else {
+            instance_ci.pNext = nullptr;
+        }
 #else
         instance_ci.enabledLayerCount = 0;
         instance_ci.ppEnabledLayerNames = nullptr;

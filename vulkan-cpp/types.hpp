@@ -309,7 +309,7 @@ namespace vk {
         depth_stencil_read_only_optimal =
           4, // VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_READ_ONLY_OPTIMAL
         present_src_khr = 5, // VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
-        shader_read_only_optimal=6
+        shader_read_only_optimal = 6
     };
 
     // enum class format : uint64_t {
@@ -422,10 +422,14 @@ namespace vk {
 
     //! @brief Bits that 1-to-1 map to VkCommandUsageFlags
     enum command_usage : uint8_t {
-        one_time_submit = 0x00000001,           // Represents VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
-        renderpass_continue_bit = 0x00000002,   // Represents VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT
-        simulatneous_use_bit = 0x00000004,      // Represents VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT
-        max_bit = 0x7F                          // Represents VK_COMMAND_BUFFER_USAGE_FLAG_BITS_MAX_ENUM
+        one_time_submit =
+          0x00000001, // Represents VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
+        renderpass_continue_bit =
+          0x00000002, // Represents
+                      // VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT
+        simulatneous_use_bit =
+          0x00000004, // Represents VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT
+        max_bit = 0x7F // Represents VK_COMMAND_BUFFER_USAGE_FLAG_BITS_MAX_ENUM
     };
 
     /**
@@ -433,14 +437,14 @@ namespace vk {
      * VkMemoryPropertyFlags.
      *
      * @param device_local_bit
-     * 
+     *
      * Meaning: indicates memory allocated with this type is most efficient for
      * the GPU to access. \n
-     * 
+     *
      * Implications: The memory with this bit typically
      * resides on the GPU's VRAM. Accessing memory directly from GPU's since its
      * faster. \n
-     * 
+     *
      * Usage: For resources that are primarily accessed by the GPU in the
      * case of textures, vertex buffers, and framebuffers. If a memory type has
      * this bit associated with it, the heap memory will also have be set along
@@ -454,7 +458,7 @@ namespace vk {
      * Implications: ALlows CPU to directly
      * read from and write to memory. Crucial for transferring data between CPU
      * to GPU. \n
-     * 
+     *
      * Usage: Use-case is for staging buffers, where data initially
      * uploaded from CPU before being copied to device-local memory or for
      * resourcfes that need frequent CPU updates. \n
@@ -466,11 +470,11 @@ namespace vk {
      * needed. Writes made by host will automatically become visible to the
      * device, and writes made by device will automatically be visible to the
      * host. \n
-     * 
+     *
      * Implications: Simplifies memory synchronization between CPU and GPU.
      * Though can lead to slower CPU access if it means bypassing the CPU caches
      * or involving more complex cache coherence protocols. \n
-     * 
+     *
      * Usage: Used with 'VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT' for easy data
      * transfers, especially for frequent updated data where manual flushing
      * would be cumbersome. \n
@@ -480,14 +484,14 @@ namespace vk {
      *
      * Meaning: Indicates memory allocated with this type is cached on the host
      * (CPU). \n
-     * 
+     *
      * Implications: Host memory accesses (read/writes) to this memory
      * type will go through CPU cache heirarchy. Significantly improves
      * performance where random access patterns. If not set on `HOST_VISIBLE`
      * memory, CPU accesses are often uncached and write-combined, meanming
      * writes should be sequential and reads should be avoided for good
      * performance. \n
-     * 
+     *
      * Usage: Does well for CPU-side reading of data written to GPU (screenshots
      * or feedback data) and for CPU-side writing of data to be accessed
      * randomly. Flag usually implies explicit cache management
@@ -510,22 +514,68 @@ namespace vk {
     };
 
     enum class shader_stage {
-        vertex,
-        fragment,
-        compute,
+        vertex = VK_SHADER_STAGE_VERTEX_BIT,
+        fragment = VK_SHADER_STAGE_FRAGMENT_BIT,
+        compute = VK_SHADER_STAGE_COMPUTE_BIT,
+        geometry = VK_SHADER_STAGE_GEOMETRY_BIT,
+        all_graphics = VK_SHADER_STAGE_ALL_GRAPHICS,
+        all = VK_SHADER_STAGE_ALL,
+        raygen_khr = VK_SHADER_STAGE_RAYGEN_BIT_KHR,
+        raygen_nv = VK_SHADER_STAGE_RAYGEN_BIT_NV,
+        any_hit_kht = VK_SHADER_STAGE_ANY_HIT_BIT_KHR,
+        closest_hit_khr = VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR,
+        miss_bit_khr = VK_SHADER_STAGE_MISS_BIT_KHR,
+        intersection_khr = VK_SHADER_STAGE_INTERSECTION_BIT_KHR,
+        callable_bit_khr = VK_SHADER_STAGE_CALLABLE_BIT_KHR,
+        task_bit_ext = VK_SHADER_STAGE_TASK_BIT_EXT,
+        mesh_bit_ext = VK_SHADER_STAGE_MESH_BIT_EXT,
+        supass_shading_huawei = VK_SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI,
         undefined
+    };
+
+    enum class descriptor_layout_flag {
+        update_after_bind_pool =
+          VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT, // represents
+                                                                      // VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT
+        push_descriptor_khr =
+          VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR, // represents
+                                                                   // VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR
+        descriptor_buffer_bit_ext =
+          VK_DESCRIPTOR_SET_LAYOUT_CREATE_DESCRIPTOR_BUFFER_BIT_EXT, // represents
+                                                                     // VK_DESCRIPTOR_SET_LAYOUT_CREATE_DESCRIPTOR_BUFFER_BIT_EXT
+        embedded_immutable_samplers_bit_ext =
+          VK_DESCRIPTOR_SET_LAYOUT_CREATE_EMBEDDED_IMMUTABLE_SAMPLERS_BIT_EXT, // represents VK_DESCRIPTOR_SET_LAYOUT_CREATE_EMBEDDED_IMMUTABLE_SAMPLERS_BIT_EXT
+        indirect_bindable_bit_nv =
+          VK_DESCRIPTOR_SET_LAYOUT_CREATE_INDIRECT_BINDABLE_BIT_NV, // represents
+                                                                    // VK_DESCRIPTOR_SET_LAYOUT_CREATE_INDIRECT_BINDABLE_BIT_NV
+        host_only_pool_bit_ext =
+          VK_DESCRIPTOR_SET_LAYOUT_CREATE_HOST_ONLY_POOL_BIT_EXT, // represents
+                                                                  // VK_DESCRIPTOR_SET_LAYOUT_CREATE_HOST_ONLY_POOL_BIT_EXT
+        per_stage_bit_nv =
+          VK_DESCRIPTOR_SET_LAYOUT_CREATE_PER_STAGE_BIT_NV, // represents
+                                                            // VK_DESCRIPTOR_SET_LAYOUT_CREATE_PER_STAGE_BIT_NV
+        update_after_bind_pool_bit_ext =
+          VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT, // represents
+                                                                          // VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT
+        host_only_pool_bit_valve =
+          VK_DESCRIPTOR_SET_LAYOUT_CREATE_HOST_ONLY_POOL_BIT_VALVE, // represents
+                                                                    // VK_DESCRIPTOR_SET_LAYOUT_CREATE_HOST_ONLY_POOL_BIT_VALVE
+        flag_bits_max_enum =
+          VK_DESCRIPTOR_SET_LAYOUT_CREATE_FLAG_BITS_MAX_ENUM // represents
+                                                             // VK_DESCRIPTOR_SET_LAYOUT_CREATE_FLAG_BITS_MAX_ENUM
     };
 
     //! @brief high-level specification for a shader source
     struct shader_source {
         std::string filename;
-        shader_stage stage=shader_stage::undefined;
+        shader_stage stage = shader_stage::undefined;
     };
 
-    //! @brief Represent the vulkan shader module that will get utilized by VkPipeline
+    //! @brief Represent the vulkan shader module that will get utilized by
+    //! VkPipeline
     struct shader_handle {
         VkShaderModule module = nullptr;
-        shader_stage stage=shader_stage::undefined;
+        shader_stage stage = shader_stage::undefined;
     };
 
     struct vertex_attribute_entry {
@@ -559,7 +609,6 @@ namespace vk {
         VkBuffer dst;
     };
 
-
     struct vertex_buffer_settings {
         VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
         std::span<vertex_input> vertices;
@@ -573,9 +622,8 @@ namespace vk {
     struct uniform_buffer_info {
         // VkPhysicalDevice physical_handle=nullptr;
         VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
-        uint32_t size_bytes=0;
+        uint32_t size_bytes = 0;
     };
-
 
     struct descriptor_binding_point {
         uint32_t binding;
@@ -590,83 +638,81 @@ namespace vk {
 
     //! @brief vulkan-specification for creation of VkImage/VkImageView
     struct image_configuration {
-		uint32_t width;
-		uint32_t height;
-		VkFormat format;
-        uint32_t mip_levels=1;
-        uint32_t array_layers=1;
-		VkImageUsageFlags usage;
+        uint32_t width;
+        uint32_t height;
+        VkFormat format;
+        uint32_t mip_levels = 1;
+        uint32_t array_layers = 1;
+        VkImageUsageFlags usage;
         memory_property property;
-        VkPhysicalDevice physical_device=nullptr;
-	};
+        VkPhysicalDevice physical_device = nullptr;
+    };
 
     struct write_image_descriptor {
         uint32_t dst_binding;
         VkImageView view;
-        VkSampler sampler=nullptr;
+        VkSampler sampler = nullptr;
     };
 
     struct write_buffer_descriptor {
         uint32_t dst_binding;
-        VkBuffer buffer=nullptr;
+        VkBuffer buffer = nullptr;
         uint32_t offset;
         uint32_t range;
     };
 
     struct image_extent {
-        uint32_t width=1;
-        uint32_t height=1;
+        uint32_t width = 1;
+        uint32_t height = 1;
     };
 
     struct image_configuration_information {
         image_extent extent;
         VkFormat format;
-        memory_property property=memory_property::device_local_bit;
-        image_aspect_flags aspect=image_aspect_flags::color_bit;
+        memory_property property = memory_property::device_local_bit;
+        image_aspect_flags aspect = image_aspect_flags::color_bit;
         VkImageUsageFlags usage;
-        VkImageCreateFlags image_flags=0;
-        VkImageViewType view_type=VK_IMAGE_VIEW_TYPE_2D;
-        uint32_t mip_levels=1;
-        uint32_t layer_count=1;
-        uint32_t array_layers=1;
+        VkImageCreateFlags image_flags = 0;
+        VkImageViewType view_type = VK_IMAGE_VIEW_TYPE_2D;
+        uint32_t mip_levels = 1;
+        uint32_t layer_count = 1;
+        uint32_t array_layers = 1;
         // VkPhysicalDevice physical_device=nullptr;
         VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
-        filter_range range{.min = VK_FILTER_LINEAR, .max = VK_FILTER_LINEAR};
-        VkSamplerAddressMode addrses_mode_u=VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        VkSamplerAddressMode addrses_mode_v=VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        VkSamplerAddressMode addrses_mode_w=VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        filter_range range{ .min = VK_FILTER_LINEAR, .max = VK_FILTER_LINEAR };
+        VkSamplerAddressMode addrses_mode_u = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        VkSamplerAddressMode addrses_mode_v = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        VkSamplerAddressMode addrses_mode_w = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     };
 
     struct buffer_settings {
-        VkDeviceSize device_size=0;
+        VkDeviceSize device_size = 0;
         VkPhysicalDeviceMemoryProperties physical_memory_properties;
         memory_property property_flags;
         VkBufferUsageFlags usage;
-        VkSharingMode share_mode=VK_SHARING_MODE_EXCLUSIVE;
+        VkSharingMode share_mode = VK_SHARING_MODE_EXCLUSIVE;
     };
-
 
     // Used by vk::copy(const VkCommandBuffer& p_current,  )
     struct copy_info {
         uint32_t width;
         uint32_t height;
-        uint32_t array_layers=1;
+        uint32_t array_layers = 1;
     };
 
     struct image_barrier_info {
         VkFormat format;
         VkImageLayout old_layout;
         VkImageLayout new_layout;
-        uint32_t level_count=1;
-        VkImageAspectFlagBits aspect=VK_IMAGE_ASPECT_COLOR_BIT;
-        uint32_t base_array_count=0;
-        uint32_t layer_count=1;
+        uint32_t level_count = 1;
+        VkImageAspectFlagBits aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+        uint32_t base_array_count = 0;
+        uint32_t layer_count = 1;
     };
 
     struct write_info {
-        uint64_t offset=0;
-        uint64_t size_bytes=0;
+        uint64_t offset = 0;
+        uint64_t size_bytes = 0;
     };
-
 
 };
