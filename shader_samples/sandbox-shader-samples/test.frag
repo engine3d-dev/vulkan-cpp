@@ -6,12 +6,14 @@ layout(location = 2) in vec3 fragNormals;
 
 layout(location = 0) out vec4 outColor;
 
-layout(set = 0, binding = 1) uniform sampler2D texture_image;
+layout(set = 1, binding = 1) uniform sampler2D diffuse_texture;
+layout(set = 1, binding = 2) uniform sampler2D specular_texture;
 
 void main() {
-    // outColor = vec4(fragColor, 1.0);
+    vec4 diffuse = texture(diffuse_texture, fragTexCoords);
+    // vec4 specular = texture(specular_texture, fragTexCoords);
 
-    // Adding texture
-    outColor = texture(texture_image, fragTexCoords);
+    outColor = texture(diffuse_texture, fragTexCoords);
+
 
 }

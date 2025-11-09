@@ -8,25 +8,23 @@ layout(location = 3) in vec3 inNormals;
 layout(location = 0) out vec3 fragColor;
 layout(location = 1) out vec2 fragTexCoords;
 layout(location = 2) out vec3 fragNormals;
+layout(location = 3) out vec4 materialColor;
 
-layout(binding = 0) uniform UniformBufferObject {
-    mat4 model;
-    mat4 view;
-    mat4 proj;
+layout(set = 0, binding = 0) uniform UniformBufferObject {
+    mat4 proj_view;
 } ubo;
 
-struct mesh_uniforms {
-    vec4 color;
+layout(set = 1, binding = 0) uniform geometry_ubo {
     mat4 model;
-};
+    vec4 color;
+} geoemetry_src;
 
-layout(set = 1, binding = 0) readonly buffer geometry_data {
-    mesh_uniforms uniforms[];
-};
+
 
 void main() {
-    gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 1.0);
+    gl_Position = ubo.proj_view * geoemetry_src.model * vec4(inPosition, 1.0);
     fragColor = inColor;
     fragTexCoords = inTexCoords;
     fragNormals = inNormals;
+    materialColor = geoemetry_src.color;
 }
