@@ -672,6 +672,16 @@ namespace vk {
         uint32_t range;
     };
 
+    struct write_buffer_descriptor2 {
+        uint32_t dst_binding;
+        std::span<const write_buffer> uniforms;
+    };
+
+    struct write_image_descriptor2 {
+        uint32_t dst_binding;
+        std::span<const write_image> sample_images;
+    };
+
     struct image_extent {
         uint32_t width = 1;
         uint32_t height = 1;

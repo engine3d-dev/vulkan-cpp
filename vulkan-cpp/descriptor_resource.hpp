@@ -29,6 +29,8 @@ namespace vk {
         void update(
           std::span<write_buffer_descriptor> p_uniforms,
           std::span<write_image_descriptor> p_texture_image_handles = {});
+        
+        void update(std::span<const write_buffer_descriptor2> p_uniforms, std::span<const write_image_descriptor2> p_images={});
 
         [[nodiscard]] VkDescriptorSetLayout layout() const {
             return m_descriptor_layout;
