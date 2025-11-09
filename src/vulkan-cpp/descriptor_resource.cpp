@@ -8,8 +8,6 @@ namespace vk {
                                              const descriptor_layout& p_info)
       : m_device(p_device)
       , m_slot(p_info.slot) {
-        m_size_bytes = p_info.size_bytes;
-        m_allocated_count = p_info.allocate_count;
         std::vector<VkDescriptorPoolSize> pool_sizes(p_info.entries.size());
         std::vector<VkDescriptorSetLayoutBinding> descriptor_layout_bindings(
           p_info.entries.size());
@@ -65,43 +63,38 @@ namespace vk {
           vkCreateDescriptorSetLayout(
             m_device, &descriptor_layout_ci, nullptr, &m_descriptor_layout),
           "vkCreateDescriptorSetLayout");
-
-        std::vector<VkDescriptorSetLayout> layouts(m_allocated_count,
-                                                   m_descriptor_layout);
         VkDescriptorSetAllocateInfo descriptor_set_alloc_info = {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
             .pNext = nullptr,
             .descriptorPool = m_descriptor_pool,
-            .descriptorSetCount = static_cast<uint32_t>(layouts.size()),
-            .pSetLayouts = layouts.data()
+            .descriptorSetCount = 1,
+            .pSetLayouts = &m_descriptor_layout
         };
-
-        m_descriptor_sets = std::vector<VkDescriptorSet>(m_allocated_count);
 
         vk_check(vkAllocateDescriptorSets(m_device,
                                           &descriptor_set_alloc_info,
-                                          m_descriptor_sets.data()),
+                                          &m_descriptor_set),
                  "vkAllocateDescriptorSets");
     }
 
     void descriptor_resource::update(
       std::span<write_buffer_descriptor> p_uniforms,
       std::span<write_image_descriptor> p_texture_image_handles) {
-        // std::vector<VkDescriptorBufferInfo> buffer_infos;
-        // std::vector<VkDescriptorImageInfo> image_infos;
+        std::vector<VkDescriptorBufferInfo> buffer_infos;
+        std::vector<VkDescriptorImageInfo> image_infos;
 
-        // for (const auto& uniform : p_uniforms) {
-        //     // uniform, offste, and range
-        //     buffer_infos.emplace_back(
-        //       uniform.buffer, uniform.offset, uniform.range);
-        // }
+        for (const auto& uniform : p_uniforms) {
+            // uniform, offste, and range
+            buffer_infos.emplace_back(
+              uniform.buffer, uniform.offset, uniform.range);
+        }
 
-        // for (const auto& sample_image : p_texture_image_handles) {
-        //     // VkSampler, VkImageView, VkImageLayout
-        //     image_infos.emplace_back(sample_image.sampler,
-        //                              sample_image.view,
-        //                              VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-        // }
+        for (const auto& sample_image : p_texture_image_handles) {
+            // VkSampler, VkImageView, VkImageLayout
+            image_infos.emplace_back(sample_image.sampler,
+                                     sample_image.view,
+                                     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        }
 
         /*
 
@@ -114,78 +107,56 @@ namespace vk {
             };
 
         */
-        for (size_t i = 0; i < m_descriptor_sets.size(); i++) {
-			std::vector<VkDescriptorBufferInfo> buffer_infos;
-			std::vector<VkDescriptorImageInfo> image_infos;
-            std::vector<VkWriteDescriptorSet> write_descriptors;
+        std::vector<VkWriteDescriptorSet> write_descriptors;
+        VkWriteDescriptorSet write_buffer{
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .pNext = nullptr,
+            .dstSet = m_descriptor_set,
+            .dstBinding = 0,
+            .dstArrayElement = 0,
+            .descriptorCount = static_cast<uint32_t>(buffer_infos.size()),
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .pBufferInfo = buffer_infos.data(),
+        };
 
-			/**
-			 * VkWriteDescriptorSet is to specify what set layout to correspond to
-			 * You specify bindings for the specific uniforms that correspond with that kind of descriptor set
-			*/
+        write_descriptors.push_back(write_buffer);
 
-			for(size_t write_buffer = 0; write_buffer < p_uniforms.size(); write_buffer++) {
-				write_buffer_descriptor write_buffer_object = p_uniforms[write_buffer];
-				buffer_infos.emplace_back(write_buffer_object.buffer, write_buffer_object.offset, write_buffer_object.range);
-				VkWriteDescriptorSet write_buffer_descriptor{
-					.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-					.pNext = nullptr,
-					.dstSet = m_descriptor_sets[i],
-					.dstBinding = write_buffer_object.dst_binding,
-					.dstArrayElement = 0,
-					.descriptorCount = static_cast<uint32_t>(buffer_infos.size()),
-					.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-					.pBufferInfo = buffer_infos.data(),
-				};
+        // TODO: Probably have this handle no textures bit better...
+        // For now this'll check if there are any textures, if not. Then do
+        // not add anything to writable textures
+        if (!p_texture_image_handles.empty()) {
+            VkWriteDescriptorSet write_image{
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .pNext = nullptr,
+                .dstSet = m_descriptor_set,
+                .dstBinding = 1,
+                .dstArrayElement = 0,
+                .descriptorCount =
+                    static_cast<uint32_t>(image_infos.size()),
+                .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                .pImageInfo = image_infos.data()
+            };
 
-				write_descriptors.push_back(write_buffer_descriptor);
-			}
-
-            // TODO: Probably have this handle no textures bit better...
-            // For now this'll check if there are any textures, if not. Then do
-            // not add anything to writable textures
-            // if (!p_texture_image_handles.empty()) {
-			for(size_t write_image_descriptor_idx = 0; write_image_descriptor_idx < p_texture_image_handles.size(); write_image_descriptor_idx++) {
-                write_image_descriptor sample_image = p_texture_image_handles[write_image_descriptor_idx];
-				image_infos.emplace_back(sample_image.sampler, sample_image.view,
-                                     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-				VkWriteDescriptorSet write_image{
-                    .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                    .pNext = nullptr,
-                    .dstSet = m_descriptor_sets[i],
-                    .dstBinding = sample_image.dst_binding,
-                    .dstArrayElement = 0,
-                    .descriptorCount =
-                      static_cast<uint32_t>(image_infos.size()),
-                    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                    .pImageInfo = image_infos.data()
-                };
-
-                write_descriptors.push_back(write_image);
-			}
-
-            vkUpdateDescriptorSets(
-              m_device,
-              static_cast<uint32_t>(write_descriptors.size()),
-              write_descriptors.data(),
-              0,
-              nullptr);
+            write_descriptors.push_back(write_image);
         }
+
+        vkUpdateDescriptorSets(
+            m_device,
+            static_cast<uint32_t>(write_descriptors.size()),
+            write_descriptors.data(),
+            0,
+            nullptr);
     }
 
     void descriptor_resource::bind(const VkCommandBuffer& p_current,
-                                   uint32_t p_frame_idx,
                                    const VkPipelineLayout& p_pipeline_layout) {
-        if (m_descriptor_sets.size() <= 0) {
-            return;
-        }
 
         vkCmdBindDescriptorSets(p_current,
                                 VK_PIPELINE_BIND_POINT_GRAPHICS,
                                 p_pipeline_layout,
                                 m_slot,
                                 1,
-                                &m_descriptor_sets[p_frame_idx],
+                                &m_descriptor_set,
                                 0,
                                 nullptr);
     }

@@ -648,10 +648,21 @@ namespace vk {
         VkPhysicalDevice physical_device = nullptr;
     };
 
+    struct write_image {
+        VkSampler sampler=nullptr;
+        VkImageView view=nullptr;
+        VkImageLayout image_layout=VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    };
+    struct write_buffer {
+        VkBuffer buffer=nullptr;
+        uint32_t offset=0;
+        uint32_t range=0;
+    };
+
     struct write_image_descriptor {
         uint32_t dst_binding;
-        VkImageView view;
         VkSampler sampler = nullptr;
+        VkImageView view;
     };
 
     struct write_buffer_descriptor {
