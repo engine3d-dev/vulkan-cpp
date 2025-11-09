@@ -460,6 +460,7 @@ main() {
     };
     vk::uniform_buffer geometry_uniform = vk::uniform_buffer(logical_device, geo_uniform_info);
 
+    /*
     std::array<vk::write_buffer_descriptor, 1> write_set1_buffers = {
         vk::write_buffer_descriptor{
             .dst_binding = 0,
@@ -468,14 +469,35 @@ main() {
             .range = geometry_uniform.size_bytes()
         }
     };
+    */
+    std::array<vk::write_buffer, 1> buffers = {
+        vk::write_buffer{
+            .buffer = geometry_uniform,
+            .offset = 0,
+            .range = geometry_uniform.size_bytes()
+        }
+    };
+    std::array<vk::write_buffer_descriptor2, 1> write_set1_buffers = {
+        vk::write_buffer_descriptor2{
+            .dst_binding = 0,
+            .uniforms = buffers
+        }
+    };
 
     // Loading a texture -- for testing
+    vk::texture_info diffuse_config = {
+        .phsyical_memory_properties = physical_device.memory_properties(),
+        .filepath = std::filesystem::path("asset_samples/viking_room.png")
+    };
+    vk::texture diffuse_texture(logical_device, diffuse_config);
+
     vk::texture_info config_texture = {
         .phsyical_memory_properties = physical_device.memory_properties(),
         .filepath = std::filesystem::path("asset_samples/viking_room.png")
     };
-    vk::texture texture1(logical_device, config_texture);
+    vk::texture specular_texture(logical_device, config_texture);
 
+    /*
     std::array<vk::write_image_descriptor, 1> sample_images = {
         vk::write_image_descriptor{
             .dst_binding = 1,
@@ -483,6 +505,21 @@ main() {
             .view = texture1.image().image_view(),
         }
     };
+    */
+    std::array<vk::write_image, 1> write_images = {
+        vk::write_image{
+            .sampler = diffuse_texture.image().sampler(),
+            .view = diffuse_texture.image().image_view(),
+            .image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+        }
+    };
+    std::array<vk::write_image_descriptor2, 1> sample_images = {
+        vk::write_image_descriptor2{
+            .dst_binding = 1,
+            .sample_images = write_images
+        }
+    };
+    // set1.update(write_set1_buffers, sample_images);
     set1.update(write_set1_buffers, sample_images);
 
 
