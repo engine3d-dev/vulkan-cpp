@@ -2,7 +2,6 @@
 #include <vulkan-cpp/utilities.hpp>
 #include <print>
 #include <unordered_map>
-#include <array>
 
 namespace vk {
 
@@ -152,11 +151,9 @@ namespace vk {
 
 	void descriptor_resource::update(std::span<const write_buffer_descriptor2> p_uniforms, std::span<const write_image_descriptor2> p_images) {
 		std::vector<VkWriteDescriptorSet> write_descriptors;
-        std::unordered_map<uint32_t, std::vector<VkDescriptorBufferInfo>> buffer_infos;
 
-        // uint32_t representation the destination binding for this specific image information
-        // vector<VkDescriptorImageInfo> represents the array of images that it might have that is quite arbitrary
-        // we want to store all of our properties related to their destination bindings and 
+        // uint32_t represent the destination bindings to those resources (uniforms and sample images)
+        std::unordered_map<uint32_t, std::vector<VkDescriptorBufferInfo>> buffer_infos;
         std::unordered_map<uint32_t, std::vector<VkDescriptorImageInfo>> image_infos;
 
         // handle uniforms
@@ -180,8 +177,6 @@ namespace vk {
 		}
 
         for(const auto& ubo : p_images) {
-
-            std::println("sample_images.size() = {}", image_infos.size());
 
             for(const auto& sample_image : ubo.sample_images) {
                 image_infos[ubo.dst_binding].emplace_back(sample_image.sampler, sample_image.view, sample_image.image_layout);
