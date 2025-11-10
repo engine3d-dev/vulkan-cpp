@@ -1,6 +1,8 @@
 #include <vulkan-cpp/descriptor_resource.hpp>
 #include <vulkan-cpp/utilities.hpp>
 #include <print>
+#include <unordered_map>
+#include <array>
 
 namespace vk {
 
@@ -149,119 +151,55 @@ namespace vk {
     }
 
 	void descriptor_resource::update(std::span<const write_buffer_descriptor2> p_uniforms, std::span<const write_image_descriptor2> p_images) {
-		/*
-		std::vector<VkDescriptorBufferInfo> buffer_infos;
-        std::vector<VkDescriptorImageInfo> image_infos;
+		std::vector<VkWriteDescriptorSet> write_descriptors;
+        std::unordered_map<uint32_t, std::vector<VkDescriptorBufferInfo>> buffer_infos;
 
-        for (const auto& uniform : p_uniforms) {
-            // uniform, offste, and range
-            buffer_infos.emplace_back(
-              uniform.buffer, uniform.offset, uniform.range);
-        }
+        // uint32_t representation the destination binding for this specific image information
+        // vector<VkDescriptorImageInfo> represents the array of images that it might have that is quite arbitrary
+        // we want to store all of our properties related to their destination bindings and 
+        std::unordered_map<uint32_t, std::vector<VkDescriptorImageInfo>> image_infos;
 
-        for (const auto& sample_image : p_texture_image_handles) {
-            // VkSampler, VkImageView, VkImageLayout
-            image_infos.emplace_back(sample_image.sampler,
-                                     sample_image.view,
-                                     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-        }
+        // handle uniforms
+		for(const auto& ubo : p_uniforms) {
+            for(const auto& uniform : ubo.uniforms) {
+                buffer_infos[ubo.dst_binding].emplace_back(uniform.buffer, uniform.offset, uniform.range);
+			}
 
-        std::vector<VkWriteDescriptorSet> write_descriptors;
-        VkWriteDescriptorSet write_buffer{
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .pNext = nullptr,
-            .dstSet = m_descriptor_set,
-            .dstBinding = 0,
-            .dstArrayElement = 0,
-            .descriptorCount = static_cast<uint32_t>(buffer_infos.size()),
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .pBufferInfo = buffer_infos.data(),
-        };
+			VkWriteDescriptorSet write_descriptor = {
+                . sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .pNext = nullptr,
+                .dstSet = m_descriptor_set,
+                .dstBinding = ubo.dst_binding,
+                .dstArrayElement = 0,
+                .descriptorCount = static_cast<uint32_t>(buffer_infos[ubo.dst_binding].size()),
+                .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                .pBufferInfo = buffer_infos[ubo.dst_binding].data(),
+            };
 
-        write_descriptors.push_back(write_buffer);
+			write_descriptors.emplace_back(write_descriptor);
+		}
 
-        // TODO: Probably have this handle no textures bit better...
-        // For now this'll check if there are any textures, if not. Then do
-        // not add anything to writable textures
-        if (!p_texture_image_handles.empty()) {
-            VkWriteDescriptorSet write_image{
+        for(const auto& ubo : p_images) {
+
+            std::println("sample_images.size() = {}", image_infos.size());
+
+            for(const auto& sample_image : ubo.sample_images) {
+                image_infos[ubo.dst_binding].emplace_back(sample_image.sampler, sample_image.view, sample_image.image_layout);
+            }
+
+            VkWriteDescriptorSet write_descriptor = {
                 .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                 .pNext = nullptr,
                 .dstSet = m_descriptor_set,
-                .dstBinding = 1,
+                .dstBinding = ubo.dst_binding,
                 .dstArrayElement = 0,
-                .descriptorCount =
-                    static_cast<uint32_t>(image_infos.size()),
+                .descriptorCount = static_cast<uint32_t>(image_infos[ubo.dst_binding].size()),
                 .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                .pImageInfo = image_infos.data()
+                .pImageInfo = image_infos[ubo.dst_binding].data(),
             };
 
-            write_descriptors.push_back(write_image);
+            write_descriptors.emplace_back(write_descriptor);
         }
-		*/
-
-		std::vector<VkWriteDescriptorSet> write_descriptors;
-		m_buffer_infos.clear();
-		m_image_infos.clear();
-
-		for(size_t i = 0; i < p_uniforms.size(); i++) {
-			auto object = p_uniforms[i];
-			m_buffer_infos.resize(object.uniforms.size());
-			std::println("buffer dst_binding = {}", object.dst_binding);
-
-			for(size_t j = 0; j < object.uniforms.size(); j++) {
-				auto ubo = object.uniforms[j];
-				VkDescriptorBufferInfo buffer_info = {
-					.buffer = ubo.buffer,
-					.offset = ubo.offset,
-					.range = ubo.range
-				};
-				// m_buffer_infos.push_back(buffer_info);
-				m_buffer_infos[j] = buffer_info;
-				// m_buffer_infos.emplace_back(ubo.buffer, ubo.offset, ubo.range);
-			}
-
-			VkWriteDescriptorSet write_descriptor = {
-                . sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                .pNext = nullptr,
-                .dstSet = m_descriptor_set,
-                .dstBinding = object.dst_binding,
-                .dstArrayElement = 0,
-                .descriptorCount = static_cast<uint32_t>(m_buffer_infos.size()),
-                .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                .pBufferInfo = m_buffer_infos.data(),
-            };
-
-			write_descriptors.push_back(write_descriptor);
-		}
-
-		for(size_t i = 0; i < p_images.size(); i++) {
-			auto object = p_images[i];
-			m_image_infos.resize(object.sample_images.size());
-
-			for(size_t j = 0; j < m_image_infos.size(); j++) {
-				auto ubo = object.sample_images[j];
-				VkDescriptorImageInfo image_info = {
-					.sampler = ubo.sampler,
-					.imageView = ubo.view,
-					.imageLayout = ubo.image_layout
-				};
-				m_image_infos[j] = image_info;
-			}
-
-			VkWriteDescriptorSet write_descriptor = {
-                . sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                .pNext = nullptr,
-                .dstSet = m_descriptor_set,
-                .dstBinding = object.dst_binding,
-                .dstArrayElement = 0,
-                .descriptorCount = static_cast<uint32_t>(m_image_infos.size()),
-                .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                .pImageInfo = m_image_infos.data(),
-            };
-
-			write_descriptors.push_back(write_descriptor);
-		}
 
         vkUpdateDescriptorSets(
             m_device,

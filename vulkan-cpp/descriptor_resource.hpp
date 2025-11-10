@@ -44,8 +44,6 @@ namespace vk {
         VkDescriptorPool m_descriptor_pool = nullptr;
         VkDescriptorSetLayout m_descriptor_layout = nullptr;
         VkDescriptorSet m_descriptor_set = nullptr;
-        std::vector<VkDescriptorBufferInfo> m_buffer_infos;
-		std::vector<VkDescriptorImageInfo> m_image_infos;
     };
 
 };

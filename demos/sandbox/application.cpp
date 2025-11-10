@@ -405,7 +405,8 @@ main() {
     vk::descriptor_resource set0_resource(logical_device, set0_layout);
 
     // Loading mesh
-    obj_model test_model(std::filesystem::path("asset_samples/viking_room.obj"), logical_device, physical_device);
+    obj_model test_model(std::filesystem::path("asset_samples/backpack/backpack.obj"), logical_device, physical_device);
+    // obj_model test_model(std::filesystem::path("asset_samples/viking_room.obj"), logical_device, physical_device, true);
 
     // Setting up descriptor sets for handling uniforms
     vk::uniform_buffer_info global_uniform_info = {
@@ -442,7 +443,16 @@ main() {
                 .binding = 1,
                 .stage = vk::shader_stage::fragment,
             },
-            .descriptor_count = 1,
+            .descriptor_count = 1, 
+        },
+        vk::descriptor_entry{
+            // layout (set = 1, binding = 2) uniform sampler2D
+            .type = vk::buffer::combined_image_sampler,
+            .binding_point = {
+                .binding = 2,
+                .stage = vk::shader_stage::fragment,
+            },
+            .descriptor_count = 1, 
         }
     };
     // uint32_t image_count = image_count;
@@ -487,13 +497,14 @@ main() {
     // Loading a texture -- for testing
     vk::texture_info diffuse_config = {
         .phsyical_memory_properties = physical_device.memory_properties(),
-        .filepath = std::filesystem::path("asset_samples/viking_room.png")
+        .filepath = std::filesystem::path("asset_samples/backpack/diffuse.jpg")
+        // .filepath = std::filesystem::path("asset_samples/viking_room.png")
     };
     vk::texture diffuse_texture(logical_device, diffuse_config);
 
     vk::texture_info config_texture = {
         .phsyical_memory_properties = physical_device.memory_properties(),
-        .filepath = std::filesystem::path("asset_samples/viking_room.png")
+        .filepath = std::filesystem::path("asset_samples/backpack/specular.jpg")
     };
     vk::texture specular_texture(logical_device, config_texture);
 
@@ -506,20 +517,35 @@ main() {
         }
     };
     */
-    std::array<vk::write_image, 1> write_images = {
+    // layout(set = 1, binding = 1) uniform sampler2D
+    std::array<vk::write_image, 1> binding1_images = {
         vk::write_image{
             .sampler = diffuse_texture.image().sampler(),
             .view = diffuse_texture.image().image_view(),
             .image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+        },
+    };
+
+    std::array<vk::write_image, 1> binding2_images2 = {
+        vk::write_image{
+            .sampler = specular_texture.image().sampler(),
+            .view = specular_texture.image().image_view(),
+            .image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
         }
     };
-    std::array<vk::write_image_descriptor2, 1> sample_images = {
+
+    std::vector<vk::write_image_descriptor2> sample_images = {
+        // layout(set = 1, binding = 1) uniform sampler2D
         vk::write_image_descriptor2{
             .dst_binding = 1,
-            .sample_images = write_images
+            .sample_images = binding1_images
+        },
+        // layout(set = 1, binding = 2) uniform sampler2D
+        vk::write_image_descriptor2{
+            .dst_binding = 2,
+            .sample_images = binding2_images2
         }
     };
-    // set1.update(write_set1_buffers, sample_images);
     set1.update(write_set1_buffers, sample_images);
 
 
@@ -675,8 +701,10 @@ main() {
     logical_device.wait();
     main_swapchain.destroy();
 
-    texture1.destroy();
+    diffuse_texture.destroy();
+    specular_texture.destroy();
     set0_resource.destroy();
+    set1.destroy();
     global_uniforms.destroy();
     geometry_uniform.destroy();
     test_model.destroy();
