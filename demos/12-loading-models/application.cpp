@@ -238,6 +238,12 @@ private:
     vk::index_buffer m_index_buffer{};
 };
 
+VkDeviceSize get_alignment(VkDeviceSize p_original_size, VkDeviceSize p_min_ubo_alignment) {
+    // Round up originalSize to the nearest multiple of min_ubo_alignment
+    VkDeviceSize aligned_size = (p_original_size + p_min_ubo_alignment - 1) & ~(p_min_ubo_alignment - 1);
+    return aligned_size;
+}
+
 int
 main() {
     //! @note Just added the some test code to test the conan-starter setup code
@@ -574,11 +580,8 @@ main() {
     };
     vk::descriptor_layout set0_layout = {
         .slot = 0,                     // indicate that this is descriptor set 0
-        .allocate_count = image_count, // the count how many descriptor
                                        // set layout able to be allocated
         .max_sets = image_count, // max of descriptor sets able to allocate
-        .size_bytes =
-          sizeof(global_uniform), // size of bytes of the uniforms utilized by
                                   // this descriptor sets
         .entries = entries,       // specifies pool sizes and descriptor layout
     };
@@ -608,11 +611,22 @@ main() {
     vk::uniform_buffer test_ubo =
       vk::uniform_buffer(logical_device, test_ubo_info);
     std::println("uniform_buffer.alive() = {}", test_ubo.alive());
+
+    std::array<vk::write_buffer, 1> write_buffers = {
+        vk::write_buffer{
+            .buffer = test_ubo,
+            .offset = 0,
+            .range = test_ubo.size_bytes()
+        }
+    };
+
     std::array<vk::write_buffer_descriptor, 1> uniforms = {
-        vk::write_buffer_descriptor{ .dst_binding = 0,
-                                     .buffer = test_ubo,
-                                     .offset = 0,
-                                     .range = test_ubo.size_bytes() }
+        vk::write_buffer_descriptor{
+            .dst_binding = 0,
+            .buffer = test_ubo,
+            .offset = 0,
+            .range = test_ubo.size_bytes()
+        }
     };
 
     // Loading a texture -- for testing
@@ -622,11 +636,21 @@ main() {
     };
     vk::texture texture1(logical_device, config_texture);
 
+    std::array<vk::write_image, 1> write_images = {
+        vk::write_image{
+            .sampler = texture1.image().sampler(),
+            .view = texture1.image().image_view(),
+            .image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+        }
+    };
+
     // Moving update call here because now we add textures to set0
     std::array<vk::write_image_descriptor, 1> sample_images = {
-        vk::write_image_descriptor{ .dst_binding = 1,
-                                    .view = texture1.image().image_view(),
-                                    .sampler = texture1.image().sampler() }
+        vk::write_image_descriptor{
+            .dst_binding = 1,
+            .sampler = texture1.image().sampler(),
+            .view = texture1.image().image_view(),
+        }
     };
     set0_resource.update(uniforms, sample_images);
 
@@ -685,8 +709,7 @@ main() {
         // before making any of the draw calls Something to note: You cannot
         // update descriptor sets in the process of a current-recording command
         // buffers or else that becomes undefined behavior
-        set0_resource.bind(
-          current, current_frame, main_graphics_pipeline.layout());
+        set0_resource.bind(current, main_graphics_pipeline.layout());
 
         // Drawing-call to render actual triangle to the screen
         // vkCmdDrawIndexed(current, static_cast<uint32_t>(indices.size()), 1,

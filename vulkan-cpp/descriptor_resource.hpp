@@ -13,9 +13,7 @@ namespace vk {
      */
     struct descriptor_layout {
         uint32_t slot = 0;
-        uint32_t allocate_count = 0;
         uint32_t max_sets = 0;
-        uint32_t size_bytes = 0;
         std::span<descriptor_entry> entries;
     };
 
@@ -26,12 +24,9 @@ namespace vk {
                             const descriptor_layout& p_info);
 
         void bind(const VkCommandBuffer& p_current,
-                  uint32_t p_frame_idx,
                   const VkPipelineLayout& p_layout);
-
-        void update(
-          std::span<write_buffer_descriptor> p_uniforms,
-          std::span<write_image_descriptor> p_texture_image_handles = {});
+        
+        void update(std::span<const write_buffer_descriptor> p_uniforms, std::span<const write_image_descriptor> p_images={});
 
         [[nodiscard]] VkDescriptorSetLayout layout() const {
             return m_descriptor_layout;
@@ -42,11 +37,9 @@ namespace vk {
     private:
         VkDevice m_device = nullptr;
         uint32_t m_slot;
-        uint32_t m_size_bytes = 0;
-        uint32_t m_allocated_count = 0;
         VkDescriptorPool m_descriptor_pool = nullptr;
         VkDescriptorSetLayout m_descriptor_layout = nullptr;
-        std::vector<VkDescriptorSet> m_descriptor_sets{};
+        VkDescriptorSet m_descriptor_set = nullptr;
     };
 
 };

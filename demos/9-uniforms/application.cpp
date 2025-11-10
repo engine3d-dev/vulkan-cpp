@@ -429,12 +429,7 @@ main() {
     // Setting up descriptor set layout for the set0
     vk::descriptor_layout set0_layout = {
         .slot = 0,                     // indicate that this is descriptor set 0
-        .allocate_count = image_count, // the count how many descriptor
-                                       // set layout able to be allocated
         .max_sets = image_count, // max of descriptor sets able to allocate
-        .size_bytes =
-          sizeof(global_uniform), // size of bytes of the uniforms utilized by
-                                  // this descriptor sets
         .entries = entries,       // specifies pool sizes and descriptor layout
     };
 
@@ -570,7 +565,7 @@ main() {
         // update descriptor sets in the process of a current-recording command
         // buffers or else that becomes undefined behavior
         set0_resource.bind(
-          current, current_frame, main_graphics_pipeline.layout());
+          current, main_graphics_pipeline.layout());
 
         // Drawing-call to render actual triangle to the screen
         // vkCmdDraw(current, 3, 1, 0, 0);

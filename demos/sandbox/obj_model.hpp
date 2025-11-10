@@ -1,4 +1,5 @@
 #define GLM_FORCE_RADIANS
+#include <cstddef>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
@@ -36,7 +37,7 @@ namespace std {
 class obj_model {
 public:
     obj_model() = default;
-    obj_model(const std::filesystem::path& p_filename, const VkDevice& p_device, const vk::physical_device& p_physical) {
+    obj_model(const std::filesystem::path& p_filename, const VkDevice& p_device, const vk::physical_device& p_physical, bool p_flip=false) {
         tinyobj::attrib_t attrib;
         std::vector<tinyobj::shape_t> shapes;
         std::vector<tinyobj::material_t> materials;
@@ -63,11 +64,15 @@ public:
         std::vector<uint32_t> indices;
         std::unordered_map<vk::vertex_input, uint32_t> unique_vertices{};
 
-        for (const auto& shape : shapes) {
-            for (const auto& index : shape.mesh.indices) {
-                vk::vertex_input vertex{};
+        std::println("p_flip = {}", p_flip);
 
-                // vertices.push_back(vertex);
+        for(size_t i = 0; i < shapes.size(); i++) {
+            auto shape = shapes[i];
+            // for (const auto& index : shape.mesh.indices) {
+            for(size_t j = 0; j < shape.mesh.indices.size(); j++) {
+                auto index = shape.mesh.indices[j];
+                ::vk::vertex_input vertex{};
+
                 if (!unique_vertices.contains(vertex)) {
                     unique_vertices[vertex] =
                       static_cast<uint32_t>(vertices.size());
@@ -88,19 +93,34 @@ public:
                     };
                 }
 
-                if (index.normal_index >= 0) {
+                if (!attrib.normals.empty()) {
                     vertex.normals = {
                         attrib.normals[3 * index.normal_index + 0],
                         attrib.normals[3 * index.normal_index + 1],
                         attrib.normals[3 * index.normal_index + 2]
                     };
                 }
-
-                if (index.texcoord_index >= 0) {
-                    vertex.uv = {
-                        attrib.texcoords[2 * index.texcoord_index + 0],
-                        1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
+                if(!attrib.texcoords.empty()) {
+                    glm::vec2 flipped_uv = {
+                        attrib.texcoords[static_cast<long long>(index.texcoord_index) * 2],
+                        1.0f - attrib.texcoords[static_cast<long long>(index.texcoord_index) * 2 + 1],
                     };
+
+                    glm::vec2 original_uv = {
+                        attrib.texcoords[static_cast<long long>(index.texcoord_index) * 2],
+                        attrib.texcoords[static_cast<long long>(index.texcoord_index) * 2 + 1],
+                    };
+
+                    // vertex.uv = m_flip ? flipped_uv : original_uv;
+                    if(p_flip) {
+                        vertex.uv = flipped_uv;
+                    }
+                    else {
+                        vertex.uv = original_uv;
+                    }
+                }
+                else {
+                    vertex.uv = glm::vec2(0.f, 0.f);
                 }
 
                 if (!unique_vertices.contains(vertex)) {

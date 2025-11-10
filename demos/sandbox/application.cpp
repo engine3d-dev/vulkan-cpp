@@ -77,6 +77,16 @@ initialize_instance_extensions() {
     return extension_names;
 }
 
+
+struct global_ubo {
+    glm::mat4 proj_view;
+};
+
+struct geometry_ubo {
+    glm::mat4 model;
+    glm::vec4 color;
+};
+
 int
 main() {
     //! @note Just added the some test code to test the conan-starter setup code
@@ -377,7 +387,53 @@ main() {
     // Setting up descriptor sets for graphics pipeline
     std::vector<vk::descriptor_entry> entries = {
     vk::descriptor_entry{
-            // specifies "layout (set = 0, binding = 0) uniform GlobalUbo"
+            // specifies "layout (set = 0, binding = 0) uniform UniformBufferObject"
+            .type = vk::buffer::uniform,
+            .binding_point = {
+                .binding = 0,
+                .stage = vk::shader_stage::vertex,
+            },
+            .descriptor_count = 1,
+        }
+    };
+    // uint32_t image_count = image_count;
+    vk::descriptor_layout set0_layout = {
+        .slot = 0, // indicate that this is descriptor set 0
+        .max_sets = image_count, // max of descriptor sets able to allocate
+        .entries = entries,      // specifies pool sizes and descriptor layout
+    };
+    vk::descriptor_resource set0_resource(logical_device, set0_layout);
+
+    // Loading mesh
+    obj_model test_model(std::filesystem::path("asset_samples/backpack/backpack.obj"), logical_device, physical_device);
+    // obj_model test_model(std::filesystem::path("asset_samples/viking_room.obj"), logical_device, physical_device, true);
+
+    // Setting up descriptor sets for handling uniforms
+    vk::uniform_buffer_info global_uniform_info = {
+        .phsyical_memory_properties = physical_device.memory_properties(),
+        .size_bytes = sizeof(global_ubo)
+    };
+    vk::uniform_buffer global_uniforms = vk::uniform_buffer(logical_device, global_uniform_info);
+
+    std::array<vk::write_buffer, 1> set0_buffers = {
+        vk::write_buffer{
+            .buffer = global_uniforms,
+            .offset = 0,
+            .range = global_uniforms.size_bytes()
+        }
+    };
+    std::array<vk::write_buffer_descriptor, 1> uniforms = {
+        vk::write_buffer_descriptor{
+            .dst_binding = 0,
+            .uniforms = set0_buffers
+        }
+    };
+
+    set0_resource.update(uniforms);
+
+    std::vector<vk::descriptor_entry> set1_entries = {
+    vk::descriptor_entry{
+            // specifies "layout (set = 1, binding = 0) uniform geometry_ubo"
             .type = vk::buffer::uniform,
             .binding_point = {
                 .binding = 0,
@@ -386,28 +442,104 @@ main() {
             .descriptor_count = 1,
         },
         vk::descriptor_entry{
-            // layout (set = 0, binding = 1) uniform sampler2D
+            // layout (set = 1, binding = 1) uniform sampler2D
             .type = vk::buffer::combined_image_sampler,
             .binding_point = {
                 .binding = 1,
                 .stage = vk::shader_stage::fragment,
             },
-            .descriptor_count = 1,
+            .descriptor_count = 1, 
+        },
+        vk::descriptor_entry{
+            // layout (set = 1, binding = 2) uniform sampler2D
+            .type = vk::buffer::combined_image_sampler,
+            .binding_point = {
+                .binding = 2,
+                .stage = vk::shader_stage::fragment,
+            },
+            .descriptor_count = 1, 
         }
     };
     // uint32_t image_count = image_count;
-    vk::descriptor_layout set0_layout = {
-        .slot = 0, // indicate that this is descriptor set 0
-        .allocate_count = image_count, // the count how many descriptor
-                                            // set layout able to be allocated
+    vk::descriptor_layout set1_layout = {
+        .slot = 1, // indicate that this is descriptor set 0
         .max_sets = image_count, // max of descriptor sets able to allocate
-        .size_bytes = sizeof(global_uniform), // size of bytes of the uniforms utilized by this descriptor sets
-        .entries = entries,      // specifies pool sizes and descriptor layout
+        .entries = set1_entries
     };
-    vk::descriptor_resource set0_resource(logical_device, set0_layout);
+    
+    vk::descriptor_resource set1 = vk::descriptor_resource(logical_device, set1_layout);
 
-    std::array<VkDescriptorSetLayout, 1> layouts = {
-        set0_resource.layout()
+    vk::uniform_buffer_info geo_uniform_info = {
+        .phsyical_memory_properties = physical_device.memory_properties(),
+        .size_bytes = sizeof(geometry_ubo)
+    };
+    vk::uniform_buffer geometry_uniform = vk::uniform_buffer(logical_device, geo_uniform_info);
+
+    std::array<vk::write_buffer, 1> buffers = {
+        vk::write_buffer{
+            .buffer = geometry_uniform,
+            .offset = 0,
+            .range = geometry_uniform.size_bytes()
+        }
+    };
+    std::array<vk::write_buffer_descriptor, 1> write_set1_buffers = {
+        vk::write_buffer_descriptor{
+            .dst_binding = 0,
+            .uniforms = buffers
+        }
+    };
+
+    // Loading a texture -- for testing
+    vk::texture_info diffuse_config = {
+        .phsyical_memory_properties = physical_device.memory_properties(),
+        .filepath = std::filesystem::path("asset_samples/backpack/diffuse.jpg")
+        // .filepath = std::filesystem::path("asset_samples/viking_room.png")
+    };
+    vk::texture diffuse_texture(logical_device, diffuse_config);
+
+    vk::texture_info config_texture = {
+        .phsyical_memory_properties = physical_device.memory_properties(),
+        .filepath = std::filesystem::path("asset_samples/backpack/specular.jpg")
+    };
+    vk::texture specular_texture(logical_device, config_texture);
+
+    // layout(set = 1, binding = 1) uniform sampler2D
+    std::array<vk::write_image, 1> binding1_images = {
+        vk::write_image{
+            .sampler = diffuse_texture.image().sampler(),
+            .view = diffuse_texture.image().image_view(),
+            .image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+        },
+    };
+
+    std::array<vk::write_image, 1> binding2_images2 = {
+        vk::write_image{
+            .sampler = specular_texture.image().sampler(),
+            .view = specular_texture.image().image_view(),
+            .image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+        }
+    };
+
+    std::vector<vk::write_image_descriptor> sample_images = {
+        // layout(set = 1, binding = 1) uniform sampler2D
+        vk::write_image_descriptor{
+            .dst_binding = 1,
+            .sample_images = binding1_images
+        },
+        // layout(set = 1, binding = 2) uniform sampler2D
+        vk::write_image_descriptor{
+            .dst_binding = 2,
+            .sample_images = binding2_images2
+        }
+    };
+    set1.update(write_set1_buffers, sample_images);
+
+
+
+
+    std::array<VkDescriptorSetLayout, 2> layouts = {
+        set0_resource.layout(),
+        set1.layout()
     };
 
 	/*
@@ -423,41 +555,6 @@ main() {
         .descriptor_layouts = layouts
 	};
 	vk::pipeline main_graphics_pipeline(logical_device, pipeline_configuration);
-
-    // Loading mesh
-    obj_model test_model(std::filesystem::path("asset_samples/viking_room.obj"), logical_device, physical_device);
-
-    // Setting up descriptor sets for handling uniforms
-    vk::uniform_buffer_info global_uniform_info = {
-        .phsyical_memory_properties = physical_device.memory_properties(),
-        .size_bytes = sizeof(global_uniform)
-    };
-    vk::uniform_buffer global_uniforms = vk::uniform_buffer(logical_device, global_uniform_info);
-    std::array<vk::write_buffer_descriptor, 1> uniforms = {
-        vk::write_buffer_descriptor{
-            .dst_binding = 0,
-            .buffer = global_uniforms,
-            .offset = 0,
-            .range = global_uniforms.size_bytes()
-        }
-    };
-
-    // Loading a texture -- for testing
-    vk::texture_info config_texture = {
-        .phsyical_memory_properties = physical_device.memory_properties(),
-        .filepath = std::filesystem::path("asset_samples/viking_room.png")
-    };
-    vk::texture texture1(logical_device, config_texture);
-
-    // Moving update call here because now we add textures to set0
-    std::array<vk::write_image_descriptor, 1> sample_images = {
-        vk::write_image_descriptor{
-            .dst_binding = 1,
-            .view = texture1.image().image_view(),
-            .sampler = texture1.image().sampler()
-        }
-    };
-    set0_resource.update(uniforms, sample_images);
 
 
     /*
@@ -539,17 +636,37 @@ main() {
         float time = std::chrono::duration<float, std::chrono::seconds::period>(current_time - start_time).count();
 
         // We set the uniforms and then we offload that to the GPU
-        global_uniform ubo = {
-            .model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
-            .view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
-            .proj = glm::perspective(glm::radians(45.0f), (float)swapchain_extent.width / (float)swapchain_extent.height, 0.1f, 10.0f)
+        glm::mat4 view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f),glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        glm::mat4 proj = glm::perspective(glm::radians(45.0f),(float)swapchain_extent.width / (float)swapchain_extent.height, 0.1f, 10.0f);
+
+        glm::mat4 proj_view = proj * view;
+        proj[1][1] *= -1;
+
+        glm::mat4 model_test = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
+        global_ubo uniform = {
+            .proj_view = proj * view
         };
-        ubo.proj[1][1] *= -1;
-        global_uniforms.update(&ubo);
+
+        geometry_ubo uniform_geometry = {
+            .model = model_test,
+            .color = glm::vec4(1.f, 1.f, 1.f, 1.f)
+        };
+
+        // global_uniform ubo = {
+        //     .model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+        //     .view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+        //     .proj = glm::perspective(glm::radians(45.0f), (float)swapchain_extent.width / (float)swapchain_extent.height, 0.1f, 10.0f)
+        // };
+        // ubo.proj[1][1] *= -1;
+        global_uniforms.update(&uniform);
+
+        geometry_uniform.update(&uniform_geometry);
 
         // Before we can send stuff to the GPU, since we already updated the descriptor set 0 beforehand, we must bind that descriptor resource before making any of the draw calls
         // Something to note: You cannot update descriptor sets in the process of a current-recording command buffers or else that becomes undefined behavior
-        set0_resource.bind(current, current_frame, main_graphics_pipeline.layout());
+        set0_resource.bind(current, main_graphics_pipeline.layout());
+        set1.bind(current, main_graphics_pipeline.layout());
 
         // Draw call here
         test_model.draw(current);
@@ -570,9 +687,12 @@ main() {
     logical_device.wait();
     main_swapchain.destroy();
 
-    texture1.destroy();
+    diffuse_texture.destroy();
+    specular_texture.destroy();
     set0_resource.destroy();
+    set1.destroy();
     global_uniforms.destroy();
+    geometry_uniform.destroy();
     test_model.destroy();
 
     for (auto& command : swapchain_command_buffers) {
