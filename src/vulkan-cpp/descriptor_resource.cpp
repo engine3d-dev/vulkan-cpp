@@ -201,15 +201,24 @@ namespace vk {
 		*/
 
 		std::vector<VkWriteDescriptorSet> write_descriptors;
-		std::vector<VkDescriptorBufferInfo> buffer_infos;
-		std::vector<VkDescriptorImageInfo> image_infos;
+		m_buffer_infos.clear();
+		m_image_infos.clear();
 
 		for(size_t i = 0; i < p_uniforms.size(); i++) {
 			auto object = p_uniforms[i];
+			m_buffer_infos.resize(object.uniforms.size());
+			std::println("buffer dst_binding = {}", object.dst_binding);
 
 			for(size_t j = 0; j < object.uniforms.size(); j++) {
 				auto ubo = object.uniforms[j];
-				buffer_infos.emplace_back(ubo.buffer, ubo.offset, ubo.range);
+				VkDescriptorBufferInfo buffer_info = {
+					.buffer = ubo.buffer,
+					.offset = ubo.offset,
+					.range = ubo.range
+				};
+				// m_buffer_infos.push_back(buffer_info);
+				m_buffer_infos[j] = buffer_info;
+				// m_buffer_infos.emplace_back(ubo.buffer, ubo.offset, ubo.range);
 			}
 
 			VkWriteDescriptorSet write_descriptor = {
@@ -218,20 +227,26 @@ namespace vk {
                 .dstSet = m_descriptor_set,
                 .dstBinding = object.dst_binding,
                 .dstArrayElement = 0,
-                .descriptorCount = static_cast<uint32_t>(buffer_infos.size()),
+                .descriptorCount = static_cast<uint32_t>(m_buffer_infos.size()),
                 .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                .pBufferInfo = buffer_infos.data(),
+                .pBufferInfo = m_buffer_infos.data(),
             };
 
-			write_descriptors.emplace_back(write_descriptor);
+			write_descriptors.push_back(write_descriptor);
 		}
 
 		for(size_t i = 0; i < p_images.size(); i++) {
 			auto object = p_images[i];
+			m_image_infos.resize(object.sample_images.size());
 
-			for(size_t j = 0; j < object.sample_images.size(); j++) {
+			for(size_t j = 0; j < m_image_infos.size(); j++) {
 				auto ubo = object.sample_images[j];
-				image_infos.emplace_back(ubo.sampler, ubo.view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+				VkDescriptorImageInfo image_info = {
+					.sampler = ubo.sampler,
+					.imageView = ubo.view,
+					.imageLayout = ubo.image_layout
+				};
+				m_image_infos[j] = image_info;
 			}
 
 			VkWriteDescriptorSet write_descriptor = {
@@ -240,12 +255,12 @@ namespace vk {
                 .dstSet = m_descriptor_set,
                 .dstBinding = object.dst_binding,
                 .dstArrayElement = 0,
-                .descriptorCount = static_cast<uint32_t>(image_infos.size()),
+                .descriptorCount = static_cast<uint32_t>(m_image_infos.size()),
                 .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                .pImageInfo = image_infos.data(),
+                .pImageInfo = m_image_infos.data(),
             };
 
-			write_descriptors.emplace_back(write_descriptor);
+			write_descriptors.push_back(write_descriptor);
 		}
 
         vkUpdateDescriptorSets(
