@@ -470,16 +470,6 @@ main() {
     };
     vk::uniform_buffer geometry_uniform = vk::uniform_buffer(logical_device, geo_uniform_info);
 
-    /*
-    std::array<vk::write_buffer_descriptor, 1> write_set1_buffers = {
-        vk::write_buffer_descriptor{
-            .dst_binding = 0,
-            .buffer = geometry_uniform,
-            .offset = 0,
-            .range = geometry_uniform.size_bytes()
-        }
-    };
-    */
     std::array<vk::write_buffer, 1> buffers = {
         vk::write_buffer{
             .buffer = geometry_uniform,
@@ -508,15 +498,6 @@ main() {
     };
     vk::texture specular_texture(logical_device, config_texture);
 
-    /*
-    std::array<vk::write_image_descriptor, 1> sample_images = {
-        vk::write_image_descriptor{
-            .dst_binding = 1,
-            .sampler = texture1.image().sampler(),
-            .view = texture1.image().image_view(),
-        }
-    };
-    */
     // layout(set = 1, binding = 1) uniform sampler2D
     std::array<vk::write_image, 1> binding1_images = {
         vk::write_image{
