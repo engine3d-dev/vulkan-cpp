@@ -415,12 +415,17 @@ main() {
     };
     vk::uniform_buffer global_uniforms = vk::uniform_buffer(logical_device, global_uniform_info);
 
-    std::array<vk::write_buffer_descriptor, 1> uniforms = {
-        vk::write_buffer_descriptor{
-            .dst_binding = 0,
+    std::array<vk::write_buffer, 1> set0_buffers = {
+        vk::write_buffer{
             .buffer = global_uniforms,
             .offset = 0,
             .range = global_uniforms.size_bytes()
+        }
+    };
+    std::array<vk::write_buffer_descriptor, 1> uniforms = {
+        vk::write_buffer_descriptor{
+            .dst_binding = 0,
+            .uniforms = set0_buffers
         }
     };
 
@@ -477,8 +482,8 @@ main() {
             .range = geometry_uniform.size_bytes()
         }
     };
-    std::array<vk::write_buffer_descriptor2, 1> write_set1_buffers = {
-        vk::write_buffer_descriptor2{
+    std::array<vk::write_buffer_descriptor, 1> write_set1_buffers = {
+        vk::write_buffer_descriptor{
             .dst_binding = 0,
             .uniforms = buffers
         }
@@ -515,14 +520,14 @@ main() {
         }
     };
 
-    std::vector<vk::write_image_descriptor2> sample_images = {
+    std::vector<vk::write_image_descriptor> sample_images = {
         // layout(set = 1, binding = 1) uniform sampler2D
-        vk::write_image_descriptor2{
+        vk::write_image_descriptor{
             .dst_binding = 1,
             .sample_images = binding1_images
         },
         // layout(set = 1, binding = 2) uniform sampler2D
-        vk::write_image_descriptor2{
+        vk::write_image_descriptor{
             .dst_binding = 2,
             .sample_images = binding2_images2
         }

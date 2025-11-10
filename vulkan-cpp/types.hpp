@@ -659,25 +659,12 @@ namespace vk {
         uint32_t range=0;
     };
 
-    struct write_image_descriptor {
-        uint32_t dst_binding;
-        VkSampler sampler = nullptr;
-        VkImageView view;
-    };
-
     struct write_buffer_descriptor {
-        uint32_t dst_binding;
-        VkBuffer buffer = nullptr;
-        uint32_t offset;
-        uint32_t range;
-    };
-
-    struct write_buffer_descriptor2 {
         uint32_t dst_binding;
         std::span<const write_buffer> uniforms;
     };
 
-    struct write_image_descriptor2 {
+    struct write_image_descriptor {
         uint32_t dst_binding;
         std::span<const write_image> sample_images;
     };
