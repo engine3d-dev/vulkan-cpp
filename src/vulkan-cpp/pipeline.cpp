@@ -202,10 +202,14 @@ namespace vk {
           "vkCreateGraphicsPipelines");
     }
 
-    void pipeline::bind(const VkCommandBuffer& p_command) {
+    void pipeline::bind(const VkCommandBuffer& p_command, pipeline_bind_point p_bind_point) {
         vkCmdBindPipeline(
-          p_command, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+          p_command, static_cast<VkPipelineBindPoint>(p_bind_point), m_pipeline);
     }
+
+	void pipeline::push_constant(const VkCommandBuffer& p_current, shader_stage p_stage, uint32_t p_offset, uint32_t p_range, const void* p_data) {
+		vkCmdPushConstants(p_current, m_pipeline_layout, static_cast<VkShaderStageFlags>(p_stage), p_offset, p_range, p_data);
+	}
 
     void pipeline::destroy() {
         if (m_pipeline_layout != nullptr) {

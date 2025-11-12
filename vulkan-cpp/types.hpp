@@ -383,13 +383,13 @@ namespace vk {
     };
 
     //! @brief Equivalent to VkPipelineBindPoint
-    enum class pipeline_bind_point : uint8_t {
-        graphics = 0,           // VK_PIPELINE_BIND_POINT_GRAPHICS
-        compute = 1,            // VK_PIPELINE_BIND_POINT_COMPUTE
-        ray_tracing_khr,        // VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR
-        subpass_shading_hauwei, // VK_PIPELINE_BIND_POINT_SUBPASS_SHADING_HUAWEI
-        ray_tracing_nv,         // VK_PIPELINE_BIND_POINT_RAY_TRACING_NV
-        max_enum                // VK_PIPELINE_BIND_POINT_MAX_ENUM
+    enum class pipeline_bind_point : uint64_t {
+        graphics = VK_PIPELINE_BIND_POINT_GRAPHICS,                             // VK_PIPELINE_BIND_POINT_GRAPHICS
+        compute = VK_PIPELINE_BIND_POINT_COMPUTE,                               // VK_PIPELINE_BIND_POINT_COMPUTE
+        ray_tracing_khr = VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR,               // VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR
+        subpass_shading_hauwei = VK_PIPELINE_BIND_POINT_SUBPASS_SHADING_HUAWEI, // VK_PIPELINE_BIND_POINT_SUBPASS_SHADING_HUAWEI
+        ray_tracing_nv = VK_PIPELINE_BIND_POINT_RAY_TRACING_NV,                 // VK_PIPELINE_BIND_POINT_RAY_TRACING_NV
+        max_enum = VK_PIPELINE_BIND_POINT_MAX_ENUM                              // VK_PIPELINE_BIND_POINT_MAX_ENUM
     };
 
     /**
