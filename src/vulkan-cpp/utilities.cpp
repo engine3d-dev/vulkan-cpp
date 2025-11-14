@@ -453,8 +453,8 @@ namespace vk {
                 return VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR;
             case pipeline_bind_point::subpass_shading_hauwei:
                 return VK_PIPELINE_BIND_POINT_SUBPASS_SHADING_HUAWEI;
-            case pipeline_bind_point::ray_tracing_nv:
-                return VK_PIPELINE_BIND_POINT_RAY_TRACING_NV;
+            // case pipeline_bind_point::ray_tracing_nv:
+            //     return VK_PIPELINE_BIND_POINT_RAY_TRACING_NV;
             case pipeline_bind_point::max_enum:
                 return VK_PIPELINE_BIND_POINT_MAX_ENUM;
             default:
