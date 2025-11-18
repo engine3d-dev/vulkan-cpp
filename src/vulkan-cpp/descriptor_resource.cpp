@@ -131,6 +131,10 @@ namespace vk {
             write_descriptors.data(),
             0,
             nullptr);
+        
+        // Ensures to clear up so we dont have any existing handles because they only need to exist until we've updated the descriptors
+        buffer_infos.clear();
+        image_infos.clear();
 	}
 
     void descriptor_resource::bind(const VkCommandBuffer& p_current,

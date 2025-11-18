@@ -15,6 +15,8 @@ namespace vk {
             .physical_memory_properties = p_info.phsyical_memory_properties,
             .property_flags = (memory_property)property_flags,
             .usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+			.debug_name = p_info.debug_name.c_str(),
+            .vkSetDebugUtilsObjectNameEXT = p_info.vkSetDebugUtilsObjectNameEXT
         };
 
         m_index_buffer = buffer_handler(m_device, index_buffer_settings);

@@ -3,6 +3,7 @@
 #include <vulkan-cpp/instance.hpp>
 #include <vulkan-cpp/utilities.hpp>
 #include <vector>
+#include <print>
 
 namespace vk {
 
@@ -76,6 +77,11 @@ namespace vk {
 #endif
         vk_check(vkCreateInstance(&instance_ci, nullptr, &m_instance),
                  "vkCreateInstance");
+        
+#if _DEBUG
+        // This needs to be created after the VkInstance is or else it wont be applied the debug information during validation layer error message execution
+        m_vk_set_debug_utils_object_name_ext = reinterpret_cast<PFN_vkSetDebugUtilsObjectNameEXT>(vkGetInstanceProcAddr(m_instance, "vkSetDebugUtilsObjectNameEXT"));
+#endif
     }
 
     void instance::destroy() {

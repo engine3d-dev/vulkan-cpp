@@ -612,17 +612,23 @@ namespace vk {
     struct vertex_buffer_settings {
         VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
         std::span<vertex_input> vertices;
+        std::string debug_name;
+        PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT = nullptr;
     };
 
     struct index_buffer_settings {
         VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
         std::span<uint32_t> indices;
+        std::string debug_name;
+        PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT = nullptr;
     };
 
     struct uniform_buffer_info {
         // VkPhysicalDevice physical_handle=nullptr;
         VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
         uint32_t size_bytes = 0;
+        std::string debug_name;
+        PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT = nullptr;
     };
 
     struct descriptor_binding_point {
@@ -699,6 +705,8 @@ namespace vk {
         memory_property property_flags;
         VkBufferUsageFlags usage;
         VkSharingMode share_mode = VK_SHARING_MODE_EXCLUSIVE;
+        const char* debug_name="NA";
+        PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT = nullptr;
     };
 
     // Used by vk::copy(const VkCommandBuffer& p_current,  )

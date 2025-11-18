@@ -29,6 +29,19 @@ namespace vk {
             return m_layer_properties;
         }
 
+        /**
+         * @brief returns function pointer to allow for setting debug object name
+         * 
+         * 
+         * This allows for utilizing vkSetDebugUtilsObjectNameEXT during debug builds
+         * 
+         * This allows for setting up object names that is useful to the programmer when a validation layer error message occurs unexpectedly
+         * 
+        */
+        [[nodiscard]] PFN_vkSetDebugUtilsObjectNameEXT get_debug_object_name() const {
+            return m_vk_set_debug_utils_object_name_ext;
+        }
+
         operator VkInstance() { return m_instance; }
 
         operator VkInstance() const { return m_instance; }
@@ -39,5 +52,7 @@ namespace vk {
     private:
         VkInstance m_instance = nullptr;
         std::vector<layer_properties> m_layer_properties{};
+        // This needs to be set or else it becomes nullptr
+        PFN_vkSetDebugUtilsObjectNameEXT m_vk_set_debug_utils_object_name_ext;
     };
 };

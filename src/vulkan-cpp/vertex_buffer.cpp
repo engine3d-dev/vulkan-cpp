@@ -23,6 +23,8 @@ namespace vk {
             .property_flags = (memory_property)property_flags,
             .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT |
                      VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+			.debug_name = p_vertex_info.debug_name.c_str(),
+            .vkSetDebugUtilsObjectNameEXT = p_vertex_info.vkSetDebugUtilsObjectNameEXT
         };
         buffer_handler staging_buffer(m_device, new_staging_buffer_settings);
         std::span<const vertex_input> vertices = p_vertex_info.vertices;

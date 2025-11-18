@@ -15,6 +15,8 @@ namespace vk {
               p_uniform_info.phsyical_memory_properties,
             .property_flags = (memory_property)property_flags,
             .usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            .debug_name = p_uniform_info.debug_name.c_str(),
+            .vkSetDebugUtilsObjectNameEXT = p_uniform_info.vkSetDebugUtilsObjectNameEXT
         };
         m_uniform_handle = buffer_handler(m_device, uniform_info);
     }
