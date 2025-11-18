@@ -48,6 +48,7 @@ initialize_instance_extensions() {
     std::vector<const char*> extension_names;
 
     extension_names.emplace_back(VK_KHR_SURFACE_EXTENSION_NAME);
+    extension_names.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
     // An additional surface extension needs to be loaded. This extension is
     // platform-specific so needs to be selected based on the platform the
@@ -411,7 +412,9 @@ main() {
     // Setting up descriptor sets for handling uniforms
     vk::uniform_buffer_info global_uniform_info = {
         .phsyical_memory_properties = physical_device.memory_properties(),
-        .size_bytes = sizeof(global_ubo)
+        .size_bytes = sizeof(global_ubo),
+        .debug_name = "\nglobal_uniforms\n",
+        .vkSetDebugUtilsObjectNameEXT = api_instance.get_debug_object_name()
     };
     vk::uniform_buffer global_uniforms = vk::uniform_buffer(logical_device, global_uniform_info);
 
@@ -691,7 +694,7 @@ main() {
     specular_texture.destroy();
     set0_resource.destroy();
     set1.destroy();
-    global_uniforms.destroy();
+    // global_uniforms.destroy();
     geometry_uniform.destroy();
     test_model.destroy();
 

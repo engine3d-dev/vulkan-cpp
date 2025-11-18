@@ -1,5 +1,6 @@
 #include <vulkan-cpp/buffer.hpp>
 #include <vulkan-cpp/utilities.hpp>
+#include <print>
 
 namespace vk {
 
@@ -39,6 +40,21 @@ namespace vk {
             .memoryTypeIndex = memory_index
         };
 
+#if _DEBUG
+        // 1. Define the structure
+        VkDebugUtilsObjectNameInfoEXT debug_info = {
+            .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
+            .pNext = nullptr,
+            .objectType = VK_OBJECT_TYPE_BUFFER,
+            .objectHandle = (uint64_t)m_handle, // specify vulkan to what object handle this is
+            .pObjectName = p_settings.debug_name // specify what type of buffer this is
+        };
+
+        if(p_settings.vkSetDebugUtilsObjectNameEXT != nullptr) {
+            // vkSetDebugUtilsObjectNameEXT(m_device, &debug_info);
+            p_settings.vkSetDebugUtilsObjectNameEXT(m_device, &debug_info);
+        }
+#endif
         vk_check(vkAllocateMemory(
                    p_device, &memory_alloc_info, nullptr, &m_device_memory),
                  "vkAllocateMemory");

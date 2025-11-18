@@ -383,13 +383,13 @@ namespace vk {
     };
 
     //! @brief Equivalent to VkPipelineBindPoint
-    enum class pipeline_bind_point : uint8_t {
-        graphics = 0,           // VK_PIPELINE_BIND_POINT_GRAPHICS
-        compute = 1,            // VK_PIPELINE_BIND_POINT_COMPUTE
-        ray_tracing_khr,        // VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR
-        subpass_shading_hauwei, // VK_PIPELINE_BIND_POINT_SUBPASS_SHADING_HUAWEI
-        ray_tracing_nv,         // VK_PIPELINE_BIND_POINT_RAY_TRACING_NV
-        max_enum                // VK_PIPELINE_BIND_POINT_MAX_ENUM
+    enum class pipeline_bind_point : uint64_t {
+        graphics = VK_PIPELINE_BIND_POINT_GRAPHICS,                             // VK_PIPELINE_BIND_POINT_GRAPHICS
+        compute = VK_PIPELINE_BIND_POINT_COMPUTE,                               // VK_PIPELINE_BIND_POINT_COMPUTE
+        ray_tracing_khr = VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR,               // VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR
+        subpass_shading_hauwei = VK_PIPELINE_BIND_POINT_SUBPASS_SHADING_HUAWEI, // VK_PIPELINE_BIND_POINT_SUBPASS_SHADING_HUAWEI
+        ray_tracing_nv = VK_PIPELINE_BIND_POINT_RAY_TRACING_NV,                 // VK_PIPELINE_BIND_POINT_RAY_TRACING_NV
+        max_enum = VK_PIPELINE_BIND_POINT_MAX_ENUM                              // VK_PIPELINE_BIND_POINT_MAX_ENUM
     };
 
     /**
@@ -612,17 +612,23 @@ namespace vk {
     struct vertex_buffer_settings {
         VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
         std::span<vertex_input> vertices;
+        std::string debug_name;
+        PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT = nullptr;
     };
 
     struct index_buffer_settings {
         VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
         std::span<uint32_t> indices;
+        std::string debug_name;
+        PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT = nullptr;
     };
 
     struct uniform_buffer_info {
         // VkPhysicalDevice physical_handle=nullptr;
         VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
         uint32_t size_bytes = 0;
+        std::string debug_name;
+        PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT = nullptr;
     };
 
     struct descriptor_binding_point {
@@ -699,6 +705,8 @@ namespace vk {
         memory_property property_flags;
         VkBufferUsageFlags usage;
         VkSharingMode share_mode = VK_SHARING_MODE_EXCLUSIVE;
+        const char* debug_name="NA";
+        PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT = nullptr;
     };
 
     // Used by vk::copy(const VkCommandBuffer& p_current,  )
