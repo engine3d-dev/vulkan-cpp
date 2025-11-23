@@ -176,7 +176,18 @@ namespace vk {
         m_only_destroy_image_view = true;
     }
 
+	/**
+	 * We shift 32-bits to the high 32-bits for the old layout and OR the new layout lsb 32-bits additional to the shifted 32-bits
+	 * 
+	 * This is to ensure the image layouts do not overlap and can be used to directly jump to set specific image loyouts rather then doing an if-statement originally to check for that
+	*/
+	static constexpr uint64_t image_layout(VkImageLayout p_old, VkImageLayout p_new) {
+		// Shift the old_layout into the high 32 bits, and combine with new_layout in the low 32 bits.
+		return (static_cast<uint64_t>(p_old) << 32) | static_cast<uint64_t>(p_new);
+	}
+
 	void sample_image::memory_barrier(const VkCommandBuffer& p_command, VkFormat p_format, VkImageLayout p_old, VkImageLayout p_new) {
+		/*
 		VkImageMemoryBarrier image_memory_barrier = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .pNext = nullptr,
@@ -326,6 +337,166 @@ namespace vk {
                              nullptr,
                              1,
                              &image_memory_barrier);
+		*/
+		// 1. Image Memory Barrier Initialization (using C++ Designated Initializers - C++20)
+		VkImageMemoryBarrier image_memory_barrier = {
+			.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+			.pNext = nullptr,
+			.srcAccessMask = 0,
+			.dstAccessMask = 0,
+			.oldLayout = p_old,
+			.newLayout = p_new,
+			.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+			.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+			.image = m_image,
+			.subresourceRange = { .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+								.baseMipLevel = 0,
+								.levelCount = 1,
+								.baseArrayLayer = 0,
+								.layerCount = 1 }
+		};
+
+		VkPipelineStageFlags source_stage = VK_PIPELINE_STAGE_NONE;
+		VkPipelineStageFlags dst_stages = VK_PIPELINE_STAGE_NONE;
+
+		// 2. Aspect Mask Logic (Keep as if/else, but use helper function)
+		if (p_new == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL || has_stencil_attachment(p_format)) {
+			
+			image_memory_barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+			// Assuming has_stencil_attachment(p_format) is defined elsewhere
+			// works as the same as the if-statement, leaving it here for testing purposes
+			// image_memory_barrier.subresourceRange.aspectMask |= has_stencil_attachment(p_format) ? VK_IMAGE_ASPECT_STENCIL_BIT : VK_IMAGE_ASPECT_DEPTH_BIT;
+			if (has_stencil_attachment(p_format)) {
+				image_memory_barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+			}
+		}
+		else {
+			image_memory_barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		}
+
+		// 3. Main Transition Logic using Combined Switch
+		const uint64_t current_layout = image_layout(p_old, p_new);
+
+		switch (current_layout) {
+			
+			// UNDEFINED -> SHADER_READ_ONLY_OPTIMAL
+			case image_layout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL): {
+				image_memory_barrier.srcAccessMask = 0;
+				image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+				source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+				dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+				break;
+			}
+
+			// UNDEFINED -> GENERAL
+			case image_layout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL): {
+				image_memory_barrier.srcAccessMask = 0;
+				image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+				source_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+				dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+				break;
+			}
+
+			// UNDEFINED -> TRANSFER_DST_OPTIMAL
+			case image_layout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL): {
+				image_memory_barrier.srcAccessMask = 0;
+				image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+				source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+				dst_stages = VK_PIPELINE_STAGE_TRANSFER_BIT;
+				break;
+			}
+			
+			// SHADER_READ_ONLY_OPTIMAL -> TRANSFER_DST_OPTIMAL (Convert back from read-only to transferr)
+			case image_layout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL): {
+				image_memory_barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+				image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+				source_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+				dst_stages = VK_PIPELINE_STAGE_TRANSFER_BIT;
+				break;
+			}
+
+			// TRANSFER_DST_OPTIMAL -> SHADER_READ_ONLY_OPTIMAL (Convert from updateable texture to shader read-only)
+			case image_layout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL): {
+				image_memory_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+				image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+				source_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+				dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+				break;
+			}
+
+			// UNDEFINED -> DEPTH_STENCIL_ATTACHMENT_OPTIMAL (Convert depth texture from undefined state)
+			case image_layout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL): {
+				image_memory_barrier.srcAccessMask = 0;
+				image_memory_barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+				source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+				dst_stages = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+				break;
+			}
+
+			// SHADER_READ_ONLY_OPTIMAL -> SHADER_READ_ONLY_OPTIMAL (Wait for render pass to complete - Note: This case is unusual but kept as per your original logic)
+			case image_layout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL): {
+				// Note: Your original code had conflicting re-assignments for source_stage/dst_stages here. 
+				// The last pair of assignments is used.
+				image_memory_barrier.srcAccessMask = 0; 
+				image_memory_barrier.dstAccessMask = 0;
+				source_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+				dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+				break;
+			}
+			
+			// SHADER_READ_ONLY_OPTIMAL -> COLOR_ATTACHMENT_OPTIMAL (Convert back from read-only to color attachment)
+			case image_layout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL): {
+				image_memory_barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+				image_memory_barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+				source_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+				dst_stages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+				break;
+			}
+			
+			// COLOR_ATTACHMENT_OPTIMAL -> SHADER_READ_ONLY_OPTIMAL (Convert from updateable color to shader read-only)
+			case image_layout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL): {
+				image_memory_barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+				image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+				source_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+				dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+				break;
+			}
+
+			// SHADER_READ_ONLY_OPTIMAL -> DEPTH_STENCIL_ATTACHMENT_OPTIMAL (Convert back from read-only to depth attachment)
+			case image_layout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL): {
+				image_memory_barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+				image_memory_barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+				source_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+				dst_stages = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+				break;
+			}
+
+			// DEPTH_STENCIL_ATTACHMENT_OPTIMAL -> SHADER_READ_ONLY_OPTIMAL (Convert from updateable depth texture to shader read-only)
+			case image_layout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL): {
+				image_memory_barrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+				image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+				source_stage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+				dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+				break;
+			}
+
+			default: {
+				// Unhandled Transition: A transition pair was given that is not explicitly handled.
+				// Depending on your requirements, you might want to log an error, assert, or do nothing.
+				// For now, we do nothing, leaving the access masks and stages at their initial values (0/NONE).
+				break;
+			}
+		}
+		
+		vkCmdPipelineBarrier(
+			p_command,
+			source_stage,
+			dst_stages,
+			0, // dependencyFlags
+			0, nullptr,
+			0, nullptr,
+			1, &image_memory_barrier);
 	}
 
     void sample_image::destroy() {
