@@ -21,12 +21,11 @@ namespace vk {
         /**
          * @brief performs vkCmdPipelineBarrier to handle transitioning image layouts
          * 
-         * Vulkan has this responsibility be bestowed on the writer of their applications.
-         * 
-         * @param p_command is the current command buffer to operate the actual image layout transitions
+         * @param p_command is the current command buffer to record the image layout transition
          * @param p_format is the image format to make sure if there is a depth format available then request the aspect mask to include the stencil bit
-         * @param p_old is the old image layout transition from
-         * @param p_new is the new image layout transition to.
+         * @param p_old is the source image layout transition from
+         * @param p_new is the destination image layout transition to.
+         * 
          * 
          * ```C++
          * 
