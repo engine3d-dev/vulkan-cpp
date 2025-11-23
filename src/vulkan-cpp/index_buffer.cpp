@@ -19,7 +19,7 @@ namespace vk {
             .vkSetDebugUtilsObjectNameEXT = p_info.vkSetDebugUtilsObjectNameEXT
         };
 
-        m_index_buffer = buffer_handler(m_device, index_buffer_settings);
+        m_index_buffer = buffer_streams(m_device, index_buffer_settings);
 
         std::span<const uint32_t> indices = p_info.indices;
         m_index_buffer.write(indices);

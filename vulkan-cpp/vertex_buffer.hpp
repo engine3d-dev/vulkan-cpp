@@ -1,7 +1,7 @@
 #pragma once
 #include <vulkan/vulkan.h>
 #include <vulkan-cpp/types.hpp>
-#include <vulkan-cpp/buffer.hpp>
+#include <vulkan-cpp/buffer_streams.hpp>
 
 namespace vk {
     /**
@@ -33,6 +33,6 @@ namespace vk {
         VkDevice m_device = nullptr;
         uint32_t m_size_bytes = 0;
         uint32_t m_size = 0;
-        buffer_handler m_vertex_handler;
+        buffer_streams m_vertex_handler;
     };
 };

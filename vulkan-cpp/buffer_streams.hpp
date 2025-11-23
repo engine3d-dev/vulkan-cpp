@@ -5,16 +5,15 @@
 namespace vk {
 
     /**
-     * @brief Represents a VkBuffer handler for creating generic-buffer handlers
-     *
-     * Creating vertex, index, and uniform buffers use this buffer class to
-     * create buffer handles. This buffer handle, will only accept writing data
-     * to it if requested but not up front
+     * @brief Represents a VkBuffer handler for creating VkBuffer handle
+	 * 
+	 * Purpose for using VkBuffer handle to streaming bytes of data into the GPU memory
+	 * 
      */
-    class buffer_handler {
+    class buffer_streams {
     public:
-        buffer_handler() = default;
-        buffer_handler(const VkDevice& p_device,
+        buffer_streams() = default;
+        buffer_streams(const VkDevice& p_device,
                        const buffer_settings& p_settings);
 
         /**
@@ -53,7 +52,7 @@ namespace vk {
          *
 		 * ```C++
 		 * 
-		 * buffer_handler texture_image(logical_device, ...);
+		 * buffer_streams texture_image(logical_device, ...);
 		 * 
 		 * texture_image.copy(temp_command_buffer, texture_image, texture_format, old_layout, new_layout);
 		 * ```
@@ -69,7 +68,7 @@ namespace vk {
 		 * 
 		 * ```C++
 		 * 
-		 * buffer_handler staging_buffer(logical_device, ...);
+		 * buffer_streams staging_buffer(logical_device, ...);
 		 * 
 		 * std::array<uint8_t, 4> white_color = { 0xFF, 0xFF, 0xFF, 0xFF };
 		 * staging_buffer.write(white_color);
