@@ -42,8 +42,39 @@ namespace vk {
         }
 
         /**
+         *
+         * @brief This function automatically assumes the destination image
+         * layout is going to be set to VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+         *
+         * @param p_command is the current command buffer to perform and store
+         * this operation into
+         * @param p_image is the destination to copy data from the buffer to
+         * @param p_extent is the size of the image that is being copied
+         *
+		 * ```C++
+		 * 
+		 * buffer_handler texture_image(logical_device, ...);
+		 * 
+		 * texture_image.copy(temp_command_buffer, texture_image, texture_format, old_layout, new_layout);
+		 * ```
+		 * 
+         */
+        void copy_to_image(const VkCommandBuffer& p_command,
+                           const VkImage& p_image,
+                           image_extent p_extent);
+
+        /**
          * @param p_data is the bytes to write into the GPU's memory through the
          * Vulkan vkMapMemory/vkUnmapMemory API's.
+		 * 
+		 * ```C++
+		 * 
+		 * buffer_handler staging_buffer(logical_device, ...);
+		 * 
+		 * std::array<uint8_t, 4> white_color = { 0xFF, 0xFF, 0xFF, 0xFF };
+		 * staging_buffer.write(white_color);
+		 * ```
+		 * 
          */
         void write(std::span<const uint8_t> p_data);
 

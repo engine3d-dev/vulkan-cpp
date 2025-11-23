@@ -74,6 +74,27 @@ namespace vk {
         vkUnmapMemory(m_device, m_device_memory);
     }
 
+    void buffer_handler::copy_to_image(const VkCommandBuffer& p_command, const VkImage& p_image, image_extent p_extent) {
+        VkBufferImageCopy buffer_image_copy = {
+            .bufferOffset = 0,
+            .bufferRowLength = 0,
+            .bufferImageHeight = 0,
+            .imageSubresource = { .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                                  .mipLevel = 0,
+                                  .baseArrayLayer = 0,
+                                  .layerCount = 1 },
+            .imageOffset = { .x = 0, .y = 0, .z = 0 },
+            .imageExtent = { .width = p_extent.width, .height = p_extent.height, .depth = 1 }
+        };
+
+        vkCmdCopyBufferToImage(p_command,
+                               m_handle,
+                               p_image,
+                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                               1,
+                               &buffer_image_copy);
+    }
+
     void buffer_handler::destroy() {
         if (m_handle != nullptr) {
             vkDestroyBuffer(m_device, m_handle, nullptr);
