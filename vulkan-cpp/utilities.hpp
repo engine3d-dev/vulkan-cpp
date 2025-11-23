@@ -110,6 +110,8 @@ namespace vk {
 
     bool has_depth_specified(image_layout p_layout);
 
+    bool has_stencil_attachment(VkFormat p_format);
+
     // TODO: Use this to do bitwise checks rather then; since this only does
     // switch-case statement checks
     VkMemoryPropertyFlags to_memory_property_flags(memory_property p_flag);
