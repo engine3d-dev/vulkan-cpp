@@ -482,9 +482,7 @@ namespace vk {
 			}
 
 			default: {
-				// Unhandled Transition: A transition pair was given that is not explicitly handled.
-				// Depending on your requirements, you might want to log an error, assert, or do nothing.
-				// For now, we do nothing, leaving the access masks and stages at their initial values (0/NONE).
+				// Unhandled Transition
 				break;
 			}
 		}
