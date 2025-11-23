@@ -1,5 +1,6 @@
 #include <vulkan-cpp/vertex_buffer.hpp>
 #include <vulkan-cpp/utilities.hpp>
+#include <vulkan-cpp/command_buffer.hpp>
 
 namespace vk {
 
@@ -44,7 +45,42 @@ namespace vk {
         // 4. Copy data from staging buffer to the actual vertex buffer itself!
         buffer_copy_info info = { .src = staging_buffer,
                                   .dst = m_vertex_handler };
-        copy(m_device, info, m_size_bytes);
+        // copy(m_device, info, m_size_bytes);
+
+		// 1. Retrieve the first queue
+        // TODO: Use vk::device_queue for this
+        VkQueue temp_graphics_queue = nullptr;
+        uint32_t queue_family_index = 0;
+        uint32_t queue_index = 0;
+        vkGetDeviceQueue(
+          p_device, queue_family_index, queue_index, &temp_graphics_queue);
+
+        // command_buffer_info
+        command_enumeration enumerate_command_info = {
+            .levels = command_levels::primary,
+            .queue_index = 0,
+        };
+        command_buffer copy_command_buffer(p_device, enumerate_command_info);
+
+        copy_command_buffer.begin(command_usage::one_time_submit);
+        // VkBufferCopy copy_region{};
+        // copy_region.size = (VkDeviceSize)m_size_bytes;
+        // vkCmdCopyBuffer(
+        //   copy_command_buffer, staging_buffer, m_vertex_handler, 1, &copy_region);
+		copy_command_buffer.copy_buffer(staging_buffer, m_vertex_handler, m_size_bytes);
+        copy_command_buffer.end();
+        VkCommandBuffer temp = copy_command_buffer;
+        VkSubmitInfo submit_info{};
+        submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submit_info.commandBufferCount = 1;
+        submit_info.pCommandBuffers = &temp;
+
+        vkQueueSubmit(temp_graphics_queue, 1, &submit_info, nullptr);
+        vkQueueWaitIdle(temp_graphics_queue);
+
+        // vkFreeCommandBuffers(, command_pool, 1, &copy_cmd_buffer);
+        // vkDestroyCommandPool(driver, command_pool, nullptr);
+        copy_command_buffer.destroy();
 
         // 5. cleanup staging buffer -- no longer used
         staging_buffer.destroy();

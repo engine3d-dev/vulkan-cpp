@@ -69,6 +69,12 @@ namespace vk {
         vkEndCommandBuffer(m_command_buffer);
     }
 
+	void command_buffer::copy_buffer(const VkBuffer& p_src, const VkBuffer& p_dst, uint64_t p_size_bytes) {
+		VkBufferCopy copy_region{};
+		copy_region.size = p_size_bytes;
+		vkCmdCopyBuffer(m_command_buffer, p_src, p_dst, 1, &copy_region);
+	}
+
     void command_buffer::execute(std::span<const VkCommandBuffer> p_commands) {
         vkCmdExecuteCommands(m_command_buffer,
                              static_cast<uint32_t>(p_commands.size()),

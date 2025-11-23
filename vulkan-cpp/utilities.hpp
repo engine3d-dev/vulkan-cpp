@@ -122,14 +122,7 @@ namespace vk {
 
     //! @brief Copies from one buffer source into another buffer source with a
     //! specific size of bytes to be stored the buffer that is being copied to
-    void copy(const VkDevice& p_device,
-              const buffer_copy_info& p_info,
-              size_t p_size_of_bytes);
-    void copy(const VkCommandBuffer& p_command_buffer,
-              const VkImage& p_image,
-              const VkBuffer& p_buffer,
-              uint32_t p_width,
-              uint32_t p_height);
+
 
     //! @return Returns the VkDescriptorType that represents a "handle" the
     //! shader resource is acecssing
@@ -138,32 +131,6 @@ namespace vk {
     //! @brief passes a vulkan format
     //! @return the amount of bytes per vulkan format specification
     int bytes_per_texture_format(VkFormat p_format);
-
-    /**
-     * @brief image_memory_barrier is the operation to do when transitioning an
-     * image layout
-     * @param p_command_buffer command buffer must be in record mode beforehand
-     * when doing image memory barriers
-     * @param p_image requires an image to transition the image layout
-     * @param p_format formst of the image being passed
-     * @param p_old is the src image layout being transitioned of the spcified
-     * image
-     * @param p_new is the dst image layout to transition image into
-     */
-    void image_memory_barrier(const VkCommandBuffer& p_command_buffer,
-                              const VkImage& p_image,
-                              VkFormat p_format,
-                              VkImageLayout p_old,
-                              VkImageLayout p_new);
-
-    void image_memory_barrier(const VkCommandBuffer& p_command_buffer,
-                              const VkImage& p_image,
-                              const image_barrier_info& p_info);
-
-    VkImageView create_image2d_view(
-      const VkDevice& p_device,
-      const VkImage& p_image,
-      const image_configuration_information& p_info);
 
     uint32_t select_memory_requirements(
       VkPhysicalDeviceMemoryProperties p_physical_memory_props,
