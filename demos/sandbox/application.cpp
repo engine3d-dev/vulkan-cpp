@@ -694,7 +694,7 @@ main() {
     specular_texture.destroy();
     set0_resource.destroy();
     set1.destroy();
-    // global_uniforms.destroy();
+    global_uniforms.destroy();
     geometry_uniform.destroy();
     test_model.destroy();
 
