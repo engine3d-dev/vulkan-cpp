@@ -54,7 +54,7 @@ namespace vk {
 
         // buffer_handle staging_buffer = create_buffer(p_device,
         // staging_buffer_config);
-        buffer_handler staging(p_device, staging_buffer_config);
+        buffer_streams staging(p_device, staging_buffer_config);
 
         // 5. write data to the staging buffer with specific size specified
         // write(p_device, staging, p_data, image_size);
@@ -68,27 +68,30 @@ namespace vk {
         temp_command_buffer.begin(command_usage::one_time_submit);
 
         // 6.1 -- transition image layout
-        image_memory_barrier(temp_command_buffer,
-                             texture_image,
-                             texture_format,
-                             old_layout,
-                             new_layout);
+        // image_memory_barrier(temp_command_buffer,
+        //                      texture_image,
+        //                      texture_format,
+        //                      old_layout,
+        //                      new_layout);
+		texture_image.memory_barrier(temp_command_buffer, texture_format, old_layout, new_layout);
 
         // 6.2 -- copy buffer to image handles
-        copy(temp_command_buffer,
-             texture_image,
-             staging,
-             p_config.extent.width,
-             p_config.extent.height);
+        // copy(temp_command_buffer,
+        //      texture_image,
+        //      staging,
+        //      p_config.extent.width,
+        //      p_config.extent.height);
+		staging.copy_to_image(temp_command_buffer, texture_image, p_config.extent);
 
         // 6.3 -- transition image layout back to the layout specification
         old_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
         new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        image_memory_barrier(temp_command_buffer,
-                             texture_image,
-                             texture_format,
-                             old_layout,
-                             new_layout);
+        // image_memory_barrier(temp_command_buffer,
+        //                      texture_image,
+        //                      texture_format,
+        //                      old_layout,
+        //                      new_layout);
+		texture_image.memory_barrier(temp_command_buffer, texture_format, old_layout, new_layout);
 
         temp_command_buffer.end();
 
