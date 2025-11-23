@@ -65,13 +65,18 @@ namespace vk {
          * 
          * ```C++
          * 
+         * // staging buffer to make sure we copy data regions chunks to vertex buffer correctly
+         * vk::buffer_stream staging_buffer(logical_device, ...);
+         * 
+         * // vertex_buffer handle is the destination to copy the regions to
+         * vk::buffer_stream vertex_buffer(logical_device, ...);
+         * 
          * vk::command_buffer temp_command(logical_device, ...);
          * 
          * temp_command.begin(command_usage::one_time_submit);
-         * 
-         * temp_command.copy(staging_buffer, destination_butter, size_bytes);
-         * 
+         * temp_command.copy(staging_buffer, vertex_buffer, size_bytes);
          * temp_command.end();
+         * 
          * 
          * ```
          * 
