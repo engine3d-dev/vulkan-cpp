@@ -45,15 +45,7 @@ namespace vk {
          * @param p_data is the bytes to write into the GPU's memory through the
          * Vulkan vkMapMemory/vkUnmapMemory API's.
          */
-        void write(std::span<const uint8_t> p_data) {
-            void* mapped = nullptr;
-            vk_check(
-              vkMapMemory(
-                m_device, m_device_memory, 0, p_data.size_bytes(), 0, &mapped),
-              "vkMapMemory");
-            memcpy(mapped, p_data.data(), p_data.size_bytes());
-            vkUnmapMemory(m_device, m_device_memory);
-        }
+        void write(std::span<const uint8_t> p_data);
 
         void destroy();
 

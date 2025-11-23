@@ -64,6 +64,16 @@ namespace vk {
                  "vkBindBufferMemory");
     }
 
+    void buffer_handler::write(std::span<const uint8_t> p_data) {
+        void* mapped = nullptr;
+        vk_check(
+            vkMapMemory(
+            m_device, m_device_memory, 0, p_data.size_bytes(), 0, &mapped),
+            "vkMapMemory");
+        memcpy(mapped, p_data.data(), p_data.size_bytes());
+        vkUnmapMemory(m_device, m_device_memory);
+    }
+
     void buffer_handler::destroy() {
         if (m_handle != nullptr) {
             vkDestroyBuffer(m_device, m_handle, nullptr);
