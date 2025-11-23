@@ -19,7 +19,7 @@ set(
     vulkan-cpp/uniform_buffer.cpp
     vulkan-cpp/descriptor_resource.cpp
     vulkan-cpp/texture.cpp
-    vulkan-cpp/buffer.cpp
+    vulkan-cpp/buffer_streams.cpp
     vulkan-cpp/sample_image.cpp
     # vulkan-cpp/skybox_texture.cpp
 )
