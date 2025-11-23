@@ -44,7 +44,7 @@ namespace vk {
         //     .physical = p_config.physical_device
         // };
 
-        buffer_settings staging_buffer_config = {
+        buffer_parameters staging_buffer_config = {
             .device_size = (uint32_t)image_size,
             .physical_memory_properties = p_config.phsyical_memory_properties,
             .property_flags = (memory_property)property_flag,
@@ -54,7 +54,7 @@ namespace vk {
 
         // buffer_handle staging_buffer = create_buffer(p_device,
         // staging_buffer_config);
-        buffer_streams staging(p_device, staging_buffer_config);
+        buffer_stream staging(p_device, staging_buffer_config);
 
         // 5. write data to the staging buffer with specific size specified
         // write(p_device, staging, p_data, image_size);

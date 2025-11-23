@@ -33,6 +33,6 @@ namespace vk {
         VkDevice m_device = nullptr;
         uint32_t m_size_bytes = 0;
         uint32_t m_size = 0;
-        buffer_streams m_vertex_handler;
+        buffer_stream m_vertex_handler;
     };
 };

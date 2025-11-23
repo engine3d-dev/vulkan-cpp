@@ -16,7 +16,7 @@ namespace vk {
         uint32_t property_flags =
           memory_property::host_visible_bit | memory_property::host_cached_bit;
 
-        buffer_settings new_staging_buffer_settings = {
+        buffer_parameters new_staging_buffer_settings = {
             .device_size = m_size_bytes,
             .physical_memory_properties =
               p_vertex_info.phsyical_memory_properties,
@@ -26,12 +26,12 @@ namespace vk {
 			.debug_name = p_vertex_info.debug_name.c_str(),
             .vkSetDebugUtilsObjectNameEXT = p_vertex_info.vkSetDebugUtilsObjectNameEXT
         };
-        buffer_streams staging_buffer(m_device, new_staging_buffer_settings);
+        buffer_stream staging_buffer(m_device, new_staging_buffer_settings);
         std::span<const vertex_input> vertices = p_vertex_info.vertices;
         staging_buffer.write(vertices);
 
         // 3.) Now creating our actual vertex buffer handler
-        buffer_settings vertex_buffer_settings = {
+        buffer_parameters vertex_buffer_settings = {
             .device_size = m_size_bytes,
             .physical_memory_properties =
               p_vertex_info.phsyical_memory_properties,
@@ -39,7 +39,7 @@ namespace vk {
             .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT |
                      VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         };
-        m_vertex_handler = buffer_streams(m_device, vertex_buffer_settings);
+        m_vertex_handler = buffer_stream(m_device, vertex_buffer_settings);
 
         // 4. Copy data from staging buffer to the actual vertex buffer itself!
         buffer_copy_info info = { .src = staging_buffer,

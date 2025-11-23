@@ -10,7 +10,7 @@ namespace vk {
 
         uint32_t property_flags =
           memory_property::host_visible_bit | memory_property::host_cached_bit;
-        buffer_settings index_buffer_settings = {
+        buffer_parameters index_buffer_settings = {
             .device_size = p_info.indices.size_bytes(),
             .physical_memory_properties = p_info.phsyical_memory_properties,
             .property_flags = (memory_property)property_flags,
@@ -19,10 +19,9 @@ namespace vk {
             .vkSetDebugUtilsObjectNameEXT = p_info.vkSetDebugUtilsObjectNameEXT
         };
 
-        m_index_buffer = buffer_streams(m_device, index_buffer_settings);
+        m_index_buffer = buffer_stream32(m_device, index_buffer_settings);
 
-        std::span<const uint32_t> indices = p_info.indices;
-        m_index_buffer.write(indices);
+        m_index_buffer.write(p_info.indices);
     }
 
     void index_buffer::bind(const VkCommandBuffer& p_current) {

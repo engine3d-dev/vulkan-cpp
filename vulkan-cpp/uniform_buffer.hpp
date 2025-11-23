@@ -30,6 +30,6 @@ namespace vk {
     private:
         uint32_t m_size_bytes = 0;
         VkDevice m_device = nullptr;
-        buffer_streams m_uniform_handle{};
+        buffer_stream m_uniform_handle{};
     };
 };

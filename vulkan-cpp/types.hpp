@@ -699,7 +699,7 @@ namespace vk {
         VkSamplerAddressMode addrses_mode_w = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     };
 
-    struct buffer_settings {
+    struct buffer_parameters {
         VkDeviceSize device_size = 0;
         VkPhysicalDeviceMemoryProperties physical_memory_properties;
         memory_property property_flags;

@@ -1,21 +1,15 @@
-#include <vulkan-cpp/buffer_streams.hpp>
+#include <vulkan-cpp/buffer_streams16.hpp>
 #include <vulkan-cpp/utilities.hpp>
-#include <print>
 
 namespace vk {
-
-    buffer_stream::buffer_stream(const VkDevice& p_device,
-                                   const buffer_parameters& p_settings)
-      : m_device(p_device) {
-        m_allocation_size = p_settings.device_size;
-
+    buffer_stream16::buffer_stream16(const VkDevice& p_device, const buffer_parameters& p_params) : m_device(p_device) {
         VkBufferCreateInfo buffer_ci = {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
-            .size = m_allocation_size, // size in bytes
-            .usage = p_settings.usage,
-            .sharingMode = p_settings.share_mode,
+            .size = p_params.device_size, // size in bytes
+            .usage = p_params.usage,
+            .sharingMode = p_params.share_mode,
         };
 
         vk_check(vkCreateBuffer(p_device, &buffer_ci, nullptr, &m_handle),
@@ -28,9 +22,9 @@ namespace vk {
         // 3. selects the required memory requirements for this specific buffer
         // allocations
         uint32_t memory_index =
-          select_memory_requirements(p_settings.physical_memory_properties,
+          select_memory_requirements(p_params.physical_memory_properties,
                                      memory_requirements,
-                                     p_settings.property_flags);
+                                     p_params.property_flags);
 
         // 4. allocatring the necessary memory based on memory requirements for
         // the buffer handles
@@ -47,12 +41,12 @@ namespace vk {
             .pNext = nullptr,
             .objectType = VK_OBJECT_TYPE_BUFFER,
             .objectHandle = (uint64_t)m_handle, // specify vulkan to what object handle this is
-            .pObjectName = p_settings.debug_name // specify what type of buffer this is
+            .pObjectName = p_params.debug_name // specify what type of buffer this is
         };
 
-        if(p_settings.vkSetDebugUtilsObjectNameEXT != nullptr) {
+        if(p_params.vkSetDebugUtilsObjectNameEXT != nullptr) {
             // vkSetDebugUtilsObjectNameEXT(m_device, &debug_info);
-            p_settings.vkSetDebugUtilsObjectNameEXT(m_device, &debug_info);
+            p_params.vkSetDebugUtilsObjectNameEXT(m_device, &debug_info);
         }
 #endif
         vk_check(vkAllocateMemory(
@@ -64,7 +58,7 @@ namespace vk {
                  "vkBindBufferMemory");
     }
 
-    void buffer_stream::write(std::span<const uint8_t> p_data) {
+    void buffer_stream16::write(std::span<const uint16_t> p_data) {
         void* mapped = nullptr;
         vk_check(
             vkMapMemory(
@@ -74,7 +68,7 @@ namespace vk {
         vkUnmapMemory(m_device, m_device_memory);
     }
 
-    void buffer_stream::copy_to_image(const VkCommandBuffer& p_command, const VkImage& p_image, image_extent p_extent) {
+    void buffer_stream16::copy_to_image(const VkCommandBuffer& p_command, const VkImage& p_image, image_extent p_extent) {
         VkBufferImageCopy buffer_image_copy = {
             .bufferOffset = 0,
             .bufferRowLength = 0,
@@ -95,7 +89,7 @@ namespace vk {
                                &buffer_image_copy);
     }
 
-    void buffer_stream::destroy() {
+    void buffer_stream16::destroy() {
         if (m_handle != nullptr) {
             vkDestroyBuffer(m_device, m_handle, nullptr);
         }
@@ -104,5 +98,4 @@ namespace vk {
             vkFreeMemory(m_device, m_device_memory, nullptr);
         }
     }
-
 };

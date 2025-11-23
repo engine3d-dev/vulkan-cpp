@@ -20,6 +20,8 @@ set(
     vulkan-cpp/descriptor_resource.cpp
     vulkan-cpp/texture.cpp
     vulkan-cpp/buffer_streams.cpp
+    vulkan-cpp/buffer_streams16.cpp
+    vulkan-cpp/buffer_streams32.cpp
     vulkan-cpp/sample_image.cpp
     # vulkan-cpp/skybox_texture.cpp
 )

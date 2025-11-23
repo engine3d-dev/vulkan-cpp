@@ -10,11 +10,11 @@ namespace vk {
 	 * Purpose for using VkBuffer handle to streaming bytes of data into the GPU memory
 	 * 
      */
-    class buffer_streams {
+    class buffer_stream {
     public:
-        buffer_streams() = default;
-        buffer_streams(const VkDevice& p_device,
-                       const buffer_settings& p_settings);
+        buffer_stream() = default;
+        buffer_stream(const VkDevice& p_device,
+                       const buffer_parameters& p_settings);
 
         /**
          * @param span<T> writes some buffer data in the GPU's memory using
