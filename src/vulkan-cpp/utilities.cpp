@@ -53,14 +53,14 @@ namespace vk {
     //     return flag;
     // }
 
-    uint32_t vk_api_version(const api_version& p_version) {
-        switch (p_version) {
-            case api_version::vk_1_2:
-                return VK_API_VERSION_1_2;
-            case api_version::vk_1_3:
-                return VK_API_VERSION_1_3;
-        }
-    }
+    // uint32_t vk_api_version(const api_version& p_version) {
+    //     switch (p_version) {
+    //         case api_version::vk_1_2:
+    //             return VK_API_VERSION_1_2;
+    //         case api_version::vk_1_3:
+    //             return VK_API_VERSION_1_3;
+    //     }
+    // }
 
     // VkPhysicalDeviceType vk_physical_device_type(physical p_physical_type) {
     //     switch (p_physical_type) {

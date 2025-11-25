@@ -59,8 +59,8 @@ namespace vk {
     };
 
     enum class api_version : uint32_t {
-        vk_1_2,
-        vk_1_3, // vulkan version 1.3
+        vk_1_2 = VK_API_VERSION_1_2,
+        vk_1_3 = VK_API_VERSION_1_3, // vulkan version 1.3
         // vk_1_2, // vulkan version 1.4
     };
 

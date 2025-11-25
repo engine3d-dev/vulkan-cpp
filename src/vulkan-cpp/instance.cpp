@@ -15,7 +15,7 @@ namespace vk {
             .applicationVersion = 1,
             .pEngineName = p_config.name.c_str(),
             .engineVersion = 1,
-            .apiVersion = vk_api_version(p_config.version),
+            .apiVersion = static_cast<uint32_t>(p_config.version),
         };
 
         VkInstanceCreateInfo instance_ci = {
