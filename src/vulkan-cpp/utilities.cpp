@@ -184,38 +184,38 @@ namespace vk {
         return -1;
     }
 
-    VkMemoryPropertyFlags to_memory_property_flags(memory_property p_flag) {
-        VkMemoryPropertyFlags flags = 0;
-        if (p_flag & memory_property::device_local_bit) {
-            flags |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-        }
-        if (p_flag & memory_property::host_visible_bit) {
-            flags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-        }
-        if (p_flag & memory_property::host_coherent_bit) {
-            flags |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-        }
-        if (p_flag & memory_property::host_cached_bit) {
-            flags |= VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
-        }
-        if (p_flag & memory_property::lazily_allocated_bit) {
-            flags |= VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
-        }
-        if (p_flag & memory_property::device_protected_bit) {
-            flags |= VK_MEMORY_PROPERTY_PROTECTED_BIT;
-        }
-        if (p_flag & memory_property::device_coherent_bit_amd) {
-            flags |= VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD;
-        }
-        if (p_flag & memory_property::device_uncached_bit_amd) {
-            flags |= VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD;
-        }
-        if (p_flag & memory_property::rdma_capable_bit_nv) {
-            flags |= VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV;
-        }
+    // VkMemoryPropertyFlags to_memory_property_flags(memory_property p_flag) {
+    //     VkMemoryPropertyFlags flags = 0;
+    //     if (p_flag & memory_property::device_local_bit) {
+    //         flags |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    //     }
+    //     if (p_flag & memory_property::host_visible_bit) {
+    //         flags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+    //     }
+    //     if (p_flag & memory_property::host_coherent_bit) {
+    //         flags |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    //     }
+    //     if (p_flag & memory_property::host_cached_bit) {
+    //         flags |= VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+    //     }
+    //     if (p_flag & memory_property::lazily_allocated_bit) {
+    //         flags |= VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
+    //     }
+    //     if (p_flag & memory_property::device_protected_bit) {
+    //         flags |= VK_MEMORY_PROPERTY_PROTECTED_BIT;
+    //     }
+    //     if (p_flag & memory_property::device_coherent_bit_amd) {
+    //         flags |= VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD;
+    //     }
+    //     if (p_flag & memory_property::device_uncached_bit_amd) {
+    //         flags |= VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD;
+    //     }
+    //     if (p_flag & memory_property::rdma_capable_bit_nv) {
+    //         flags |= VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV;
+    //     }
 
-        return flags;
-    }
+    //     return flags;
+    // }
 
     surface_enumeration enumerate_surface(const VkPhysicalDevice& p_physical,
                                           const VkSurfaceKHR& p_surface) {
@@ -380,8 +380,7 @@ namespace vk {
         vkGetImageMemoryRequirements(p_device, p_image, &memory_requirements);
 
         uint32_t type_filter = memory_requirements.memoryTypeBits;
-        VkMemoryPropertyFlags property_flag =
-          to_memory_property_flags(p_property);
+        VkMemoryPropertyFlags property_flag = static_cast<VkMemoryPropertyFlags>(p_property);
 
         VkPhysicalDeviceMemoryProperties mem_props;
         vkGetPhysicalDeviceMemoryProperties(p_physical, &mem_props);
@@ -683,7 +682,7 @@ namespace vk {
       memory_property p_property) {
         uint32_t memory_bits = p_memory_requirements.memoryTypeBits;
         VkMemoryPropertyFlags property_flag =
-          to_memory_property_flags(p_property);
+          static_cast<VkMemoryPropertyFlags>(p_property);
 
         for (uint32_t i = 0; i < p_physical_memory_props.memoryTypeCount; i++) {
             if ((memory_bits & (1 << i)) and

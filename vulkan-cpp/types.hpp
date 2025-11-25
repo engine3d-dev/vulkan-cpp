@@ -502,17 +502,17 @@ namespace vk {
      *
      *
      */
-    enum memory_property : uint8_t {
-        device_local_bit = 0x00000001,
-        host_visible_bit = 0x00000002,
-        host_coherent_bit = 0x00000004,
-        host_cached_bit = 0x00000008,
-        lazily_allocated_bit = 0x00000010,
-        device_protected_bit = 0x00000020,
-        device_coherent_bit_amd = 0x20,
-        device_uncached_bit_amd = 0x40,
-        rdma_capable_bit_nv = 0x80,
-        flag_bits_max_enum = 0x7f
+    enum memory_property : uint32_t {
+        device_local_bit = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        host_visible_bit = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+        host_coherent_bit = VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        host_cached_bit = VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
+        lazily_allocated_bit = VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT,
+        device_protected_bit = VK_MEMORY_PROPERTY_PROTECTED_BIT,
+        device_coherent_bit_amd = VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD,
+        device_uncached_bit_amd = VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD,
+        rdma_capable_bit_nv = VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV,
+        flag_bits_max_enum = VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM
     };
 
     enum class shader_stage {
