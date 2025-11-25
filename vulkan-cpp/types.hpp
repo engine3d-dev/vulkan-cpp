@@ -218,10 +218,10 @@ namespace vk {
      * Have independent lifetimes that can be managed independently of
      * primary command buffers, allowing for more flexible resource management
      */
-    enum class command_levels : uint8_t {
+    enum class command_levels : uint32_t {
         primary = 0,
         secondary = 1,
-        max_enum = 2,
+        max_enum = VK_COMMAND_BUFFER_LEVEL_MAX_ENUM,
     };
 
     /**

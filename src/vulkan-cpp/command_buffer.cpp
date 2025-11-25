@@ -24,7 +24,7 @@ namespace vk {
             .pNext = nullptr,
             .commandPool = m_command_pool,
             .level =
-              to_vk_command_buffer_level(p_enumerate_command_info.levels),
+              static_cast<VkCommandBufferLevel>(p_enumerate_command_info.levels),
             .commandBufferCount = 1
         };
 

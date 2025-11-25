@@ -62,28 +62,28 @@ namespace vk {
         }
     }
 
-    VkPhysicalDeviceType vk_physical_device_type(physical p_physical_type) {
-        switch (p_physical_type) {
-            case physical::integrated:
-                return VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU;
-            case physical::discrete:
-                return VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
-            case physical::virtualized:
-                return VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU;
-            case physical::cpu:
-                return VK_PHYSICAL_DEVICE_TYPE_CPU;
-            case physical::max_enum:
-                return VK_PHYSICAL_DEVICE_TYPE_MAX_ENUM;
-            case physical::other:
-                return VK_PHYSICAL_DEVICE_TYPE_OTHER;
-        }
+    // VkPhysicalDeviceType vk_physical_device_type(physical p_physical_type) {
+    //     switch (p_physical_type) {
+    //         case physical::integrated:
+    //             return VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU;
+    //         case physical::discrete:
+    //             return VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
+    //         case physical::virtualized:
+    //             return VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU;
+    //         case physical::cpu:
+    //             return VK_PHYSICAL_DEVICE_TYPE_CPU;
+    //         case physical::max_enum:
+    //             return VK_PHYSICAL_DEVICE_TYPE_MAX_ENUM;
+    //         case physical::other:
+    //             return VK_PHYSICAL_DEVICE_TYPE_OTHER;
+    //     }
 
-        throw std::runtime_error("Invalid physical device!");
-    }
+    //     throw std::runtime_error("Invalid physical device!");
+    // }
 
-    struct physical_device_handler {
-        VkPhysicalDevice handler = nullptr;
-    };
+    // struct physical_device_handler {
+    //     VkPhysicalDevice handler = nullptr;
+    // };
 
     VkPhysicalDevice enumerate_physical_devices(
       const VkInstance& p_instance,
@@ -108,7 +108,7 @@ namespace vk {
             vkGetPhysicalDeviceProperties(device, &device_properties);
 
             if (device_properties.deviceType ==
-                vk_physical_device_type(p_physical_device_type)) {
+                static_cast<VkPhysicalDeviceType>(p_physical_device_type)) {
                 physical_device = device;
             }
         }
@@ -397,35 +397,35 @@ namespace vk {
         return -1;
     }
 
-    VkCommandBufferLevel to_vk_command_buffer_level(
-      const command_levels& p_level) {
-        switch (p_level) {
-            case command_levels::primary:
-                return VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-            case command_levels::secondary:
-                return VK_COMMAND_BUFFER_LEVEL_SECONDARY;
-            case command_levels::max_enum:
-                return VK_COMMAND_BUFFER_LEVEL_MAX_ENUM;
-        }
+    // VkCommandBufferLevel to_vk_command_buffer_level(
+    //   const command_levels& p_level) {
+    //     switch (p_level) {
+    //         case command_levels::primary:
+    //             return VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    //         case command_levels::secondary:
+    //             return VK_COMMAND_BUFFER_LEVEL_SECONDARY;
+    //         case command_levels::max_enum:
+    //             return VK_COMMAND_BUFFER_LEVEL_MAX_ENUM;
+    //     }
 
-        throw std::runtime_error("Invalid command buffer levels");
-    }
+    //     throw std::runtime_error("Invalid command buffer levels");
+    // }
 
-    VkCommandPoolCreateFlagBits to_command_buffer_pool_flags(
-      command_pool_flags p_command_pool_flag) {
-        switch (p_command_pool_flag) {
-            case command_pool_flags::protected_bit:
-                return VK_COMMAND_POOL_CREATE_PROTECTED_BIT;
-            case command_pool_flags::reset:
-                return VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-            case command_pool_flags::transient:
-                return VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
-            case command_pool_flags::max_enum_bit:
-                return VK_COMMAND_POOL_CREATE_FLAG_BITS_MAX_ENUM;
-        }
+    // VkCommandPoolCreateFlagBits to_command_buffer_pool_flags(
+    //   command_pool_flags p_command_pool_flag) {
+    //     switch (p_command_pool_flag) {
+    //         case command_pool_flags::protected_bit:
+    //             return VK_COMMAND_POOL_CREATE_PROTECTED_BIT;
+    //         case command_pool_flags::reset:
+    //             return VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    //         case command_pool_flags::transient:
+    //             return VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+    //         case command_pool_flags::max_enum_bit:
+    //             return VK_COMMAND_POOL_CREATE_FLAG_BITS_MAX_ENUM;
+    //     }
 
-        return (VkCommandPoolCreateFlagBits)0;
-    }
+    //     return (VkCommandPoolCreateFlagBits)0;
+    // }
 
     // VkSubpassContents to_subpass_contents(subpass_contents p_content) {
     //     switch (p_content) {
