@@ -266,28 +266,28 @@ namespace vk {
         return final_image_count;
     }
 
-    VkCommandBufferUsageFlags to_command_usage_flag_bits(
-      command_usage p_command_usage_flag) {
-        VkCommandBufferUsageFlags command_usage_flags;
-        if (command_usage_flags & command_usage::one_time_submit) {
-            command_usage_flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-        }
+    // VkCommandBufferUsageFlags to_command_usage_flag_bits(
+    //   command_usage p_command_usage_flag) {
+    //     VkCommandBufferUsageFlags command_usage_flags;
+    //     if (command_usage_flags & command_usage::one_time_submit) {
+    //         command_usage_flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    //     }
 
-        if (command_usage_flags & command_usage::renderpass_continue_bit) {
-            command_usage_flags |=
-              VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
-        }
+    //     if (command_usage_flags & command_usage::renderpass_continue_bit) {
+    //         command_usage_flags |=
+    //           VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
+    //     }
 
-        if (command_usage_flags & command_usage::simulatneous_use_bit) {
-            command_usage_flags |= VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-        }
+    //     if (command_usage_flags & command_usage::simulatneous_use_bit) {
+    //         command_usage_flags |= VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+    //     }
 
-        if (command_usage_flags & command_usage::max_bit) {
-            command_usage_flags |= VK_COMMAND_BUFFER_USAGE_FLAG_BITS_MAX_ENUM;
-        }
+    //     if (command_usage_flags & command_usage::max_bit) {
+    //         command_usage_flags |= VK_COMMAND_BUFFER_USAGE_FLAG_BITS_MAX_ENUM;
+    //     }
 
-        return command_usage_flags;
-    }
+    //     return command_usage_flags;
+    // }
 
     VkImageAspectFlags to_image_aspect_flags(image_aspect_flags p_flag) {
         switch (p_flag) {
@@ -427,117 +427,81 @@ namespace vk {
         return (VkCommandPoolCreateFlagBits)0;
     }
 
-    VkSubpassContents to_subpass_contents(subpass_contents p_content) {
-        switch (p_content) {
-            case subpass_contents::inline_bit:
-                return VK_SUBPASS_CONTENTS_INLINE;
-            case subpass_contents::secondary_command:
-                return VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS;
-            case subpass_contents::inline_and_secondary_command_khr:
-                return VK_SUBPASS_CONTENTS_INLINE_AND_SECONDARY_COMMAND_BUFFERS_KHR;
-            case subpass_contents::max_enum_content:
-                return VK_SUBPASS_CONTENTS_MAX_ENUM;
-            default:
-                break;
-        }
-    }
+    // VkSubpassContents to_subpass_contents(subpass_contents p_content) {
+    //     switch (p_content) {
+    //         case subpass_contents::inline_bit:
+    //             return VK_SUBPASS_CONTENTS_INLINE;
+    //         case subpass_contents::secondary_command:
+    //             return VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS;
+    //         case subpass_contents::inline_and_secondary_command_khr:
+    //             return VK_SUBPASS_CONTENTS_INLINE_AND_SECONDARY_COMMAND_BUFFERS_KHR;
+    //         case subpass_contents::max_enum_content:
+    //             return VK_SUBPASS_CONTENTS_MAX_ENUM;
+    //         default:
+    //             break;
+    //     }
+    // }
 
-    VkPipelineBindPoint to_pipeline_bind_point(
-      pipeline_bind_point p_bind_point) {
-        switch (p_bind_point) {
-            case pipeline_bind_point::graphics:
-                return VK_PIPELINE_BIND_POINT_GRAPHICS;
-            case pipeline_bind_point::compute:
-                return VK_PIPELINE_BIND_POINT_COMPUTE;
-            case pipeline_bind_point::ray_tracing_khr:
-                return VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR;
-            case pipeline_bind_point::subpass_shading_hauwei:
-                return VK_PIPELINE_BIND_POINT_SUBPASS_SHADING_HUAWEI;
-            // case pipeline_bind_point::ray_tracing_nv:
-            //     return VK_PIPELINE_BIND_POINT_RAY_TRACING_NV;
-            case pipeline_bind_point::max_enum:
-                return VK_PIPELINE_BIND_POINT_MAX_ENUM;
-            default:
-                break;
-        }
-    }
+    // VkPipelineBindPoint to_pipeline_bind_point(
+    //   pipeline_bind_point p_bind_point) {
+    //     switch (p_bind_point) {
+    //         case pipeline_bind_point::graphics:
+    //             return VK_PIPELINE_BIND_POINT_GRAPHICS;
+    //         case pipeline_bind_point::compute:
+    //             return VK_PIPELINE_BIND_POINT_COMPUTE;
+    //         case pipeline_bind_point::ray_tracing_khr:
+    //             return VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR;
+    //         case pipeline_bind_point::subpass_shading_hauwei:
+    //             return VK_PIPELINE_BIND_POINT_SUBPASS_SHADING_HUAWEI;
+    //         // case pipeline_bind_point::ray_tracing_nv:
+    //         //     return VK_PIPELINE_BIND_POINT_RAY_TRACING_NV;
+    //         case pipeline_bind_point::max_enum:
+    //             return VK_PIPELINE_BIND_POINT_MAX_ENUM;
+    //         default:
+    //             break;
+    //     }
+    // }
 
-    VkAttachmentLoadOp to_attachment_load(attachment_load p_attachment_type) {
-        switch (p_attachment_type) {
-            case attachment_load::load:
-                return VK_ATTACHMENT_LOAD_OP_LOAD;
-            case attachment_load::clear:
-                return VK_ATTACHMENT_LOAD_OP_CLEAR;
-            case attachment_load::dont_care:
-                return VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-            case attachment_load::none_khr:
-                return VK_ATTACHMENT_LOAD_OP_NONE_KHR;
-            case attachment_load::none_ext:
-                return VK_ATTACHMENT_LOAD_OP_NONE_EXT;
-            case attachment_load::max_enum:
-                return VK_ATTACHMENT_LOAD_OP_MAX_ENUM;
-        }
-    }
 
-    VkAttachmentStoreOp to_attachment_store(
-      attachment_store p_attachment_type) {
-        switch (p_attachment_type) {
-            case attachment_store::store:
-                return VK_ATTACHMENT_STORE_OP_STORE;
-            case attachment_store::dont_care:
-                return VK_ATTACHMENT_STORE_OP_DONT_CARE;
-            case attachment_store::none_khr:
-                return VK_ATTACHMENT_STORE_OP_NONE_KHR;
-            case attachment_store::none_qcom:
-                return VK_ATTACHMENT_STORE_OP_NONE_QCOM;
-            case attachment_store::none_ext:
-                return VK_ATTACHMENT_STORE_OP_NONE_EXT;
-            case attachment_store::max_enum:
-                return VK_ATTACHMENT_STORE_OP_MAX_ENUM;
-            default:
-                break;
-        }
-    }
+    // VkSampleCountFlagBits to_sample_count_bits(sample_bit p_sample_count_bit) {
+    //     switch (p_sample_count_bit) {
+    //         case sample_bit::count_1:
+    //             return VK_SAMPLE_COUNT_1_BIT;
+    //         case sample_bit::count_2:
+    //             return VK_SAMPLE_COUNT_2_BIT;
+    //         case sample_bit::count_4:
+    //             return VK_SAMPLE_COUNT_4_BIT;
+    //         case sample_bit::count_8:
+    //             return VK_SAMPLE_COUNT_8_BIT;
+    //         case sample_bit::count_16:
+    //             return VK_SAMPLE_COUNT_16_BIT;
+    //         case sample_bit::count_32:
+    //             return VK_SAMPLE_COUNT_32_BIT;
+    //         case sample_bit::count_64:
+    //             return VK_SAMPLE_COUNT_64_BIT;
+    //         case sample_bit::max_enum:
+    //             return VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM;
+    //     }
+    // }
 
-    VkSampleCountFlagBits to_sample_count_bits(sample_bit p_sample_count_bit) {
-        switch (p_sample_count_bit) {
-            case sample_bit::count_1:
-                return VK_SAMPLE_COUNT_1_BIT;
-            case sample_bit::count_2:
-                return VK_SAMPLE_COUNT_2_BIT;
-            case sample_bit::count_4:
-                return VK_SAMPLE_COUNT_4_BIT;
-            case sample_bit::count_8:
-                return VK_SAMPLE_COUNT_8_BIT;
-            case sample_bit::count_16:
-                return VK_SAMPLE_COUNT_16_BIT;
-            case sample_bit::count_32:
-                return VK_SAMPLE_COUNT_32_BIT;
-            case sample_bit::count_64:
-                return VK_SAMPLE_COUNT_64_BIT;
-            case sample_bit::max_enum:
-                return VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM;
-        }
-    }
-
-    VkImageLayout to_image_layout(image_layout p_layout) {
-        switch (p_layout) {
-            case image_layout::undefined:
-                return VK_IMAGE_LAYOUT_UNDEFINED;
-            case image_layout::general:
-                return VK_IMAGE_LAYOUT_GENERAL;
-            case image_layout::color_optimal:
-                return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-            case image_layout::depth_stencil_optimal:
-                return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-            case image_layout::depth_stencil_read_only_optimal:
-                return VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL;
-            case image_layout::present_src_khr:
-                return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-            case image_layout::shader_read_only_optimal:
-                return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        }
-    }
+    // VkImageLayout to_image_layout(image_layout p_layout) {
+    //     switch (p_layout) {
+    //         case image_layout::undefined:
+    //             return VK_IMAGE_LAYOUT_UNDEFINED;
+    //         case image_layout::general:
+    //             return VK_IMAGE_LAYOUT_GENERAL;
+    //         case image_layout::color_optimal:
+    //             return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    //         case image_layout::depth_stencil_optimal:
+    //             return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    //         case image_layout::depth_stencil_read_only_optimal:
+    //             return VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL;
+    //         case image_layout::present_src_khr:
+    //             return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    //         case image_layout::shader_read_only_optimal:
+    //             return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    //     }
+    // }
 
     VkVertexInputRate to_input_rate(input_rate p_input_rate) {
         switch (p_input_rate) {
@@ -561,16 +525,16 @@ namespace vk {
         return false;
     }
 
-    VkShaderStageFlags to_shader_stage(const shader_stage& p_stage) {
-        switch (p_stage) {
-            case shader_stage::vertex:
-                return VK_SHADER_STAGE_VERTEX_BIT;
-            case shader_stage::fragment:
-                return VK_SHADER_STAGE_FRAGMENT_BIT;
-            default:
-                return (VkShaderStageFlagBits)0;
-        }
-    }
+    // VkShaderStageFlags to_shader_stage(const shader_stage& p_stage) {
+    //     switch (p_stage) {
+    //         case shader_stage::vertex:
+    //             return VK_SHADER_STAGE_VERTEX_BIT;
+    //         case shader_stage::fragment:
+    //             return VK_SHADER_STAGE_FRAGMENT_BIT;
+    //         default:
+    //             return (VkShaderStageFlagBits)0;
+    //     }
+    // }
 
     VkFormat to_format(const format& p_format) {
         switch (p_format) {
@@ -641,18 +605,18 @@ namespace vk {
         copy_command_buffer.destroy();
     }
 
-    VkDescriptorType to_descriptor_type(const buffer& p_type) {
-        switch (p_type) {
-            case buffer::storage:
-                return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-            case buffer::uniform:
-                return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            case buffer::combined_image_sampler:
-                return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            case buffer::sampled_only_image:
-                return VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-        }
-    }
+    // VkDescriptorType to_descriptor_type(const buffer& p_type) {
+    //     switch (p_type) {
+    //         case buffer::storage:
+    //             return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    //         case buffer::uniform:
+    //             return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    //         case buffer::combined_image_sampler:
+    //             return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    //         case buffer::sampled_only_image:
+    //             return VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+    //     }
+    // }
 
     int bytes_per_texture_format(VkFormat p_format) {
         switch (p_format) {

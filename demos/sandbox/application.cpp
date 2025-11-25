@@ -511,7 +511,8 @@ main() {
         vk::write_image{
             .sampler = diffuse_texture.image().sampler(),
             .view = diffuse_texture.image().image_view(),
-            .image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+            // .image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+            .layout = vk::image_layout::shader_read_only_optimal
         },
     };
 
@@ -519,7 +520,8 @@ main() {
         vk::write_image{
             .sampler = specular_texture.image().sampler(),
             .view = specular_texture.image().image_view(),
-            .image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+            // .image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+            .layout = vk::image_layout::shader_read_only_optimal
         }
     };
 

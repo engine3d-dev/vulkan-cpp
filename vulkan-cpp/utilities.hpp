@@ -104,7 +104,7 @@ namespace vk {
 
     VkSampleCountFlagBits to_sample_count_bits(sample_bit p_sample_count_bit);
 
-    VkImageLayout to_image_layout(image_layout p_layout);
+    // VkImageLayout to_image_layout(image_layout p_layout);
 
     VkVertexInputRate to_input_rate(input_rate p_input_rate);
 

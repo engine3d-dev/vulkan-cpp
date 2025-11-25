@@ -14,8 +14,7 @@ namespace vk {
           p_info.entries.size());
 
         for (size_t i = 0; i < pool_sizes.size(); i++) {
-            VkDescriptorType descriptor_type =
-              to_descriptor_type(p_info.entries[i].type);
+            VkDescriptorType descriptor_type = static_cast<VkDescriptorType>(p_info.entries[i].type);
             pool_sizes[i] = {
                 .type = descriptor_type,
                 .descriptorCount =
@@ -28,7 +27,7 @@ namespace vk {
             descriptor_entry entry = p_info.entries[i];
             descriptor_binding_point bind = entry.binding_point;
 
-            VkDescriptorType type = to_descriptor_type(entry.type);
+            VkDescriptorType type = static_cast<VkDescriptorType>(entry.type);
 
             descriptor_layout_bindings[i] = {
                 .binding = bind.binding,
@@ -108,7 +107,7 @@ namespace vk {
         for(const auto& ubo : p_images) {
 
             for(const auto& sample_image : ubo.sample_images) {
-                image_infos[ubo.dst_binding].emplace_back(sample_image.sampler, sample_image.view, sample_image.image_layout);
+                image_infos[ubo.dst_binding].emplace_back(sample_image.sampler, sample_image.view, static_cast<VkImageLayout>(sample_image.layout));
             }
 
             VkWriteDescriptorSet write_descriptor = {

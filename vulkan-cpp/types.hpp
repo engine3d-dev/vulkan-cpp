@@ -234,13 +234,11 @@ namespace vk {
      *
      *
      */
-    enum command_pool_flags : uint8_t {
-        transient = 0x01,     // represents VK_COMMAND_POOL_CREATE_TRANSIENT_BIT
-        reset = 0x02,         // represents
-                              // VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
-        protected_bit = 0x04, // represents VK_COMMAND_POOL_CREATE_PROTECTED_BIT
-        max_enum_bit =
-          0x7F, // represents VK_COMMAND_POOL_CREATE_FLAG_BITS_MAX_ENUM
+    enum command_pool_flags : uint32_t {
+        transient = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT,     // represents VK_COMMAND_POOL_CREATE_TRANSIENT_BIT
+        reset = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,         // represents VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
+        protected_bit = VK_COMMAND_POOL_CREATE_PROTECTED_BIT, // represents VK_COMMAND_POOL_CREATE_PROTECTED_BIT
+        max_enum_bit = VK_COMMAND_POOL_CREATE_FLAG_BITS_MAX_ENUM, // represents VK_COMMAND_POOL_CREATE_FLAG_BITS_MAX_ENUM
     };
 
     /**
@@ -289,27 +287,23 @@ namespace vk {
     };
 
     enum subpass_contents : uint32_t {
-        inline_bit = 0, // represents VK_SUBPASS_CONTENTS_INLINE
-        secondary_command =
-          1, // represents VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS
-        inline_and_secondary_command_khr =
-          1000451000, // represents
+        inline_bit = VK_SUBPASS_CONTENTS_INLINE, // represents VK_SUBPASS_CONTENTS_INLINE
+        secondary_command = VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS, // represents VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS
+        inline_and_secondary_command_khr = VK_SUBPASS_CONTENTS_INLINE_AND_SECONDARY_COMMAND_BUFFERS_KHR, // represents
                       // VK_SUBPASS_CONTENTS_INLINE_AND_SECONDARY_COMMAND_BUFFERS_KHR
                       // and
                       // VK_SUBPASS_CONTENTS_INLINE_AND_SECONDARY_COMMAND_BUFFERS_EXT
-        max_enum_content = 0x7F // represents VK_SUBPASS_CONTENTS_MAX_ENUM
+        max_enum_content = VK_SUBPASS_CONTENTS_MAX_ENUM // represents VK_SUBPASS_CONTENTS_MAX_ENUM
     };
 
-    enum class image_layout : uint8_t {
-        undefined = 0,     // VK_IMAGE_LAYOUT_UNDEFINED
-        general = 1,       // VK_IMAGE_LAYOUT_GENERAL
-        color_optimal = 2, // VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
-        depth_stencil_optimal =
-          3, // VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-        depth_stencil_read_only_optimal =
-          4, // VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_READ_ONLY_OPTIMAL
-        present_src_khr = 5, // VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
-        shader_read_only_optimal = 6
+    enum class image_layout : uint32_t {
+        undefined = VK_IMAGE_LAYOUT_UNDEFINED,                                          // VK_IMAGE_LAYOUT_UNDEFINED
+        general = VK_IMAGE_LAYOUT_GENERAL,                                              // VK_IMAGE_LAYOUT_GENERAL
+        color_optimal = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,                       // VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+        depth_stencil_optimal = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,       // VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+        depth_stencil_read_only_optimal = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL,     // VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_READ_ONLY_OPTIMAL
+        present_src_khr = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,                              // VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+        shader_read_only_optimal = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
     };
 
     // enum class format : uint64_t {
@@ -318,10 +312,10 @@ namespace vk {
     // };
 
     enum buffer : uint8_t {
-        uniform = 0,
-        storage = 1,
-        combined_image_sampler = 2,
-        sampled_only_image = 3
+        uniform = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,                        // represents VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
+        storage = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,                        // represents VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+        combined_image_sampler = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, // represents VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER
+        sampled_only_image = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE               // represents VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE
     };
 
     /**
@@ -351,35 +345,35 @@ namespace vk {
     };
 
     //! @brief Equivalent to doing VkSampleCountFlagBits but simplified
-    enum class sample_bit : uint8_t {
-        count_1,
-        count_2,
-        count_4,
-        count_8,
-        count_16,
-        count_32,
-        count_64,
-        max_enum
+    enum class sample_bit : uint32_t {
+        count_1 = VK_SAMPLE_COUNT_1_BIT,
+        count_2 = VK_SAMPLE_COUNT_2_BIT,
+        count_4 = VK_SAMPLE_COUNT_4_BIT,
+        count_8 = VK_SAMPLE_COUNT_8_BIT,
+        count_16 = VK_SAMPLE_COUNT_16_BIT,
+        count_32 = VK_SAMPLE_COUNT_32_BIT,
+        count_64 = VK_SAMPLE_COUNT_64_BIT,
+        max_enum = VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM
     };
 
     //! @brief Equivalent to VkAttachmentLoadOp
-    enum class attachment_load : uint8_t {
-        load = 0,  // LOAD_OP_LOAD
-        clear,     // LOAD_OP_CLEAR
-        dont_care, // lOAD_OP_DONT_CARE
-        none_khr,  // LOAD_OP_NONE_KHR
-        none_ext,  // LOAD_OP_NONE_EXT
-        max_enum,  // LOAD_OP_MAX_ENUM
+    enum class attachment_load : uint32_t {
+        load = VK_ATTACHMENT_LOAD_OP_LOAD,  // LOAD_OP_LOAD
+        clear = VK_ATTACHMENT_LOAD_OP_CLEAR,     // LOAD_OP_CLEAR
+        dont_care = VK_ATTACHMENT_LOAD_OP_DONT_CARE, // lOAD_OP_DONT_CARE
+        none_khr = VK_ATTACHMENT_LOAD_OP_NONE_KHR,  // LOAD_OP_NONE_KHR
+        none_ext = VK_ATTACHMENT_LOAD_OP_NONE_KHR,  // LOAD_OP_NONE_EXT
+        max_enum = VK_ATTACHMENT_LOAD_OP_MAX_ENUM,  // LOAD_OP_MAX_ENUM
     };
 
     //! @brief Equivalent to VkAttachmentStoreOp
-    enum class attachment_store : uint8_t {
-        store = 0, // STORE_OP_STORE
-        dont_care, // STORE_OP_CLEAR
-        none_khr,  // STORE_OP_NONE
-        none_qcom, // STORE_OP_NONE_EXT
-        none_ext,  // STORE_OP_NONE_KHR
-        max_enum,  // STORE_OP_MAX_ENUM
+    enum class attachment_store : uint32_t {
+        store = VK_ATTACHMENT_STORE_OP_STORE, // STORE_OP_STORE
+        dont_care = VK_ATTACHMENT_STORE_OP_DONT_CARE, // STORE_OP_CLEAR
+        none_khr = VK_ATTACHMENT_STORE_OP_NONE_KHR,  // STORE_OP_NONE
+        none_qcom = VK_ATTACHMENT_STORE_OP_NONE_QCOM, // STORE_OP_NONE_EXT
+        none_ext = VK_ATTACHMENT_STORE_OP_NONE_EXT,  // STORE_OP_NONE_KHR
+        max_enum = VK_ATTACHMENT_STORE_OP_MAX_ENUM,  // STORE_OP_MAX_ENUM
     };
 
     //! @brief Equivalent to VkPipelineBindPoint
@@ -421,15 +415,11 @@ namespace vk {
     };
 
     //! @brief Bits that 1-to-1 map to VkCommandUsageFlags
-    enum command_usage : uint8_t {
-        one_time_submit =
-          0x00000001, // Represents VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
-        renderpass_continue_bit =
-          0x00000002, // Represents
-                      // VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT
-        simulatneous_use_bit =
-          0x00000004, // Represents VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT
-        max_bit = 0x7F // Represents VK_COMMAND_BUFFER_USAGE_FLAG_BITS_MAX_ENUM
+    enum command_usage : uint32_t {
+        one_time_submit = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT, // Represents VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
+        renderpass_continue_bit = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT, // Represents VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT
+        simulatneous_use_bit = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT, // Represents VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT
+        max_bit = VK_COMMAND_BUFFER_USAGE_FLAG_BITS_MAX_ENUM // Represents VK_COMMAND_BUFFER_USAGE_FLAG_BITS_MAX_ENUM
     };
 
     /**
@@ -657,7 +647,8 @@ namespace vk {
     struct write_image {
         VkSampler sampler=nullptr;
         VkImageView view=nullptr;
-        VkImageLayout image_layout=VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        // VkImageLayout image_layout=VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        image_layout layout;
     };
     struct write_buffer {
         VkBuffer buffer=nullptr;
