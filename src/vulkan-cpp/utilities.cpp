@@ -95,9 +95,8 @@ namespace vk {
             throw std::runtime_error("device_count is zero!");
         }
 
-        // std::vector<vk::physical_device>
-        // hardware_physical_devices(device_count);
 
+        // TODO: Turn this into map<VkDescriptorDeviceType, VkPhysicalDevice>
         std::vector<VkPhysicalDevice> physical_devices(device_count);
         vkEnumeratePhysicalDevices(
           p_instance, &device_count, physical_devices.data());

@@ -83,13 +83,14 @@ namespace vk {
 
     void device_present_queue::submit_async(
       std::span<const VkCommandBuffer> p_commands,
-      VkPipelineStageFlags p_flags) {
+      pipeline_stage_flags p_flags) {
+        VkPipelineStageFlags flags = static_cast<VkPipelineStageFlags>(p_flags);
         VkSubmitInfo submit_info = {
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
             .pNext = nullptr,
             .waitSemaphoreCount = 1,
             .pWaitSemaphores = &m_presentation_completed,
-            .pWaitDstStageMask = &p_flags,
+            .pWaitDstStageMask = &flags,
             .commandBufferCount = static_cast<uint32_t>(p_commands.size()),
             .pCommandBuffers = p_commands.data(),
             .signalSemaphoreCount = 1,
