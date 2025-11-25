@@ -20,38 +20,38 @@ namespace vk {
         }
     }
 
-    VkDebugUtilsMessageSeverityFlagsEXT to_debug_message_severity(
-      uint32_t p_flag) {
-        VkDebugUtilsMessageSeverityFlagsEXT flag;
+    // VkDebugUtilsMessageSeverityFlagsEXT to_debug_message_severity(
+    //   uint32_t p_flag) {
+    //     VkDebugUtilsMessageSeverityFlagsEXT flag;
 
-        if (p_flag & vk::message::verbose) {
-            flag |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
-        }
-        else if (p_flag & vk::message::warning) {
-            flag |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT;
-        }
-        else if (p_flag & vk::message::error) {
-            flag |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-        }
+    //     if (p_flag & vk::message::verbose) {
+    //         flag |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
+    //     }
+    //     else if (p_flag & vk::message::warning) {
+    //         flag |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT;
+    //     }
+    //     else if (p_flag & vk::message::error) {
+    //         flag |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    //     }
 
-        return flag;
-    }
+    //     return flag;
+    // }
 
-    VkDebugUtilsMessageTypeFlagsEXT to_message_type(uint32_t p_flag) {
-        VkDebugUtilsMessageTypeFlagsEXT flag;
+    // VkDebugUtilsMessageTypeFlagsEXT to_message_type(uint32_t p_flag) {
+    //     VkDebugUtilsMessageTypeFlagsEXT flag;
 
-        if (p_flag & vk::debug::general) {
-            flag |= VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT;
-        }
-        else if (p_flag & vk::debug::validation) {
-            flag |= VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
-        }
-        else if (p_flag & vk::debug::performance) {
-            flag |= VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-        }
+    //     if (p_flag & vk::debug::general) {
+    //         flag |= VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT;
+    //     }
+    //     else if (p_flag & vk::debug::validation) {
+    //         flag |= VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
+    //     }
+    //     else if (p_flag & vk::debug::performance) {
+    //         flag |= VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    //     }
 
-        return flag;
-    }
+    //     return flag;
+    // }
 
     uint32_t vk_api_version(const api_version& p_version) {
         switch (p_version) {
@@ -289,42 +289,42 @@ namespace vk {
     //     return command_usage_flags;
     // }
 
-    VkImageAspectFlags to_image_aspect_flags(image_aspect_flags p_flag) {
-        switch (p_flag) {
-            case image_aspect_flags::color_bit:
-                return VK_IMAGE_ASPECT_COLOR_BIT;
-            case image_aspect_flags::depth_bit:
-                return VK_IMAGE_ASPECT_DEPTH_BIT;
-            case image_aspect_flags::stencil_bit:
-                return VK_IMAGE_ASPECT_STENCIL_BIT;
-            case image_aspect_flags::metadata_bit:
-                return VK_IMAGE_ASPECT_METADATA_BIT;
-            case image_aspect_flags::plane0_bit:
-                return VK_IMAGE_ASPECT_PLANE_0_BIT;
-            case image_aspect_flags::plane1_bit:
-                return VK_IMAGE_ASPECT_PLANE_1_BIT;
-            case image_aspect_flags::plane2_bit:
-                return VK_IMAGE_ASPECT_PLANE_2_BIT;
-            case image_aspect_flags::none:
-                return VK_IMAGE_ASPECT_NONE;
-            case image_aspect_flags::memory_plane0_bit_ext:
-                return VK_IMAGE_ASPECT_MEMORY_PLANE_0_BIT_EXT;
-            case image_aspect_flags::memory_plane1_bit_ext:
-                return VK_IMAGE_ASPECT_MEMORY_PLANE_1_BIT_EXT;
-            case image_aspect_flags::memory_plane2_bit_ext:
-                return VK_IMAGE_ASPECT_MEMORY_PLANE_2_BIT_EXT;
-            case image_aspect_flags::plane1_bit_khr:
-                return VK_IMAGE_ASPECT_PLANE_1_BIT_KHR;
-            case image_aspect_flags::plane2_bit_khr:
-                return VK_IMAGE_ASPECT_PLANE_2_BIT_KHR;
-            case image_aspect_flags::none_khr:
-                return VK_IMAGE_ASPECT_NONE_KHR;
-            case image_aspect_flags::bits_max_enum:
-                return VK_IMAGE_ASPECT_FLAG_BITS_MAX_ENUM;
-        }
+    // VkImageAspectFlags to_image_aspect_flags(image_aspect_flags p_flag) {
+    //     switch (p_flag) {
+    //         case image_aspect_flags::color_bit:
+    //             return VK_IMAGE_ASPECT_COLOR_BIT;
+    //         case image_aspect_flags::depth_bit:
+    //             return VK_IMAGE_ASPECT_DEPTH_BIT;
+    //         case image_aspect_flags::stencil_bit:
+    //             return VK_IMAGE_ASPECT_STENCIL_BIT;
+    //         case image_aspect_flags::metadata_bit:
+    //             return VK_IMAGE_ASPECT_METADATA_BIT;
+    //         case image_aspect_flags::plane0_bit:
+    //             return VK_IMAGE_ASPECT_PLANE_0_BIT;
+    //         case image_aspect_flags::plane1_bit:
+    //             return VK_IMAGE_ASPECT_PLANE_1_BIT;
+    //         case image_aspect_flags::plane2_bit:
+    //             return VK_IMAGE_ASPECT_PLANE_2_BIT;
+    //         case image_aspect_flags::none:
+    //             return VK_IMAGE_ASPECT_NONE;
+    //         case image_aspect_flags::memory_plane0_bit_ext:
+    //             return VK_IMAGE_ASPECT_MEMORY_PLANE_0_BIT_EXT;
+    //         case image_aspect_flags::memory_plane1_bit_ext:
+    //             return VK_IMAGE_ASPECT_MEMORY_PLANE_1_BIT_EXT;
+    //         case image_aspect_flags::memory_plane2_bit_ext:
+    //             return VK_IMAGE_ASPECT_MEMORY_PLANE_2_BIT_EXT;
+    //         case image_aspect_flags::plane1_bit_khr:
+    //             return VK_IMAGE_ASPECT_PLANE_1_BIT_KHR;
+    //         case image_aspect_flags::plane2_bit_khr:
+    //             return VK_IMAGE_ASPECT_PLANE_2_BIT_KHR;
+    //         case image_aspect_flags::none_khr:
+    //             return VK_IMAGE_ASPECT_NONE_KHR;
+    //         case image_aspect_flags::bits_max_enum:
+    //             return VK_IMAGE_ASPECT_FLAG_BITS_MAX_ENUM;
+    //     }
 
-        throw std::runtime_error("Invalid image aspect flags specified!!!");
-    }
+    //     throw std::runtime_error("Invalid image aspect flags specified!!!");
+    // }
 
     VkSampler create_sampler(const VkDevice& p_device,
                              const filter_range& p_range,
@@ -647,35 +647,35 @@ namespace vk {
                 (p_format == VK_FORMAT_D24_UNORM_S8_UINT));
     }
 
-    VkImageView create_image2d_view(
-      const VkDevice& p_device,
-      const VkImage& p_image,
-      const image_configuration_information& p_config) {
-        VkImageViewCreateInfo view_info = {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .image = p_image,
-            .viewType = VK_IMAGE_VIEW_TYPE_2D,
-            .format = p_config.format,
-            .components = { .r = VK_COMPONENT_SWIZZLE_IDENTITY,
-                            .g = VK_COMPONENT_SWIZZLE_IDENTITY,
-                            .b = VK_COMPONENT_SWIZZLE_IDENTITY,
-                            .a = VK_COMPONENT_SWIZZLE_IDENTITY },
-            .subresourceRange = { .aspectMask =
-                                    to_image_aspect_flags(p_config.aspect),
-                                  .baseMipLevel = 0,
-                                  .levelCount = 1,
-                                  .baseArrayLayer = 0,
-                                  .layerCount = 1 }
-        };
+    // VkImageView create_image2d_view(
+    //   const VkDevice& p_device,
+    //   const VkImage& p_image,
+    //   const image_configuration_information& p_config) {
+    //     VkImageViewCreateInfo view_info = {
+    //         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+    //         .pNext = nullptr,
+    //         .flags = 0,
+    //         .image = p_image,
+    //         .viewType = VK_IMAGE_VIEW_TYPE_2D,
+    //         .format = p_config.format,
+    //         .components = { .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+    //                         .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+    //                         .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+    //                         .a = VK_COMPONENT_SWIZZLE_IDENTITY },
+    //         .subresourceRange = { .aspectMask =
+    //                                 to_image_aspect_flags(p_config.aspect),
+    //                               .baseMipLevel = 0,
+    //                               .levelCount = 1,
+    //                               .baseArrayLayer = 0,
+    //                               .layerCount = 1 }
+    //     };
 
-        VkImageView image_view = nullptr;
-        vk_check(vkCreateImageView(p_device, &view_info, nullptr, &image_view),
-                 "vkCreateImageView");
+    //     VkImageView image_view = nullptr;
+    //     vk_check(vkCreateImageView(p_device, &view_info, nullptr, &image_view),
+    //              "vkCreateImageView");
 
-        return image_view;
-    }
+    //     return image_view;
+    // }
 
     uint32_t select_memory_requirements(
       VkPhysicalDeviceMemoryProperties p_physical_memory_props,

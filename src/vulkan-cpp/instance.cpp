@@ -55,9 +55,8 @@ namespace vk {
 
         VkDebugUtilsMessengerCreateInfoEXT debug_create_info = {
             .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-            .messageSeverity =
-              to_debug_message_severity(p_debug_message_utils.severity),
-            .messageType = to_message_type(p_debug_message_utils.message_type),
+            .messageSeverity = static_cast<VkDebugUtilsMessageSeverityFlagsEXT>(p_debug_message_utils.severity),
+            .messageType = static_cast<VkDebugUtilsMessageTypeFlagsEXT>(p_debug_message_utils.message_type),
             .pfnUserCallback = p_debug_message_utils.callback,
         };
 

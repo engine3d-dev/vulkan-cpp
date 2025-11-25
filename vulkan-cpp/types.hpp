@@ -21,30 +21,42 @@ namespace vk {
         rg32_sfloat = VK_FORMAT_R32G32_SFLOAT
     };
 
-    enum image_aspect_flags : uint8_t {
-        color_bit,
-        depth_bit,
-        stencil_bit,
-        metadata_bit,
-        plane0_bit,
-        plane1_bit,
-        plane2_bit,
-        none,
-        memory_plane0_bit_ext,
-        memory_plane1_bit_ext,
-        memory_plane2_bit_ext,
-        plane1_bit_khr,
-        plane2_bit_khr,
-        none_khr,
-        bits_max_enum
+    enum image_aspect_flags : uint32_t {
+        color_bit = VK_IMAGE_ASPECT_COLOR_BIT,
+        depth_bit = VK_IMAGE_ASPECT_DEPTH_BIT,
+        stencil_bit = VK_IMAGE_ASPECT_STENCIL_BIT,
+        metadata_bit = VK_IMAGE_ASPECT_METADATA_BIT,
+        plane0_bit = VK_IMAGE_ASPECT_PLANE_0_BIT,
+        plane1_bit = VK_IMAGE_ASPECT_PLANE_1_BIT,
+        plane2_bit = VK_IMAGE_ASPECT_PLANE_2_BIT,
+        none = VK_IMAGE_ASPECT_NONE,
+        memory_plane0_bit_ext = VK_IMAGE_ASPECT_MEMORY_PLANE_0_BIT_EXT,
+        memory_plane1_bit_ext = VK_IMAGE_ASPECT_MEMORY_PLANE_1_BIT_EXT,
+        memory_plane2_bit_ext = VK_IMAGE_ASPECT_MEMORY_PLANE_2_BIT_EXT,
+        plane1_bit_khr   = VK_IMAGE_ASPECT_PLANE_1_BIT_KHR,
+        plane2_bit_khr = VK_IMAGE_ASPECT_PLANE_2_BIT_KHR,
+        none_khr = VK_IMAGE_ASPECT_NONE_KHR,
+        bits_max_enum = VK_IMAGE_ASPECT_FLAG_BITS_MAX_ENUM
     };
 
     /**
      * @brief message sevierity explicitly to max size of a byte
      */
-    enum message : uint8_t { verbose = 0x1, warning = 0x2, error = 0x3 };
+    enum message : uint32_t {
+        verbose = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT,
+        info = VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT,
+        warning = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT,
+        error = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+        max_num = VK_DEBUG_UTILS_MESSAGE_SEVERITY_FLAG_BITS_MAX_ENUM_EXT
+    };
 
-    enum debug : uint8_t { general = 0x1, validation = 0x2, performance = 0x3 };
+    enum debug : uint32_t {
+        general = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT,
+        validation = VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT,
+        performance = VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+        device_address_binding_ext = VK_DEBUG_UTILS_MESSAGE_TYPE_DEVICE_ADDRESS_BINDING_BIT_EXT,
+        max_enum = VK_DEBUG_UTILS_MESSAGE_TYPE_FLAG_BITS_MAX_ENUM_EXT
+    };
 
     enum class api_version : uint32_t {
         vk_1_2,
@@ -206,7 +218,7 @@ namespace vk {
      * Have independent lifetimes that can be managed independently of
      * primary command buffers, allowing for more flexible resource management
      */
-    enum command_levels : uint8_t {
+    enum class command_levels : uint8_t {
         primary = 0,
         secondary = 1,
         max_enum = 2,

@@ -75,7 +75,7 @@ namespace vk {
                             .g = VK_COMPONENT_SWIZZLE_IDENTITY,
                             .b = VK_COMPONENT_SWIZZLE_IDENTITY,
                             .a = VK_COMPONENT_SWIZZLE_IDENTITY },
-            .subresourceRange = { .aspectMask = to_image_aspect_flags(
+            .subresourceRange = { .aspectMask = static_cast<VkImageAspectFlags>(
                                     p_image_properties.aspect),
                                   .baseMipLevel = 0,
                                   .levelCount = 1,
@@ -135,7 +135,7 @@ namespace vk {
                             .g = VK_COMPONENT_SWIZZLE_IDENTITY,
                             .b = VK_COMPONENT_SWIZZLE_IDENTITY,
                             .a = VK_COMPONENT_SWIZZLE_IDENTITY },
-            .subresourceRange = { .aspectMask = to_image_aspect_flags(
+            .subresourceRange = { .aspectMask = static_cast<VkImageAspectFlags>(
                                     p_image_properties.aspect),
                                   .baseMipLevel = 0,
                                   .levelCount = p_image_properties.mip_levels,
