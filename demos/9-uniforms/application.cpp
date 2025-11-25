@@ -44,6 +44,7 @@ initialize_instance_extensions() {
     std::vector<const char*> extension_names;
 
     extension_names.emplace_back(VK_KHR_SURFACE_EXTENSION_NAME);
+    extension_names.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
     // An additional surface extension needs to be loaded. This extension is
     // platform-specific so needs to be selected based on the platform the
@@ -501,11 +502,19 @@ main() {
     std::println("uniform_buffer.alive() = {}", test_ubo.alive());
 
     // vk::write_buffer_descriptor
+    std::array<vk::write_buffer, 1> uniforms0 = {
+        vk::write_buffer{
+            .buffer = test_ubo,
+            .offset = 0,
+            .range = test_ubo.size_bytes()
+        }
+    };
+
     std::array<vk::write_buffer_descriptor, 1> uniforms = {
-        vk::write_buffer_descriptor{ .dst_binding = 0,
-                                     .buffer = test_ubo,
-                                     .offset = 0,
-                                     .range = test_ubo.size_bytes() }
+        vk::write_buffer_descriptor{
+            .dst_binding = 0,
+            .uniforms = uniforms0
+        }
     };
     set0_resource.update(uniforms);
 

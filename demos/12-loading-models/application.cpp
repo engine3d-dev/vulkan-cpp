@@ -51,6 +51,8 @@ initialize_instance_extensions() {
 
     extension_names.emplace_back(VK_KHR_SURFACE_EXTENSION_NAME);
 
+    extension_names.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+
     // An additional surface extension needs to be loaded. This extension is
     // platform-specific so needs to be selected based on the platform the
     // example is going to be deployed to. Preprocessor directives are used
@@ -612,20 +614,17 @@ main() {
       vk::uniform_buffer(logical_device, test_ubo_info);
     std::println("uniform_buffer.alive() = {}", test_ubo.alive());
 
-    std::array<vk::write_buffer, 1> write_buffers = {
+    std::array<vk::write_buffer, 1> uniforms0 = {
         vk::write_buffer{
             .buffer = test_ubo,
             .offset = 0,
             .range = test_ubo.size_bytes()
         }
     };
-
     std::array<vk::write_buffer_descriptor, 1> uniforms = {
         vk::write_buffer_descriptor{
             .dst_binding = 0,
-            .buffer = test_ubo,
-            .offset = 0,
-            .range = test_ubo.size_bytes()
+            .uniforms = uniforms0
         }
     };
 
@@ -636,20 +635,19 @@ main() {
     };
     vk::texture texture1(logical_device, config_texture);
 
-    std::array<vk::write_image, 1> write_images = {
+    std::array<vk::write_image, 1> samplers = {
         vk::write_image{
             .sampler = texture1.image().sampler(),
             .view = texture1.image().image_view(),
-            .image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-        }
+            .layout = vk::image_layout::shader_read_only_optimal,
+        },
     };
 
     // Moving update call here because now we add textures to set0
     std::array<vk::write_image_descriptor, 1> sample_images = {
         vk::write_image_descriptor{
             .dst_binding = 1,
-            .sampler = texture1.image().sampler(),
-            .view = texture1.image().image_view(),
+            .sample_images = samplers,
         }
     };
     set0_resource.update(uniforms, sample_images);

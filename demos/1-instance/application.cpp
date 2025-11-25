@@ -21,6 +21,8 @@ initialize_instance_extensions() {
 
     extension_names.emplace_back(VK_KHR_SURFACE_EXTENSION_NAME);
 
+    extension_names.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+
     // An additional surface extension needs to be loaded. This extension is
     // platform-specific so needs to be selected based on the platform the
     // example is going to be deployed to. Preprocessor directives are used

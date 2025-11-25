@@ -45,6 +45,8 @@ initialize_instance_extensions() {
     std::vector<const char*> extension_names;
 
     extension_names.emplace_back(VK_KHR_SURFACE_EXTENSION_NAME);
+    
+    extension_names.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
     // An additional surface extension needs to be loaded. This extension is
     // platform-specific so needs to be selected based on the platform the
@@ -482,14 +484,22 @@ main() {
         .phsyical_memory_properties = physical_device.memory_properties(),
         .size_bytes = sizeof(global_uniform)
     };
-    vk::uniform_buffer test_ubo =
-      vk::uniform_buffer(logical_device, test_ubo_info);
+    vk::uniform_buffer test_ubo = vk::uniform_buffer(logical_device, test_ubo_info);
+
+
+    std::array<vk::write_buffer, 1> uniforms0 = {
+        vk::write_buffer{
+            .buffer = test_ubo,
+            .offset = 0,
+            .range = test_ubo.size_bytes()
+        }
+    };
 
     std::array<vk::write_buffer_descriptor, 1> uniforms = {
-        vk::write_buffer_descriptor{ .dst_binding = 0,
-                                     .buffer = test_ubo,
-                                     .offset = 0,
-                                     .range = test_ubo.size_bytes() }
+        vk::write_buffer_descriptor{
+            .dst_binding = 0,
+            .uniforms = uniforms0
+        }
     };
 
     // Loading a texture -- for testing
@@ -507,19 +517,36 @@ main() {
         .phsyical_memory_properties = physical_device.memory_properties(),
         .size_bytes = sizeof(material_uniform)
     };
-    vk::uniform_buffer material_ubo =
-      vk::uniform_buffer(logical_device, material_ubfo_info);
-    std::array<vk::write_buffer_descriptor, 1> uniforms_set1 = {
-        vk::write_buffer_descriptor{ .dst_binding = 0,
-                                     .buffer = material_ubo,
-                                     .offset = 0,
-                                     .range = material_ubo.size_bytes() }
+    vk::uniform_buffer material_ubo = vk::uniform_buffer(logical_device, material_ubfo_info);
+
+
+    std::array<vk::write_buffer, 1> set1_uniforms0 = {
+        vk::write_buffer{
+            .buffer = material_ubo,
+            .offset = 0,
+            .range = material_ubo.size_bytes()
+        }
     };
+
+    std::array<vk::write_buffer_descriptor, 1> uniforms_set1 = {
+        vk::write_buffer_descriptor{
+            .dst_binding = 0,
+            .uniforms = set1_uniforms0
+        }
+    };
+
+    std::array<vk::write_image, 1> set1_samplers = {
+        vk::write_image{
+            .sampler = texture1.image().sampler(),
+            .view = texture1.image().image_view(),
+            .layout = vk::image_layout::shader_read_only_optimal,
+        }
+    };
+
     std::array<vk::write_image_descriptor, 1> sample_images = {
         vk::write_image_descriptor{
             .dst_binding = 1,
-            .sampler = texture1.image().sampler(),
-            .view = texture1.image().image_view(),
+            .sample_images = set1_samplers
         }
     };
 
