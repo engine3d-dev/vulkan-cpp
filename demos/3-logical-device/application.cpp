@@ -156,7 +156,7 @@ main() {
     vk::device logical_device(physical_device, logical_device_enumeration);
 
     // Presentation queue family uses graphics queue
-    vk::queue_enumeration present_queue_enumerate = {
+    vk::queue_params present_queue_enumerate = {
         .family = 0,
         .index = queue_indices.graphics,
     };

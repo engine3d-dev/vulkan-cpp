@@ -122,7 +122,7 @@ namespace vk {
         physical device_type;
     };
 
-    struct physical_queue_enumeration {
+    struct physical_queue_params {
         uint32_t queue_count = 0;
     };
 
@@ -131,7 +131,7 @@ namespace vk {
         VkSurfaceFormatKHR format;
     };
 
-    struct queue_enumeration {
+    struct queue_params {
         uint32_t family = -1;
         uint32_t index = -1;
     };

@@ -358,7 +358,7 @@ main() {
                  swapchain_framebuffers.size());
 
     // setting up presentation queue to display commands to the screen
-    vk::queue_enumeration enumerate_present_queue{
+    vk::queue_params enumerate_present_queue{
         .family = 0,
         .index = 0,
     };

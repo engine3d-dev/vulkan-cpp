@@ -18,7 +18,7 @@ namespace vk {
         device_present_queue() = default;
         device_present_queue(const VkDevice& p_device,
                              const VkSwapchainKHR& p_swapchain_context,
-                             const queue_enumeration& p_config);
+                             const queue_params& p_config);
 
         void wait_idle();
 

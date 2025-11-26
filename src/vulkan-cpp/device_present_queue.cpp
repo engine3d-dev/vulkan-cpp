@@ -7,7 +7,7 @@ namespace vk {
     device_present_queue::device_present_queue(
       const VkDevice& p_device,
       const VkSwapchainKHR& p_swapchain_context,
-      const queue_enumeration& p_config)
+      const queue_params& p_config)
       : m_device(p_device)
       , m_swapchain(p_swapchain_context) {
         vkGetDeviceQueue(
