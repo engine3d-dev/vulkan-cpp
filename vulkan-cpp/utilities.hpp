@@ -48,7 +48,7 @@ namespace vk {
     //! @return the depth format which checks for compatible formats and is
     //! specific to the depth stencil attachment specified
     VkFormat select_depth_format(const VkPhysicalDevice& p_physical,
-                                 std::span<const VkFormat> p_format_selection);
+                                 std::span<const format> p_format_selection);
 
     //! @return surface_params which contains VkSurfaceCapabilities and
     //! VkSurfaceFormatKHR for the swapchain

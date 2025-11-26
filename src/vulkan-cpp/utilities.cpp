@@ -130,13 +130,13 @@ namespace vk {
 
     VkFormat select_compatible_formats(
       const VkPhysicalDevice& p_physical,
-      std::span<const VkFormat> p_format_selection,
+      std::span<const vk::format> p_format_selection,
       VkImageTiling p_tiling,
       VkFormatFeatureFlags p_feature_flag) {
         VkFormat format = VK_FORMAT_UNDEFINED;
 
         for (size_t i = 0; i < p_format_selection.size(); i++) {
-            VkFormat current_format = p_format_selection[i];
+            VkFormat current_format = static_cast<VkFormat>(p_format_selection[i]);
             VkFormatProperties format_properties;
             vkGetPhysicalDeviceFormatProperties(
               p_physical, current_format, &format_properties);
@@ -156,7 +156,7 @@ namespace vk {
     }
 
     VkFormat select_depth_format(const VkPhysicalDevice& p_physical,
-                                 std::span<const VkFormat> p_format_selection) {
+                                 std::span<const vk::format> p_format_selection) {
 
         VkFormat format = select_compatible_formats(
           p_physical,
@@ -534,16 +534,16 @@ namespace vk {
     //     }
     // }
 
-    VkFormat to_format(const format& p_format) {
-        switch (p_format) {
-            case format::rg32_sfloat:
-                return VK_FORMAT_R32G32_SFLOAT;
-            case format::rgb32_sfloat:
-                return VK_FORMAT_R32G32B32A32_SFLOAT;
-            default:
-                return VK_FORMAT_UNDEFINED;
-        }
-    }
+    // VkFormat to_format(const format& p_format) {
+    //     switch (p_format) {
+    //         case format::rg32_sfloat:
+    //             return VK_FORMAT_R32G32_SFLOAT;
+    //         case format::rgb32_sfloat:
+    //             return VK_FORMAT_R32G32B32A32_SFLOAT;
+    //         default:
+    //             return VK_FORMAT_UNDEFINED;
+    //     }
+    // }
 
     VkCommandPool create_single_command_pool(const VkDevice& p_device,
                                              uint32_t p_queue_family_index) {

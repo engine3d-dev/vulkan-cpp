@@ -10,10 +10,10 @@ namespace vk {
     public:
         swapchain(const VkDevice& p_device,
                   const VkSurfaceKHR& p_surface,
-                  const swapchain_enumeration& p_settings,
+                  const swapchain_params& p_settings,
                   const surface_params& p_surface_properties);
 
-        void create(const swapchain_enumeration& p_settings);
+        void create(const swapchain_params& p_settings);
         
 
         /**

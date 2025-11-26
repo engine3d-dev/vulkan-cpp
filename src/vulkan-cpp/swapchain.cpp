@@ -6,7 +6,7 @@
 namespace vk {
     swapchain::swapchain(const VkDevice& p_device,
                          const VkSurfaceKHR& p_surface,
-                         const swapchain_enumeration& p_settings,
+                         const swapchain_params& p_settings,
                          const surface_params& p_surface_properties)
       : m_device(p_device)
       , m_surface_handler(p_surface)
@@ -19,7 +19,7 @@ namespace vk {
         create(p_settings);
     }
 
-    void swapchain::create(const swapchain_enumeration& p_settings) {
+    void swapchain::create(const swapchain_params& p_settings) {
         VkSwapchainCreateInfoKHR swapchain_ci = {
             .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
             .surface = m_surface_handler,

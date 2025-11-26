@@ -169,7 +169,7 @@ main() {
         std::println("Surface Format.format is not undefined!!!");
     }
 
-    vk::swapchain_enumeration enumerate_swapchain_settings = {
+    vk::swapchain_params enumerate_swapchain_settings = {
         .width = (uint32_t)width,
         .height = (uint32_t)height,
         .present_index =
