@@ -195,8 +195,9 @@ namespace vk {
             .format = VK_FORMAT_R8G8B8A8_UNORM,
             .property = (memory_property)property_flag,
             .aspect = image_aspect_flags::color_bit,
-            .usage = (VkImageUsageFlags)(VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-                                         VK_IMAGE_USAGE_SAMPLED_BIT),
+            // .usage = (VkImageUsageFlags)(VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+            //                              VK_IMAGE_USAGE_SAMPLED_BIT),
+            .usage = image_usage::transfer_dst_bit | image_usage::sampled_bit,
             // .physical_device = p_texture_info.physical
             .phsyical_memory_properties =
               p_texture_info.phsyical_memory_properties
