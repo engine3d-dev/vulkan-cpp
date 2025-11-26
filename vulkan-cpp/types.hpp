@@ -471,7 +471,7 @@ namespace vk {
         uint32_t transfer = -1;
     };
 
-    struct device_enumeration {
+    struct device_params {
         std::span<float> queue_priorities{};
         std::span<const char*>
           extensions{}; // Can add VK_KHR_SWAPCHAIN_EXTENSION_NAME to this
