@@ -237,7 +237,7 @@ main() {
     // setting up command buffers
     std::vector<vk::command_buffer> swapchain_command_buffers(image_count);
     for (size_t i = 0; i < swapchain_command_buffers.size(); i++) {
-        vk::command_enumeration settings = {
+        vk::command_params settings = {
             enumerate_swapchain_settings.present_index,
             vk::command_levels::primary,
             vk::command_pool_flags::reset
@@ -471,7 +471,7 @@ main() {
 std::vector<vk::command_buffer> imgui_command_buffers(frames_in_flight);
 
 for(size_t i = 0; i < imgui_command_buffers.size(); i++) {
-    vk::command_enumeration settings = {
+    vk::command_params settings = {
         enumerate_swapchain_settings.present_index,
         vk::command_levels::secondary,
         vk::command_pool_flags::reset

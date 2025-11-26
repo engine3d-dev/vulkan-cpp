@@ -21,13 +21,13 @@ namespace vk {
         // = 1; uint32_t image_size = layer_size_with_bytes * layer_count;
 
         // 1. Creating temporary command buffer for texture
-        command_enumeration copy_command_enumeration = {
+        command_params copy_command_params = {
             .levels = command_levels::primary,
             .queue_index = 0,
             .flags = command_pool_flags::reset,
         };
         command_buffer temp_command_buffer =
-          command_buffer(p_device, copy_command_enumeration);
+          command_buffer(p_device, copy_command_params);
         // --------------------------------------
         // BEGIN COMMAND BUFFER RECORDING
         // --------------------------------------

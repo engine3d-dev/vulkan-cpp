@@ -15,13 +15,13 @@ namespace vk {
       const image_params& p_config,
       const void* p_data) {
         // 1. Creating temporary command buffer for texture
-        command_enumeration copy_command_enumeration = {
+        command_params copy_command_params = {
             .levels = command_levels::primary,
             .queue_index = 0,
             .flags = command_pool_flags::reset,
         };
         command_buffer temp_command_buffer =
-          command_buffer(p_device, copy_command_enumeration);
+          command_buffer(p_device, copy_command_params);
 
         // 2. loading texture
 
@@ -124,7 +124,7 @@ namespace vk {
 
 
 	texture::texture(const VkDevice& p_device, const image_extent& p_extent, VkPhysicalDeviceMemoryProperties p_property) : m_device(p_device) {
-		command_enumeration settings = {
+		command_params settings = {
 			.levels = command_levels::primary,
             .queue_index = 0,
 			.flags = command_pool_flags::reset,

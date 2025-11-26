@@ -577,7 +577,7 @@ namespace vk {
           p_device, queue_family_index, queue_index, &temp_graphics_queue);
 
         // command_buffer_info
-        command_enumeration enumerate_command_info = {
+        command_params enumerate_command_info = {
             .levels = command_levels::primary,
             .queue_index = 0,
         };

@@ -21,7 +21,7 @@ namespace vk {
     public:
         command_buffer() = default;
         command_buffer(const VkDevice& p_device,
-                       const command_enumeration& p_enumerate_command_info);
+                       const command_params& p_enumerate_command_info);
 
         /**
          * @brief begins the recording operation of the particular command buffer

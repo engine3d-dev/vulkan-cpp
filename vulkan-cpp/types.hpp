@@ -277,13 +277,7 @@ namespace vk {
      * stored in protected memory and access to them is restricted to authorized
      * operations
      */
-    struct command_enumeration {
-        // command_enumeration(uint32_t p_queue_family,
-        //                     const command_levels& p_levels,
-        //                     const command_pool_flags& p_pool_flags)
-        //   : levels(p_levels)
-        //   , queue_index(p_queue_family)
-        //   , flags(p_pool_flags) {}
+    struct command_params {
 
         command_levels levels;
         uint32_t queue_index = -1;

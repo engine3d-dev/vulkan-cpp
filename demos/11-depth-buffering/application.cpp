@@ -257,7 +257,7 @@ main() {
     // setting up command buffers
     std::vector<vk::command_buffer> swapchain_command_buffers(image_count);
     for (size_t i = 0; i < swapchain_command_buffers.size(); i++) {
-        vk::command_enumeration settings = {
+        vk::command_params settings = {
             .levels = vk::command_levels::primary,
             .queue_index = enumerate_swapchain_settings.present_index,
             .flags = vk::command_pool_flags::reset,

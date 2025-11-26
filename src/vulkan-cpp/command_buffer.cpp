@@ -4,7 +4,7 @@
 namespace vk {
     command_buffer::command_buffer(
       const VkDevice& p_device,
-      const command_enumeration& p_enumerate_command_info)
+      const command_params& p_enumerate_command_info)
       : m_device(p_device) {
         VkCommandPoolCreateInfo pool_ci = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
