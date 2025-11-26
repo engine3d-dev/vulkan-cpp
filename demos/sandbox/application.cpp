@@ -408,13 +408,20 @@ main() {
     obj_model test_model(std::filesystem::path("asset_samples/backpack/backpack.obj"), logical_device, physical_device);
 
     // Setting up descriptor sets for handling uniforms
-    vk::uniform_buffer_info global_uniform_info = {
+    vk::uniform_params global_uniform_info = {
         .phsyical_memory_properties = physical_device.memory_properties(),
         .size_bytes = sizeof(global_ubo),
         .debug_name = "\nglobal_uniforms\n",
         .vkSetDebugUtilsObjectNameEXT = api_instance.get_debug_object_name()
     };
     vk::uniform_buffer global_uniforms = vk::uniform_buffer(logical_device, global_uniform_info);
+
+    /*
+
+    vk::uniform_buffer global_uniforms = vk::uniform_buffer(logical_device, sizeof(global_ubo), global_uniform_info);
+
+
+    */
 
     std::array<vk::write_buffer, 1> set0_buffers = {
         vk::write_buffer{
@@ -470,7 +477,7 @@ main() {
     
     vk::descriptor_resource set1 = vk::descriptor_resource(logical_device, set1_layout);
 
-    vk::uniform_buffer_info geo_uniform_info = {
+    vk::uniform_params geo_uniform_info = {
         .phsyical_memory_properties = physical_device.memory_properties(),
         .size_bytes = sizeof(geometry_ubo)
     };

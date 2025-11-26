@@ -4,7 +4,7 @@
 namespace vk {
 
     uniform_buffer::uniform_buffer(const VkDevice& p_device,
-                                   const uniform_buffer_info& p_uniform_info)
+                                   const uniform_params& p_uniform_info)
       : m_device(p_device)
       , m_size_bytes(p_uniform_info.size_bytes) {
         uint32_t property_flags = memory_property::host_visible_bit |

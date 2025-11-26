@@ -492,7 +492,7 @@ main() {
     // data camera_ubo global_ubo = {}; test_ubo.update(&global_ubo);
 
     // Setting up descriptor sets for handling uniforms
-    vk::uniform_buffer_info test_ubo_info = {
+    vk::uniform_params test_ubo_info = {
         .phsyical_memory_properties = physical_device.memory_properties(),
         .size_bytes = sizeof(global_uniform)
     };

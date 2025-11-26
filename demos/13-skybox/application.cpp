@@ -613,7 +613,7 @@ main() {
     std::println("Obj Model Load Status = {}", test_model.loaded());
 
     // Setting up descriptor sets for handling uniforms
-    vk::uniform_buffer_info test_ubo_info = {
+    vk::uniform_params test_ubo_info = {
         .phsyical_memory_properties = physical_device.memory_properties(),
         .size_bytes = sizeof(global_uniform)
     };
@@ -669,7 +669,7 @@ main() {
     // ----------------------------------------
 
     // 1. loading uniforms for skybox
-    vk::uniform_buffer_info skybox_ubo_info = {
+    vk::uniform_params skybox_ubo_info = {
         .phsyical_memory_properties = physical_device.memory_properties(),
         .size_bytes = sizeof(skybox_camera_data)
     };

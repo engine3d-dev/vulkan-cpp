@@ -686,7 +686,7 @@ namespace vk {
         PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT = nullptr;
     };
 
-    struct uniform_buffer_info {
+    struct uniform_params {
         // VkPhysicalDevice physical_handle=nullptr;
         VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
         uint32_t size_bytes = 0;

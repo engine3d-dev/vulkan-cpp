@@ -492,7 +492,7 @@ main() {
     // bind so the shader resource knows how to look up our data layout and see
     // if they match Will get validation layer error messages if the data layout
     // does not match (meaning size_bytes doesn't match)
-    vk::uniform_buffer_info test_ubo_info = {
+    vk::uniform_params test_ubo_info = {
         // .physical_handle = physical_device,
         .phsyical_memory_properties = physical_device.memory_properties(),
         .size_bytes = sizeof(global_uniform)

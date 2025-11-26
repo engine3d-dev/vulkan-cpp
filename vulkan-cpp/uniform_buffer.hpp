@@ -13,7 +13,7 @@ namespace vk {
     public:
         uniform_buffer() = default;
         uniform_buffer(const VkDevice& p_device,
-                       const uniform_buffer_info& p_uniform_info);
+                       const uniform_params& p_uniform_info);
 
         [[nodiscard]] bool alive() const { return m_uniform_handle; }
 
