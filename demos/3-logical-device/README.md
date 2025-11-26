@@ -74,6 +74,27 @@ vk::device logical_device(physical_device, logical_device_params);
 
 `vk::device` also provides an API `.alive()` function to make sure if the VkDevice handle is valid for use, which you can use for testing if its been created successfully.
 
+# Last Minute Notes
+
+When you have a logical device. When your application closes, make sure to call `.wait()` and `.destroy()`.
+
+Vulkan requires that all objects you create must be destroyed, deallocated, or freed before the logical device itself gets destroyed
+
+Here is an example:
+
+```C++
+while(!glfwWindowShouldCLose(window)) {
+    glfwPollEvents();
+}
+
+// do other destroy operation here for vulkan-cpp's objects
+// .wait() calls vkDeviceWaitIdle(device) under the hood
+logical_device.wait();
+
+// .destroy() ensure the resources of the logical devices are cleaned up properly
+logical_device.destroy();
+```
+
 # Thats it!
 
 You've created a vulkan logical device.
