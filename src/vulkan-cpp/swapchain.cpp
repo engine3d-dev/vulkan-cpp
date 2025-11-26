@@ -45,6 +45,16 @@ namespace vk {
                  "vkCreateSwapchainKHR");
     }
 
+    std::span<const VkImage> swapchain::presentable_images() {
+        uint32_t image_count=0;
+        vkGetSwapchainImagesKHR(m_device, m_swapchain_handler, &image_count, nullptr);
+
+        m_images.resize(image_count);
+        vkGetSwapchainImagesKHR(m_device, m_swapchain_handler, &image_count, m_images.data());
+
+        return m_images;
+    }
+
     void swapchain::destroy() {
         vkDestroySwapchainKHR(m_device, m_swapchain_handler, nullptr);
     }

@@ -204,16 +204,20 @@ main() {
     // querying swapchain images
 	// TODO: Make the images and framebuffers contained within the vk::swapchain
 	// Considering if you have two display they will prob have their own set of images to display to the two separate screens
-    uint32_t image_count = 0;
-    vkGetSwapchainImagesKHR(logical_device,
-                            main_swapchain,
-                            &image_count,
-                            nullptr); // used to get the amount of images
-    std::vector<VkImage> images(image_count);
-    vkGetSwapchainImagesKHR(logical_device,
-                            main_swapchain,
-                            &image_count,
-                            images.data()); // used to store in the images
+    // uint32_t image_count = 0;
+    // vkGetSwapchainImagesKHR(logical_device,
+    //                         main_swapchain,
+    //                         &image_count,
+    //                         nullptr); // used to get the amount of images
+    // std::vector<VkImage> images(image_count);
+    // vkGetSwapchainImagesKHR(logical_device,
+    //                         main_swapchain,
+    //                         &image_count,
+    //                         images.data()); // used to store in the images
+
+    std::span<const VkImage> images = main_swapchain.presentable_images();
+
+    uint32_t image_count = images.size();
 
     // Creating Images
     std::vector<vk::sample_image> swapchain_images(image_count);
@@ -225,6 +229,7 @@ main() {
     uint32_t layer_count = 1;
     uint32_t mip_levels = 1;
     for (uint32_t i = 0; i < swapchain_images.size(); i++) {
+        // image for color attachment
         vk::image_params swapchain_image_config = {
             .extent = {swapchain_extent.width, swapchain_extent.width},
             .format = surface_properties.format.format,
@@ -235,12 +240,9 @@ main() {
             .layer_count = 1,
             .phsyical_memory_properties = physical_device.memory_properties(),
         };
-
-
         swapchain_images[i] = vk::sample_image(logical_device, images[i], swapchain_image_config);
 
-
-        // Creating Images for depth buffering
+        // image for depth attachment
         vk::image_params image_config = {
             .extent = {swapchain_extent.width, swapchain_extent.width},
             .format = depth_format,
@@ -263,14 +265,12 @@ main() {
             .flags = vk::command_pool_flags::reset,
         };
 
-        swapchain_command_buffers[i] =
-          vk::command_buffer(logical_device, settings);
+        swapchain_command_buffers[i] = vk::command_buffer(logical_device, settings);
     }
 
-    // setting up renderpass
-
-    // setting up attachments for the renderpass
+    // setting up attachments
     std::array<vk::attachment, 2> renderpass_attachments = {
+        // setting up color attachment
         vk::attachment{
           .format = surface_properties.format.format,
           .layout = vk::image_layout::color_optimal,
@@ -282,6 +282,7 @@ main() {
           .initial_layout = vk::image_layout::undefined,
           .final_layout = vk::image_layout::present_src_khr,
         },
+        // setting up depth attachment
         vk::attachment{
           .format = depth_format,
           .layout = vk::image_layout::depth_stencil_optimal,
@@ -297,10 +298,7 @@ main() {
 
     vk::renderpass main_renderpass(logical_device, renderpass_attachments);
 
-    std::println("renderpass created!!!");
-
-    // Setting up swapchain framebuffers
-
+    // Setting up framebuffers for presentation
 	std::vector<vk::framebuffer> swapchain_framebuffers(image_count);
 	for (uint32_t i = 0; i < swapchain_framebuffers.size(); i++) {
 		std::array<VkImageView, renderpass_attachments.size()> image_view_attachments = {
@@ -308,21 +306,21 @@ main() {
 			swapchain_depth_images[i].image_view()
 		};
 
-		vk::framebuffer_params framebuffer_info = {
+		vk::framebuffer_params framebuffer_params = {
 			.renderpass = main_renderpass,
 			.views = image_view_attachments,
 			.extent = swapchain_extent
 		};
-		swapchain_framebuffers[i] = vk::framebuffer(logical_device, framebuffer_info);
+		swapchain_framebuffers[i] = vk::framebuffer(logical_device, framebuffer_params);
 	}
 
     // setting up presentation queue to display commands to the screen
-    vk::queue_params enumerate_present_queue{
+    vk::queue_params device_queue_params{
         .family = 0,
         .index = 0,
     };
     vk::device_present_queue presentation_queue(
-      logical_device, main_swapchain, enumerate_present_queue);
+      logical_device, main_swapchain, device_queue_params);
 
     // gets set with the renderpass
     std::array<float, 4> color = { 0.f, 0.5f, 0.5f, 1.f };
@@ -366,16 +364,15 @@ main() {
     };
 
     std::array<vk::vertex_attribute, 1> attributes = {
-            vk::vertex_attribute{
-              // layout (set = 0, binding = 0)
-              .binding = 0,
-              .entries = attribute_entries,
-              .stride = sizeof(vk::vertex_input),
-              .input_rate = vk::input_rate::vertex,
-            },
-        };
+        vk::vertex_attribute{
+            // layout (set = 0, binding = 0)
+            .binding = 0,
+            .entries = attribute_entries,
+            .stride = sizeof(vk::vertex_input),
+            .input_rate = vk::input_rate::vertex,
+        },
+    };
 
-    // To render triangle, we do not need to set any vertex attributes
 	vk::shader_resource_info shader_info = {
 		.sources = shader_sources,
 		.vertex_attributes = attributes // this is to explicitly set to none, but also dont need to set this at all regardless
@@ -399,7 +396,7 @@ main() {
             .descriptor_count = 1,
         }
     };
-    // uint32_t image_count = image_count;
+
     vk::descriptor_layout set0_layout = {
         .slot = 0, // indicate that this is descriptor set 0
         .max_sets = image_count, // max of descriptor sets able to allocate
@@ -409,7 +406,6 @@ main() {
 
     // Loading mesh
     obj_model test_model(std::filesystem::path("asset_samples/backpack/backpack.obj"), logical_device, physical_device);
-    // obj_model test_model(std::filesystem::path("asset_samples/viking_room.obj"), logical_device, physical_device, true);
 
     // Setting up descriptor sets for handling uniforms
     vk::uniform_buffer_info global_uniform_info = {

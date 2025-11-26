@@ -14,6 +14,23 @@ namespace vk {
                   const surface_params& p_surface_properties);
 
         void create(const swapchain_enumeration& p_settings);
+        
+
+        /**
+         * @brief gets the presentable images from this associated swapchain
+         * 
+         * @return std::span<const VkImage> which are the presentable available images that can be presented to the swapchain
+         * 
+         * ```C++
+         * 
+         * vk::swapchain main_swapchain(logical_device, ...);
+         * 
+         * std::span<const VkImage> images = main_swapchain.enumerate_images();
+         * 
+         * ```
+         * 
+        */
+        std::span<const VkImage> presentable_images();
 
         void destroy();
 
@@ -29,5 +46,7 @@ namespace vk {
         uint32_t m_image_size = 0;
 
         device_queue m_present_queue;
+
+        std::vector<VkImage> m_images;
     };
 };
