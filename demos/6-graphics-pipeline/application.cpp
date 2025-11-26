@@ -370,7 +370,7 @@ main() {
         current.begin(vk::command_usage::simulatneous_use_bit);
 
         // renderpass begin/end must be within a recording command buffer
-        vk::renderpass_begin_info begin_renderpass = {
+        vk::renderpass_begin_params begin_renderpass = {
             .current_command = current,
             .extent = swapchain_extent,
             .current_framebuffer = swapchain_framebuffers[current_frame],

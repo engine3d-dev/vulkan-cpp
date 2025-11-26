@@ -29,7 +29,7 @@ namespace vk {
 
         [[nodiscard]] bool alive() const { return m_renderpass; }
 
-        void begin(const renderpass_begin_info& p_begin_info);
+        void begin(const renderpass_begin_params& p_begin_info);
 
         void end(const VkCommandBuffer& p_current);
 

@@ -128,7 +128,7 @@ namespace vk {
           "vkCreateRenderPass");
     }
 
-    void renderpass::begin(const renderpass_begin_info& p_begin_info) {
+    void renderpass::begin(const renderpass_begin_params& p_begin_info) {
         // TODO: Move VkViewport and VkScissor to vk::swapchain since these are
         // information more closely set by the swapchain
         VkViewport viewport = {
@@ -159,7 +159,7 @@ namespace vk {
         clear_values[0].color = renderpass_color;
         clear_values[1].depthStencil = { 1.f, 0 };
 
-        VkRenderPassBeginInfo renderpass_begin_info = {
+        VkRenderPassBeginInfo renderpass_begin_params = {
             .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
 			.pNext = nullptr,
 			.renderPass = m_renderpass,
@@ -179,7 +179,7 @@ namespace vk {
         };
 
         vkCmdBeginRenderPass(p_begin_info.current_command,
-                             &renderpass_begin_info,
+                             &renderpass_begin_params,
                              static_cast<VkSubpassContents>(p_begin_info.subpass));
     }
 
