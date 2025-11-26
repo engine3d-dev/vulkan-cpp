@@ -58,8 +58,6 @@ if(selected_device.alive()) {
 
 You have successfully created a vulkan physical device. This part I made an attempt at trying to simplify enumerating, and selecting physical devices and communicating that to the vulkan-side.
 
-!!! note
-
-    I have plans to make changes to this API for allowing `vk::instance` provide you API's to select `vk::physical_device`'s.
-
-    There will be updates added, as soon I make those changes.
+> [!NOTE]
+> I have plans to make changes to this API for allowing `vk::instance` provide you API's to select `vk::physical_device`'s.
+> There will be updates added, as soon I make those changes.
