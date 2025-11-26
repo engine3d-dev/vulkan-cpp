@@ -91,7 +91,7 @@ main() {
         .callback = debug_callback
     };
 
-    vk::application_configuration config = {
+    vk::application_params config = {
         .name = "vulkan instance",
         .version = vk::api_version::vk_1_3, // specify to using vulkan 1.3
         .validations = validation_layers, // .validation takes in a std::span<const char*>

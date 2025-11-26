@@ -7,7 +7,7 @@
 
 namespace vk {
 
-    instance::instance(const application_configuration& p_config,
+    instance::instance(const application_params& p_config,
                        const debug_message_utility& p_debug_message_utils) {
         VkApplicationInfo app_info = {
             .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,

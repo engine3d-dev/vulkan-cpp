@@ -73,7 +73,7 @@ namespace vk {
                              void*) = nullptr;
     };
 
-    struct application_configuration {
+    struct application_params {
         std::string name = "";
         api_version version;
         std::span<const char*> validations;
@@ -697,18 +697,6 @@ namespace vk {
         buffer type;
         descriptor_binding_point binding_point;
         uint32_t descriptor_count;
-    };
-
-    //! @brief vulkan-specification for creation of VkImage/VkImageView
-    struct image_configuration {
-        uint32_t width;
-        uint32_t height;
-        VkFormat format;
-        uint32_t mip_levels = 1;
-        uint32_t array_layers = 1;
-        VkImageUsageFlags usage;
-        memory_property property;
-        VkPhysicalDevice physical_device = nullptr;
     };
 
     struct write_image {
