@@ -9,7 +9,7 @@ namespace vk {
     public:
         index_buffer() = default;
         index_buffer(const VkDevice& p_device,
-                     const index_buffer_settings& p_info);
+                     const index_params& p_info);
 
         [[nodiscard]] bool alive() const { return m_index_buffer; }
 

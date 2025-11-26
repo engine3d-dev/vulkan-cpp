@@ -416,7 +416,7 @@ main() {
     //     .vertices = vertices,
     // };
 
-    vk::vertex_buffer_settings vertex_info = {
+    vk::vertex_params vertex_info = {
         .phsyical_memory_properties = physical_device.memory_properties(),
         .vertices = vertices,
     };
@@ -425,7 +425,7 @@ main() {
 
     std::array<uint32_t, 6> indices = { 0, 1, 2, 2, 3, 0 };
 
-    vk::index_buffer_settings index_info = {
+    vk::index_params index_info = {
         .phsyical_memory_properties = physical_device.memory_properties(),
         .indices = indices,
     };

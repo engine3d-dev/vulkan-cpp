@@ -194,12 +194,12 @@ public:
                 indices.push_back(unique_vertices[vertex]);
             }
         }
-        vk::vertex_buffer_settings vertex_info = {
+        vk::vertex_params vertex_info = {
             .phsyical_memory_properties = p_physical.memory_properties(),
             .vertices = vertices
         };
 
-        vk::index_buffer_settings index_info = {
+        vk::index_params index_info = {
             .phsyical_memory_properties = p_physical.memory_properties(),
             .indices = indices
         };
@@ -579,11 +579,8 @@ main() {
     };
     // uint32_t image_count = image_count;
     vk::descriptor_layout set0_layout = {
-        .slot = 0, // indicate that this is descriptor set 0
-        .allocate_count = image_count, // the count how many descriptor
-                                            // set layout able to be allocated
+        .slot = 0, // represents as set 0
         .max_sets = image_count, // max of descriptor sets able to allocate
-        .size_bytes = sizeof(global_uniform), // size of bytes of the uniforms utilized by this descriptor sets
         .entries = entries,      // specifies pool sizes and descriptor layout
     };
     vk::descriptor_resource set0_resource(logical_device, set0_layout);
@@ -622,12 +619,19 @@ main() {
     };
     vk::uniform_buffer test_ubo = vk::uniform_buffer(logical_device, test_ubo_info);
     std::println("uniform_buffer.alive() = {}", test_ubo.alive());
-    std::array<vk::write_buffer_descriptor, 1> uniforms = {
-        vk::write_buffer_descriptor{
-            .dst_binding = 0,
+
+    std::array<vk::write_buffer, 1> uniforms0 = {
+        vk::write_buffer{
             .buffer = test_ubo,
             .offset = 0,
             .range = test_ubo.size_bytes()
+        }
+    };
+
+    std::array<vk::write_buffer_descriptor, 1> uniforms = {
+        vk::write_buffer_descriptor{
+            .dst_binding = 0,
+            .uniforms = uniforms0,
         }
     };
 
@@ -641,11 +645,17 @@ main() {
     std::println("texture1.valid = {}", texture1.loaded());
 
     // Moving update call here because now we add textures to set0
+    std::array<vk::write_image, 1> samplers = {
+        vk::write_image{
+            .sampler = texture1.image().sampler(),
+            .view = texture1.image().image_view(),
+            .layout = vk::image_layout::shader_read_only_optimal,
+        }
+    };
     std::array<vk::write_image_descriptor, 1> sample_images = {
         vk::write_image_descriptor{
             .dst_binding = 1,
-            .view = texture1.image().image_view(),
-            .sampler = texture1.image().sampler()
+            .sample_images = samplers,
         }
     };
     set0_resource.update(uniforms, sample_images);
@@ -714,11 +724,8 @@ main() {
 
     // in skybox shader, this descriptor set is for set 0 in the skybox shader
     vk::descriptor_layout skybox_layout = {
-        .slot = 0, // indicate that this is descriptor set 0
-        .allocate_count = image_count, // the count how many descriptor
-                                            // set layout able to be allocated
+        .slot = 0, // indicate that this is descriptor set 1
         .max_sets = image_count, // max of descriptor sets able to allocate
-        .size_bytes = skybox_ubo_info.size_bytes, // size of bytes of the uniforms utilized by this descriptor sets
         .entries = skybox_descriptor_entries,      // specifies pool sizes and descriptor layout
     };
     
@@ -839,7 +846,7 @@ main() {
 
         // Before we can send stuff to the GPU, since we already updated the descriptor set 0 beforehand, we must bind that descriptor resource before making any of the draw calls
         // Something to note: You cannot update descriptor sets in the process of a current-recording command buffers or else that becomes undefined behavior
-        set0_resource.bind(current, current_frame, main_graphics_pipeline.layout());
+        set0_resource.bind(current, main_graphics_pipeline.layout());
 
         // Drawing-call to render actual triangle to the screen
         // vkCmdDrawIndexed(current, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
@@ -849,7 +856,8 @@ main() {
         current.end();
 
         // Submitting and then presenting to the screen
-        presentation_queue.submit_async(current);
+        std::array<const VkCommandBuffer, 1> commands = {current};
+        presentation_queue.submit_async(commands);
         presentation_queue.present_frame(current_frame);
     }
 

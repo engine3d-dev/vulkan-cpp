@@ -5,7 +5,7 @@
 namespace vk {
 
     vertex_buffer::vertex_buffer(const VkDevice& p_device,
-                                 const vertex_buffer_settings& p_vertex_info)
+                                 const vertex_params& p_vertex_info)
       : m_device(p_device) {
         m_size = p_vertex_info.vertices.size();
         m_size_bytes = p_vertex_info.vertices.size_bytes();
@@ -32,7 +32,7 @@ namespace vk {
         staging_buffer.write(vertices);
 
         // 3.) Now creating our actual vertex buffer handler
-        buffer_parameters vertex_buffer_settings = {
+        buffer_parameters vertex_params = {
             .device_size = m_size_bytes,
             .physical_memory_properties =
               p_vertex_info.phsyical_memory_properties,
@@ -40,7 +40,7 @@ namespace vk {
             .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT |
                      VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         };
-        m_vertex_handler = buffer_stream(m_device, vertex_buffer_settings);
+        m_vertex_handler = buffer_stream(m_device, vertex_params);
 
         // 4. Copy data from staging buffer to the actual vertex buffer itself!
         buffer_copy_info info = { .src = staging_buffer,

@@ -13,7 +13,7 @@ namespace vk {
     public:
         vertex_buffer() = default;
         vertex_buffer(const VkDevice& p_device,
-                      const vertex_buffer_settings& p_vertices);
+                      const vertex_params& p_vertices);
 
         [[nodiscard]] uint32_t size_bytes() const { return m_size_bytes; }
 

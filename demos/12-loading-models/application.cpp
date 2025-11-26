@@ -192,12 +192,12 @@ public:
                 indices.push_back(unique_vertices[vertex]);
             }
         }
-        vk::vertex_buffer_settings vertex_info = {
+        vk::vertex_params vertex_info = {
             .phsyical_memory_properties = p_physical.memory_properties(),
             .vertices = vertices
         };
 
-        vk::index_buffer_settings index_info = {
+        vk::index_params index_info = {
             .phsyical_memory_properties = p_physical.memory_properties(),
             .indices = indices
         };

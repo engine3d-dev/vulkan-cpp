@@ -373,7 +373,7 @@ main() {
                                                    { 1.f, 1.f, 1.f },
                                                    { 1.f, 1.f },
                                                  } };
-    vk::vertex_buffer_settings vertex_info = {
+    vk::vertex_params vertex_info = {
         .phsyical_memory_properties = physical_device.memory_properties(),
         .vertices = vertices,
     };

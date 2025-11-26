@@ -666,14 +666,14 @@ namespace vk {
         VkBuffer dst;
     };
 
-    struct vertex_buffer_settings {
+    struct vertex_params {
         VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
         std::span<vertex_input> vertices;
         std::string debug_name;
         PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT = nullptr;
     };
 
-    struct index_buffer_settings {
+    struct index_params {
         VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
         std::span<uint32_t> indices;
         std::string debug_name;
