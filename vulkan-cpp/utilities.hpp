@@ -122,6 +122,7 @@ namespace vk {
 
     //! @brief Copies from one buffer source into another buffer source with a
     //! specific size of bytes to be stored the buffer that is being copied to
+    void copy(const VkDevice& p_device, const buffer_copy_info& p_info, size_t p_size_of_bytes);
 
 
     //! @return Returns the VkDescriptorType that represents a "handle" the

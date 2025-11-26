@@ -122,10 +122,6 @@ namespace vk {
         physical device_type;
     };
 
-    struct physical_queue_params {
-        uint32_t queue_count = 0;
-    };
-
     struct surface_params {
         VkSurfaceCapabilitiesKHR capabilities;
         VkSurfaceFormatKHR format;
