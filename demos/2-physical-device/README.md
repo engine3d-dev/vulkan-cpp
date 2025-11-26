@@ -56,7 +56,11 @@ if(selected_device.alive()) {
 
 # Thats it!
 
-You have successfully created a vulkan physical device. This part I made an attempt at trying to simplify enumerating, and selecting physical devices and communicating that to the vulkan-side.
+You have successfully created a vulkan physical device.
+
+By having a physical devices, this allows you to pull in capabilities that your particular hardware GPU for information for specific operations.
+
+This allows you to enumerate information that can tell you if your specific GPU hardware has support for certain vulkan operations
 
 > [!NOTE]
 > I have plans to make changes to this API for allowing `vk::instance` provide you API's to select `vk::physical_device`'s.
