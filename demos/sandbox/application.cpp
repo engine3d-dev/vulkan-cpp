@@ -189,6 +189,7 @@ main() {
         std::println("Surface Format.format is not undefined!!!");
     }
 
+    // creating our swapchain handle
     vk::swapchain_enumeration enumerate_swapchain_settings = {
         .width = (uint32_t)width,
         .height = (uint32_t)height,
@@ -215,17 +216,18 @@ main() {
     //                         &image_count,
     //                         images.data()); // used to store in the images
 
+    // getting our presentable attachments from the associated swapchain handle
     std::span<const VkImage> images = main_swapchain.presentable_images();
 
     uint32_t image_count = images.size();
 
-    // Creating Images
+    // Creating Images for color and depth attachments
     std::vector<vk::sample_image> swapchain_images(image_count);
     std::vector<vk::sample_image> swapchain_depth_images(image_count);
 
     VkExtent2D swapchain_extent = surface_properties.capabilities.currentExtent;
 
-    // Setting up the images
+    // setup presentable images
     uint32_t layer_count = 1;
     uint32_t mip_levels = 1;
     for (uint32_t i = 0; i < swapchain_images.size(); i++) {
@@ -256,7 +258,7 @@ main() {
         swapchain_depth_images[i] = vk::sample_image(logical_device, image_config);
     }
 
-    // setting up command buffers
+    // setup swapchain command buffers
     std::vector<vk::command_buffer> swapchain_command_buffers(image_count);
     for (size_t i = 0; i < swapchain_command_buffers.size(); i++) {
         vk::command_params settings = {
@@ -268,7 +270,7 @@ main() {
         swapchain_command_buffers[i] = vk::command_buffer(logical_device, settings);
     }
 
-    // setting up attachments
+    // setup renderpass attachments
     std::array<vk::attachment, 2> renderpass_attachments = {
         // setting up color attachment
         vk::attachment{
@@ -298,7 +300,7 @@ main() {
 
     vk::renderpass main_renderpass(logical_device, renderpass_attachments);
 
-    // Setting up framebuffers for presentation
+    // setup framebuffers for presentation
 	std::vector<vk::framebuffer> swapchain_framebuffers(image_count);
 	for (uint32_t i = 0; i < swapchain_framebuffers.size(); i++) {
 		std::array<VkImageView, renderpass_attachments.size()> image_view_attachments = {
@@ -314,7 +316,7 @@ main() {
 		swapchain_framebuffers[i] = vk::framebuffer(logical_device, framebuffer_params);
 	}
 
-    // setting up presentation queue to display commands to the screen
+    // setup presentation queue to draw our images to the screen
     vk::queue_params device_queue_params{
         .family = 0,
         .index = 0,
@@ -322,12 +324,11 @@ main() {
     vk::device_present_queue presentation_queue(
       logical_device, main_swapchain, device_queue_params);
 
-    // gets set with the renderpass
+    // background color to specify to the renderpass
     std::array<float, 4> color = { 0.f, 0.5f, 0.5f, 1.f };
 
-	std::println("Start implementing graphics pipeline!!!");
 
-	// Now creating a vulkan graphics pipeline for the shader loading
+	// Loading shader sources
 	std::array<vk::shader_source, 2> shader_sources = {
 		vk::shader_source{
 			.filename = "shader_samples/sandbox-shader-samples/test.vert.spv",
@@ -339,23 +340,27 @@ main() {
 		},
 	};
 
-    // Setting up vertex attributes in the test shaders
+    // Define each entry in the vertex shader's attributes
     std::array<vk::vertex_attribute_entry, 4> attribute_entries = {
+        // layout(location = 0) in vec3 inPosition;
         vk::vertex_attribute_entry{
             .location = 0,
             .format = vk::format::rgb32_sfloat,
             .stride = offsetof(vk::vertex_input, position)
         },
+        // layout(location = 1) in vec3 inColor;
         vk::vertex_attribute_entry{
             .location = 1,
             .format = vk::format::rgb32_sfloat,
             .stride = offsetof(vk::vertex_input, color)
         },
+        // layout(location = 2) in vec2 inTexCoords;
         vk::vertex_attribute_entry{
             .location = 2,
             .format = vk::format::rg32_sfloat,
             .stride = offsetof(vk::vertex_input, uv)
         },
+        // layout(location = 3) in vec3 inNormals;
         vk::vertex_attribute_entry{
             .location = 3,
             .format = vk::format::rgb32_sfloat,
@@ -404,10 +409,10 @@ main() {
     };
     vk::descriptor_resource set0_resource(logical_device, set0_layout);
 
-    // Loading mesh
+    // Loading 3D model geometry
     obj_model test_model(std::filesystem::path("asset_samples/backpack/backpack.obj"), logical_device, physical_device);
 
-    // Setting up descriptor sets for handling uniforms
+    // Setting global uniforms for the global_ubo struct
     vk::uniform_params global_uniform_info = {
         .phsyical_memory_properties = physical_device.memory_properties(),
         .size_bytes = sizeof(global_ubo),
@@ -415,13 +420,6 @@ main() {
         .vkSetDebugUtilsObjectNameEXT = api_instance.get_debug_object_name()
     };
     vk::uniform_buffer global_uniforms = vk::uniform_buffer(logical_device, global_uniform_info);
-
-    /*
-
-    vk::uniform_buffer global_uniforms = vk::uniform_buffer(logical_device, sizeof(global_ubo), global_uniform_info);
-
-
-    */
 
     std::array<vk::write_buffer, 1> set0_buffers = {
         vk::write_buffer{
