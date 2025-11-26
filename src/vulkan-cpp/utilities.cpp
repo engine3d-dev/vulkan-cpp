@@ -216,9 +216,9 @@ namespace vk {
     //     return flags;
     // }
 
-    surface_enumeration enumerate_surface(const VkPhysicalDevice& p_physical,
+    surface_params enumerate_surface(const VkPhysicalDevice& p_physical,
                                           const VkSurfaceKHR& p_surface) {
-        surface_enumeration enumerate_surface_properties{};
+        surface_params enumerate_surface_properties{};
         vk_check(
           vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
             p_physical, p_surface, &enumerate_surface_properties.capabilities),

@@ -50,9 +50,9 @@ namespace vk {
     VkFormat select_depth_format(const VkPhysicalDevice& p_physical,
                                  std::span<const VkFormat> p_format_selection);
 
-    //! @return surface_enumeration which contains VkSurfaceCapabilities and
+    //! @return surface_params which contains VkSurfaceCapabilities and
     //! VkSurfaceFormatKHR for the swapchain
-    surface_enumeration enumerate_surface(const VkPhysicalDevice& p_physical,
+    surface_params enumerate_surface(const VkPhysicalDevice& p_physical,
                                           const VkSurfaceKHR& p_surface);
 
     //! @return image size the surface requires

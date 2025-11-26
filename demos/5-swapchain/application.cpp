@@ -165,7 +165,7 @@ main() {
     vk::surface window_surface(api_instance, window);
     std::println("Starting implementation of the swapchain!!!");
 
-    vk::surface_enumeration surface_properties =
+    vk::surface_params surface_properties =
       vk::enumerate_surface(physical_device, window_surface);
 
     if (surface_properties.format.format != VK_FORMAT_UNDEFINED) {
