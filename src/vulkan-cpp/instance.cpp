@@ -7,7 +7,7 @@
 
 namespace vk {
 
-    instance::instance(const application_configuration& p_config,
+    instance::instance(const application_params& p_config,
                        const debug_message_utility& p_debug_message_utils) {
         VkApplicationInfo app_info = {
             .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -15,7 +15,7 @@ namespace vk {
             .applicationVersion = 1,
             .pEngineName = p_config.name.c_str(),
             .engineVersion = 1,
-            .apiVersion = vk_api_version(p_config.version),
+            .apiVersion = static_cast<uint32_t>(p_config.version),
         };
 
         VkInstanceCreateInfo instance_ci = {
@@ -55,9 +55,8 @@ namespace vk {
 
         VkDebugUtilsMessengerCreateInfoEXT debug_create_info = {
             .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-            .messageSeverity =
-              to_debug_message_severity(p_debug_message_utils.severity),
-            .messageType = to_message_type(p_debug_message_utils.message_type),
+            .messageSeverity = static_cast<VkDebugUtilsMessageSeverityFlagsEXT>(p_debug_message_utils.severity),
+            .messageType = static_cast<VkDebugUtilsMessageTypeFlagsEXT>(p_debug_message_utils.message_type),
             .pfnUserCallback = p_debug_message_utils.callback,
         };
 

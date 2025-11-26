@@ -3,7 +3,7 @@
 
 namespace vk {
     framebuffer::framebuffer(const VkDevice& p_device,
-                             const framebuffer_settings& p_setting)
+                             const framebuffer_params& p_setting)
       : m_device(p_device) {
         VkFramebufferCreateInfo framebuffer_ci = {
             .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,

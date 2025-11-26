@@ -194,12 +194,12 @@ public:
                 indices.push_back(unique_vertices[vertex]);
             }
         }
-        vk::vertex_buffer_settings vertex_info = {
+        vk::vertex_params vertex_info = {
             .phsyical_memory_properties = p_physical.memory_properties(),
             .vertices = vertices
         };
 
-        vk::index_buffer_settings index_info = {
+        vk::index_params index_info = {
             .phsyical_memory_properties = p_physical.memory_properties(),
             .indices = indices
         };
@@ -291,7 +291,7 @@ main() {
         .callback = debug_callback
     };
 
-    vk::application_configuration config = {
+    vk::application_params config = {
         .name = "vulkan instance",
         .version = vk::api_version::vk_1_3, // specify to using vulkan 1.3
         .validations =
@@ -318,9 +318,14 @@ main() {
     vk::physical_device physical_device(api_instance, enumerate_devices);
 
     // selecting depth format
-    std::array<VkFormat, 3> format_support = { VK_FORMAT_D32_SFLOAT,
-                                               VK_FORMAT_D32_SFLOAT_S8_UINT,
-                                               VK_FORMAT_D24_UNORM_S8_UINT };
+    std::array<vk::format, 3> format_support = {
+        // VK_FORMAT_D32_SFLOAT,
+        // VK_FORMAT_D32_SFLOAT_S8_UINT,
+        // VK_FORMAT_D24_UNORM_S8_UINT,
+        vk::format::d32_sfloat,
+        vk::format::d32_sfloat_s8_uint,
+        vk::format::d24_unorm_s8_uint
+    };
 
     // We provide a selection of format support that we want to check is
     // supported on current hardware device.
@@ -346,14 +351,14 @@ main() {
     vk::surface window_surface(api_instance, window);
     std::println("Starting implementation of the swapchain!!!");
 
-    vk::surface_enumeration surface_properties =
+    vk::surface_params surface_properties =
       vk::enumerate_surface(physical_device, window_surface);
 
     if (surface_properties.format.format != VK_FORMAT_UNDEFINED) {
         std::println("Surface Format.format is not undefined!!!");
     }
 
-    vk::swapchain_enumeration enumerate_swapchain_settings = {
+    vk::swapchain_params enumerate_swapchain_settings = {
         .width = (uint32_t)width,
         .height = (uint32_t)height,
         .present_index =
@@ -388,7 +393,7 @@ main() {
     // Setting up the images
     for (uint32_t i = 0; i < swapchain_images.size(); i++) {
 
-        vk::image_configuration_information swapchain_image_config = {
+        vk::image_params swapchain_image_config = {
             .extent = {swapchain_extent.width, swapchain_extent.width},
             .format = surface_properties.format.format,
             .aspect = vk::image_aspect_flags::color_bit,
@@ -402,7 +407,7 @@ main() {
         swapchain_images[i] = vk::sample_image(logical_device, images[i], swapchain_image_config);
 
         // Creating Images for depth buffering
-        vk::image_configuration_information image_config = {
+        vk::image_params image_config = {
             .extent = {swapchain_extent.width, swapchain_extent.width},
             .format = depth_format,
             .aspect = vk::image_aspect_flags::depth_bit,
@@ -417,7 +422,7 @@ main() {
     // setting up command buffers
     std::vector<vk::command_buffer> swapchain_command_buffers(image_count);
     for (size_t i = 0; i < swapchain_command_buffers.size(); i++) {
-        vk::command_enumeration settings = {
+        vk::command_params settings = {
             .levels = vk::command_levels::primary,
             .queue_index = enumerate_swapchain_settings.present_index,
             .flags = vk::command_pool_flags::reset,
@@ -474,7 +479,7 @@ main() {
 			swapchain_depth_images[i].image_view()
 		};
 
-		vk::framebuffer_settings framebuffer_info = {
+		vk::framebuffer_params framebuffer_info = {
 			.renderpass = main_renderpass,
 			.views = image_view_attachments,
 			.extent = swapchain_extent
@@ -486,7 +491,7 @@ main() {
                  swapchain_framebuffers.size());
 
     // setting up presentation queue to display commands to the screen
-    vk::queue_enumeration enumerate_present_queue{
+    vk::queue_params enumerate_present_queue{
         .family = 0,
         .index = 0,
     };
@@ -579,11 +584,8 @@ main() {
     };
     // uint32_t image_count = image_count;
     vk::descriptor_layout set0_layout = {
-        .slot = 0, // indicate that this is descriptor set 0
-        .allocate_count = image_count, // the count how many descriptor
-                                            // set layout able to be allocated
+        .slot = 0, // represents as set 0
         .max_sets = image_count, // max of descriptor sets able to allocate
-        .size_bytes = sizeof(global_uniform), // size of bytes of the uniforms utilized by this descriptor sets
         .entries = entries,      // specifies pool sizes and descriptor layout
     };
     vk::descriptor_resource set0_resource(logical_device, set0_layout);
@@ -616,18 +618,25 @@ main() {
     std::println("Obj Model Load Status = {}", test_model.loaded());
 
     // Setting up descriptor sets for handling uniforms
-    vk::uniform_buffer_info test_ubo_info = {
+    vk::uniform_params test_ubo_info = {
         .phsyical_memory_properties = physical_device.memory_properties(),
         .size_bytes = sizeof(global_uniform)
     };
     vk::uniform_buffer test_ubo = vk::uniform_buffer(logical_device, test_ubo_info);
     std::println("uniform_buffer.alive() = {}", test_ubo.alive());
-    std::array<vk::write_buffer_descriptor, 1> uniforms = {
-        vk::write_buffer_descriptor{
-            .dst_binding = 0,
+
+    std::array<vk::write_buffer, 1> uniforms0 = {
+        vk::write_buffer{
             .buffer = test_ubo,
             .offset = 0,
             .range = test_ubo.size_bytes()
+        }
+    };
+
+    std::array<vk::write_buffer_descriptor, 1> uniforms = {
+        vk::write_buffer_descriptor{
+            .dst_binding = 0,
+            .uniforms = uniforms0,
         }
     };
 
@@ -641,11 +650,17 @@ main() {
     std::println("texture1.valid = {}", texture1.loaded());
 
     // Moving update call here because now we add textures to set0
+    std::array<vk::write_image, 1> samplers = {
+        vk::write_image{
+            .sampler = texture1.image().sampler(),
+            .view = texture1.image().image_view(),
+            .layout = vk::image_layout::shader_read_only_optimal,
+        }
+    };
     std::array<vk::write_image_descriptor, 1> sample_images = {
         vk::write_image_descriptor{
             .dst_binding = 1,
-            .view = texture1.image().image_view(),
-            .sampler = texture1.image().sampler()
+            .sample_images = samplers,
         }
     };
     set0_resource.update(uniforms, sample_images);
@@ -659,7 +674,7 @@ main() {
     // ----------------------------------------
 
     // 1. loading uniforms for skybox
-    vk::uniform_buffer_info skybox_ubo_info = {
+    vk::uniform_params skybox_ubo_info = {
         .phsyical_memory_properties = physical_device.memory_properties(),
         .size_bytes = sizeof(skybox_camera_data)
     };
@@ -714,11 +729,8 @@ main() {
 
     // in skybox shader, this descriptor set is for set 0 in the skybox shader
     vk::descriptor_layout skybox_layout = {
-        .slot = 0, // indicate that this is descriptor set 0
-        .allocate_count = image_count, // the count how many descriptor
-                                            // set layout able to be allocated
+        .slot = 0, // indicate that this is descriptor set 1
         .max_sets = image_count, // max of descriptor sets able to allocate
-        .size_bytes = skybox_ubo_info.size_bytes, // size of bytes of the uniforms utilized by this descriptor sets
         .entries = skybox_descriptor_entries,      // specifies pool sizes and descriptor layout
     };
     
@@ -798,7 +810,7 @@ main() {
         current.begin(vk::command_usage::simulatneous_use_bit);
 
         // renderpass begin/end must be within a recording command buffer
-        vk::renderpass_begin_info begin_renderpass = {
+        vk::renderpass_begin_params begin_renderpass = {
             .current_command = current,
             .extent = swapchain_extent,
             .current_framebuffer = swapchain_framebuffers[current_frame],
@@ -839,7 +851,7 @@ main() {
 
         // Before we can send stuff to the GPU, since we already updated the descriptor set 0 beforehand, we must bind that descriptor resource before making any of the draw calls
         // Something to note: You cannot update descriptor sets in the process of a current-recording command buffers or else that becomes undefined behavior
-        set0_resource.bind(current, current_frame, main_graphics_pipeline.layout());
+        set0_resource.bind(current, main_graphics_pipeline.layout());
 
         // Drawing-call to render actual triangle to the screen
         // vkCmdDrawIndexed(current, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
@@ -849,7 +861,8 @@ main() {
         current.end();
 
         // Submitting and then presenting to the screen
-        presentation_queue.submit_async(current);
+        std::array<const VkCommandBuffer, 1> commands = {current};
+        presentation_queue.submit_async(commands);
         presentation_queue.present_frame(current_frame);
     }
 

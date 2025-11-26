@@ -7,7 +7,7 @@ namespace vk {
     device_present_queue::device_present_queue(
       const VkDevice& p_device,
       const VkSwapchainKHR& p_swapchain_context,
-      const queue_enumeration& p_config)
+      const queue_params& p_config)
       : m_device(p_device)
       , m_swapchain(p_swapchain_context) {
         vkGetDeviceQueue(
@@ -83,13 +83,14 @@ namespace vk {
 
     void device_present_queue::submit_async(
       std::span<const VkCommandBuffer> p_commands,
-      VkPipelineStageFlags p_flags) {
+      pipeline_stage_flags p_flags) {
+        VkPipelineStageFlags flags = static_cast<VkPipelineStageFlags>(p_flags);
         VkSubmitInfo submit_info = {
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
             .pNext = nullptr,
             .waitSemaphoreCount = 1,
             .pWaitSemaphores = &m_presentation_completed,
-            .pWaitDstStageMask = &p_flags,
+            .pWaitDstStageMask = &flags,
             .commandBufferCount = static_cast<uint32_t>(p_commands.size()),
             .pCommandBuffers = p_commands.data(),
             .signalSemaphoreCount = 1,

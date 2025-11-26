@@ -2,7 +2,7 @@
 #include <filesystem>
 #include <vulkan/vulkan.h>
 #include <vulkan-cpp/types.hpp>
-#include <vulkan-cpp/buffer.hpp>
+#include <vulkan-cpp/buffer_streams.hpp>
 #include <vulkan-cpp/sample_image.hpp>
 
 namespace vk {

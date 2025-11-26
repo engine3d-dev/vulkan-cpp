@@ -107,7 +107,7 @@ main() {
         .callback = debug_callback
     };
 
-    vk::application_configuration config = {
+    vk::application_params config = {
         .name = "vulkan instance",
         .version = vk::api_version::vk_1_3, // specify to using vulkan 1.3
         .validations =
@@ -162,14 +162,14 @@ main() {
     vk::surface window_surface(api_instance, window);
     std::println("Starting implementation of the swapchain!!!");
 
-    vk::surface_enumeration surface_properties =
+    vk::surface_params surface_properties =
       vk::enumerate_surface(physical_device, window_surface);
 
     if (surface_properties.format.format != VK_FORMAT_UNDEFINED) {
         std::println("Surface Format.format is not undefined!!!");
     }
 
-    vk::swapchain_enumeration enumerate_swapchain_settings = {
+    vk::swapchain_params enumerate_swapchain_settings = {
         .width = (uint32_t)width,
         .height = (uint32_t)height,
         .present_index =
@@ -237,7 +237,7 @@ main() {
     // setting up command buffers
     std::vector<vk::command_buffer> swapchain_command_buffers(image_count);
     for (size_t i = 0; i < swapchain_command_buffers.size(); i++) {
-        vk::command_enumeration settings = {
+        vk::command_params settings = {
             enumerate_swapchain_settings.present_index,
             vk::command_levels::primary,
             vk::command_pool_flags::reset
@@ -294,7 +294,7 @@ main() {
 			swapchain_depth_images[i].view
 		};
 
-		vk::framebuffer_settings framebuffer_info = {
+		vk::framebuffer_params framebuffer_info = {
 			.renderpass = main_renderpass,
 			.views = image_view_attachments,
 			.extent = swapchain_extent
@@ -306,7 +306,7 @@ main() {
                  swapchain_framebuffers.size());
 
     // setting up presentation queue to display commands to the screen
-    vk::queue_enumeration enumerate_present_queue{
+    vk::queue_params enumerate_present_queue{
         .family = 0,
         .index = 0,
     };
@@ -403,7 +403,7 @@ main() {
         current.begin(vk::command_usage::simulatneous_use_bit);
 
         // renderpass begin/end must be within a recording command buffer
-        vk::renderpass_begin_info begin_renderpass = {
+        vk::renderpass_begin_params begin_renderpass = {
             .current_command = current,
             .extent = swapchain_extent,
             .current_framebuffer = swapchain_framebuffers[current_frame],
@@ -471,7 +471,7 @@ main() {
 std::vector<vk::command_buffer> imgui_command_buffers(frames_in_flight);
 
 for(size_t i = 0; i < imgui_command_buffers.size(); i++) {
-    vk::command_enumeration settings = {
+    vk::command_params settings = {
         enumerate_swapchain_settings.present_index,
         vk::command_levels::secondary,
         vk::command_pool_flags::reset

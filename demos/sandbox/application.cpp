@@ -128,7 +128,7 @@ main() {
         .callback = debug_callback
     };
 
-    vk::application_configuration config = {
+    vk::application_params config = {
         .name = "vulkan instance",
         .version = vk::api_version::vk_1_3, // using vulkan 1.3
         .validations =
@@ -154,9 +154,14 @@ main() {
     vk::physical_device physical_device(api_instance, enumerate_devices);
 
     // selecting depth format
-    std::array<VkFormat, 3> format_support = { VK_FORMAT_D32_SFLOAT,
-                                               VK_FORMAT_D32_SFLOAT_S8_UINT,
-                                               VK_FORMAT_D24_UNORM_S8_UINT };
+    std::array<vk::format, 3> format_support = {
+        // VK_FORMAT_D32_SFLOAT,
+        // VK_FORMAT_D32_SFLOAT_S8_UINT,
+        // VK_FORMAT_D24_UNORM_S8_UINT,
+        vk::format::d32_sfloat,
+        vk::format::d32_sfloat_s8_uint,
+        vk::format::d24_unorm_s8_uint
+    };
 
     // We provide a selection of format support that we want to check is
     // supported on current hardware device.
@@ -182,14 +187,15 @@ main() {
     vk::surface window_surface(api_instance, window);
     std::println("Starting implementation of the swapchain!!!");
 
-    vk::surface_enumeration surface_properties =
+    vk::surface_params surface_properties =
       vk::enumerate_surface(physical_device, window_surface);
 
     if (surface_properties.format.format != VK_FORMAT_UNDEFINED) {
         std::println("Surface Format.format is not undefined!!!");
     }
 
-    vk::swapchain_enumeration enumerate_swapchain_settings = {
+    // creating our swapchain handle
+    vk::swapchain_params enumerate_swapchain_settings = {
         .width = (uint32_t)width,
         .height = (uint32_t)height,
         .present_index =
@@ -204,47 +210,52 @@ main() {
     // querying swapchain images
 	// TODO: Make the images and framebuffers contained within the vk::swapchain
 	// Considering if you have two display they will prob have their own set of images to display to the two separate screens
-    uint32_t image_count = 0;
-    vkGetSwapchainImagesKHR(logical_device,
-                            main_swapchain,
-                            &image_count,
-                            nullptr); // used to get the amount of images
-    std::vector<VkImage> images(image_count);
-    vkGetSwapchainImagesKHR(logical_device,
-                            main_swapchain,
-                            &image_count,
-                            images.data()); // used to store in the images
+    // uint32_t image_count = 0;
+    // vkGetSwapchainImagesKHR(logical_device,
+    //                         main_swapchain,
+    //                         &image_count,
+    //                         nullptr); // used to get the amount of images
+    // std::vector<VkImage> images(image_count);
+    // vkGetSwapchainImagesKHR(logical_device,
+    //                         main_swapchain,
+    //                         &image_count,
+    //                         images.data()); // used to store in the images
 
-    // Creating Images
+    // getting our presentable attachments from the associated swapchain handle
+    std::span<const VkImage> images = main_swapchain.presentable_images();
+
+    uint32_t image_count = images.size();
+
+    // Creating Images for color and depth attachments
     std::vector<vk::sample_image> swapchain_images(image_count);
     std::vector<vk::sample_image> swapchain_depth_images(image_count);
 
     VkExtent2D swapchain_extent = surface_properties.capabilities.currentExtent;
 
-    // Setting up the images
+    // setup presentable images
     uint32_t layer_count = 1;
     uint32_t mip_levels = 1;
     for (uint32_t i = 0; i < swapchain_images.size(); i++) {
-        vk::image_configuration_information swapchain_image_config = {
+        // image for color attachment
+        vk::image_params swapchain_image_config = {
             .extent = {swapchain_extent.width, swapchain_extent.width},
             .format = surface_properties.format.format,
             .aspect = vk::image_aspect_flags::color_bit,
-            .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+            // .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+            .usage = vk::image_usage::color_attachment_bit,
             .mip_levels = 1,
             .layer_count = 1,
             .phsyical_memory_properties = physical_device.memory_properties(),
         };
-
-
         swapchain_images[i] = vk::sample_image(logical_device, images[i], swapchain_image_config);
 
-
-        // Creating Images for depth buffering
-        vk::image_configuration_information image_config = {
+        // image for depth attachment
+        vk::image_params image_config = {
             .extent = {swapchain_extent.width, swapchain_extent.width},
             .format = depth_format,
             .aspect = vk::image_aspect_flags::depth_bit,
-            .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+            // .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+            .usage = vk::image_usage::depth_stencil_bit,
             .mip_levels = 1,
             .layer_count = 1,
             .phsyical_memory_properties = physical_device.memory_properties(),
@@ -252,23 +263,21 @@ main() {
         swapchain_depth_images[i] = vk::sample_image(logical_device, image_config);
     }
 
-    // setting up command buffers
+    // setup swapchain command buffers
     std::vector<vk::command_buffer> swapchain_command_buffers(image_count);
     for (size_t i = 0; i < swapchain_command_buffers.size(); i++) {
-        vk::command_enumeration settings = {
+        vk::command_params settings = {
             .levels = vk::command_levels::primary,
             .queue_index = enumerate_swapchain_settings.present_index,
             .flags = vk::command_pool_flags::reset,
         };
 
-        swapchain_command_buffers[i] =
-          vk::command_buffer(logical_device, settings);
+        swapchain_command_buffers[i] = vk::command_buffer(logical_device, settings);
     }
 
-    // setting up renderpass
-
-    // setting up attachments for the renderpass
+    // setup renderpass attachments
     std::array<vk::attachment, 2> renderpass_attachments = {
+        // setting up color attachment
         vk::attachment{
           .format = surface_properties.format.format,
           .layout = vk::image_layout::color_optimal,
@@ -280,6 +289,7 @@ main() {
           .initial_layout = vk::image_layout::undefined,
           .final_layout = vk::image_layout::present_src_khr,
         },
+        // setting up depth attachment
         vk::attachment{
           .format = depth_format,
           .layout = vk::image_layout::depth_stencil_optimal,
@@ -295,10 +305,7 @@ main() {
 
     vk::renderpass main_renderpass(logical_device, renderpass_attachments);
 
-    std::println("renderpass created!!!");
-
-    // Setting up swapchain framebuffers
-
+    // setup framebuffers for presentation
 	std::vector<vk::framebuffer> swapchain_framebuffers(image_count);
 	for (uint32_t i = 0; i < swapchain_framebuffers.size(); i++) {
 		std::array<VkImageView, renderpass_attachments.size()> image_view_attachments = {
@@ -306,28 +313,27 @@ main() {
 			swapchain_depth_images[i].image_view()
 		};
 
-		vk::framebuffer_settings framebuffer_info = {
+		vk::framebuffer_params framebuffer_params = {
 			.renderpass = main_renderpass,
 			.views = image_view_attachments,
 			.extent = swapchain_extent
 		};
-		swapchain_framebuffers[i] = vk::framebuffer(logical_device, framebuffer_info);
+		swapchain_framebuffers[i] = vk::framebuffer(logical_device, framebuffer_params);
 	}
 
-    // setting up presentation queue to display commands to the screen
-    vk::queue_enumeration enumerate_present_queue{
+    // setup presentation queue to draw our images to the screen
+    vk::queue_params device_queue_params{
         .family = 0,
         .index = 0,
     };
     vk::device_present_queue presentation_queue(
-      logical_device, main_swapchain, enumerate_present_queue);
+      logical_device, main_swapchain, device_queue_params);
 
-    // gets set with the renderpass
+    // background color to specify to the renderpass
     std::array<float, 4> color = { 0.f, 0.5f, 0.5f, 1.f };
 
-	std::println("Start implementing graphics pipeline!!!");
 
-	// Now creating a vulkan graphics pipeline for the shader loading
+	// Loading shader sources
 	std::array<vk::shader_source, 2> shader_sources = {
 		vk::shader_source{
 			.filename = "shader_samples/sandbox-shader-samples/test.vert.spv",
@@ -339,23 +345,27 @@ main() {
 		},
 	};
 
-    // Setting up vertex attributes in the test shaders
+    // Define each entry in the vertex shader's attributes
     std::array<vk::vertex_attribute_entry, 4> attribute_entries = {
+        // layout(location = 0) in vec3 inPosition;
         vk::vertex_attribute_entry{
             .location = 0,
             .format = vk::format::rgb32_sfloat,
             .stride = offsetof(vk::vertex_input, position)
         },
+        // layout(location = 1) in vec3 inColor;
         vk::vertex_attribute_entry{
             .location = 1,
             .format = vk::format::rgb32_sfloat,
             .stride = offsetof(vk::vertex_input, color)
         },
+        // layout(location = 2) in vec2 inTexCoords;
         vk::vertex_attribute_entry{
             .location = 2,
             .format = vk::format::rg32_sfloat,
             .stride = offsetof(vk::vertex_input, uv)
         },
+        // layout(location = 3) in vec3 inNormals;
         vk::vertex_attribute_entry{
             .location = 3,
             .format = vk::format::rgb32_sfloat,
@@ -364,16 +374,15 @@ main() {
     };
 
     std::array<vk::vertex_attribute, 1> attributes = {
-            vk::vertex_attribute{
-              // layout (set = 0, binding = 0)
-              .binding = 0,
-              .entries = attribute_entries,
-              .stride = sizeof(vk::vertex_input),
-              .input_rate = vk::input_rate::vertex,
-            },
-        };
+        vk::vertex_attribute{
+            // layout (set = 0, binding = 0)
+            .binding = 0,
+            .entries = attribute_entries,
+            .stride = sizeof(vk::vertex_input),
+            .input_rate = vk::input_rate::vertex,
+        },
+    };
 
-    // To render triangle, we do not need to set any vertex attributes
 	vk::shader_resource_info shader_info = {
 		.sources = shader_sources,
 		.vertex_attributes = attributes // this is to explicitly set to none, but also dont need to set this at all regardless
@@ -397,7 +406,7 @@ main() {
             .descriptor_count = 1,
         }
     };
-    // uint32_t image_count = image_count;
+
     vk::descriptor_layout set0_layout = {
         .slot = 0, // indicate that this is descriptor set 0
         .max_sets = image_count, // max of descriptor sets able to allocate
@@ -405,12 +414,11 @@ main() {
     };
     vk::descriptor_resource set0_resource(logical_device, set0_layout);
 
-    // Loading mesh
+    // Loading 3D model geometry
     obj_model test_model(std::filesystem::path("asset_samples/backpack/backpack.obj"), logical_device, physical_device);
-    // obj_model test_model(std::filesystem::path("asset_samples/viking_room.obj"), logical_device, physical_device, true);
 
-    // Setting up descriptor sets for handling uniforms
-    vk::uniform_buffer_info global_uniform_info = {
+    // Setting global uniforms for the global_ubo struct
+    vk::uniform_params global_uniform_info = {
         .phsyical_memory_properties = physical_device.memory_properties(),
         .size_bytes = sizeof(global_ubo),
         .debug_name = "\nglobal_uniforms\n",
@@ -472,7 +480,7 @@ main() {
     
     vk::descriptor_resource set1 = vk::descriptor_resource(logical_device, set1_layout);
 
-    vk::uniform_buffer_info geo_uniform_info = {
+    vk::uniform_params geo_uniform_info = {
         .phsyical_memory_properties = physical_device.memory_properties(),
         .size_bytes = sizeof(geometry_ubo)
     };
@@ -511,7 +519,8 @@ main() {
         vk::write_image{
             .sampler = diffuse_texture.image().sampler(),
             .view = diffuse_texture.image().image_view(),
-            .image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+            // .image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+            .layout = vk::image_layout::shader_read_only_optimal
         },
     };
 
@@ -519,7 +528,8 @@ main() {
         vk::write_image{
             .sampler = specular_texture.image().sampler(),
             .view = specular_texture.image().image_view(),
-            .image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+            // .image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+            .layout = vk::image_layout::shader_read_only_optimal
         }
     };
 
@@ -618,7 +628,7 @@ main() {
         current.begin(vk::command_usage::simulatneous_use_bit);
 
         // renderpass begin/end must be within a recording command buffer
-        vk::renderpass_begin_info begin_renderpass = {
+        vk::renderpass_begin_params begin_renderpass = {
             .current_command = current,
             .extent = swapchain_extent,
             .current_framebuffer = swapchain_framebuffers[current_frame],
@@ -694,7 +704,7 @@ main() {
     specular_texture.destroy();
     set0_resource.destroy();
     set1.destroy();
-    // global_uniforms.destroy();
+    global_uniforms.destroy();
     geometry_uniform.destroy();
     test_model.destroy();
 

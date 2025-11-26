@@ -28,6 +28,8 @@ initialize_instance_extensions() {
 
     extension_names.emplace_back(VK_KHR_SURFACE_EXTENSION_NAME);
 
+    extension_names.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+
     // An additional surface extension needs to be loaded. This extension is
     // platform-specific so needs to be selected based on the platform the
     // example is going to be deployed to. Preprocessor directives are used
@@ -96,7 +98,7 @@ main() {
         .callback = debug_callback
     };
 
-    vk::application_configuration config = {
+    vk::application_params config = {
         .name = "vulkan instance",
         .version = vk::api_version::vk_1_3, // specify to using vulkan 1.3
         .validations =
@@ -123,10 +125,13 @@ main() {
     vk::physical_device physical_device(api_instance, enumerate_devices);
 
     // selecting depth format
-    std::array<VkFormat, 3> format_support = {
-        VK_FORMAT_D32_SFLOAT,
-        VK_FORMAT_D32_SFLOAT_S8_UINT,
-        VK_FORMAT_D24_UNORM_S8_UINT,
+    std::array<vk::format, 3> format_support = {
+        // VK_FORMAT_D32_SFLOAT,
+        // VK_FORMAT_D32_SFLOAT_S8_UINT,
+        // VK_FORMAT_D24_UNORM_S8_UINT,
+        vk::format::d32_sfloat,
+        vk::format::d32_sfloat_s8_uint,
+        vk::format::d24_unorm_s8_uint
     };
 
     // We provide a selection of format support that we want to check is
@@ -151,7 +156,7 @@ main() {
     vk::device logical_device(physical_device, logical_device_enumeration);
 
     // Presentation queue family uses graphics queue
-    vk::queue_enumeration present_queue_enumerate = {
+    vk::queue_params present_queue_enumerate = {
         .family = 0,
         .index = queue_indices.graphics,
     };

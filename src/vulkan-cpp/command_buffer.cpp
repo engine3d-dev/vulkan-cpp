@@ -4,15 +4,14 @@
 namespace vk {
     command_buffer::command_buffer(
       const VkDevice& p_device,
-      const command_enumeration& p_enumerate_command_info)
+      const command_params& p_enumerate_command_info)
       : m_device(p_device) {
         VkCommandPoolCreateInfo pool_ci = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
             .pNext = nullptr,
             // .flags =
             // (VkCommandPoolCreateFlags)p_enumerate_command_info.pool_flag,
-            .flags = (VkCommandPoolCreateFlags)to_command_buffer_pool_flags(
-              p_enumerate_command_info.flags),
+            .flags = static_cast<VkCommandPoolCreateFlags>(p_enumerate_command_info.flags),
             .queueFamilyIndex = p_enumerate_command_info.queue_index
         };
 
@@ -25,7 +24,7 @@ namespace vk {
             .pNext = nullptr,
             .commandPool = m_command_pool,
             .level =
-              to_vk_command_buffer_level(p_enumerate_command_info.levels),
+              static_cast<VkCommandBufferLevel>(p_enumerate_command_info.levels),
             .commandBufferCount = 1
         };
 
@@ -68,6 +67,12 @@ namespace vk {
         m_begin_end_count++;
         vkEndCommandBuffer(m_command_buffer);
     }
+
+	void command_buffer::copy_buffer(const VkBuffer& p_src, const VkBuffer& p_dst, uint64_t p_size_bytes) {
+		VkBufferCopy copy_region{};
+		copy_region.size = p_size_bytes;
+		vkCmdCopyBuffer(m_command_buffer, p_src, p_dst, 1, &copy_region);
+	}
 
     void command_buffer::execute(std::span<const VkCommandBuffer> p_commands) {
         vkCmdExecuteCommands(m_command_buffer,

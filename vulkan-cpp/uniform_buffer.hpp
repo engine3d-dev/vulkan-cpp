@@ -1,7 +1,7 @@
 #pragma once
 #include <vulkan/vulkan.h>
 #include <vulkan-cpp/types.hpp>
-#include <vulkan-cpp/buffer.hpp>
+#include <vulkan-cpp/buffer_streams.hpp>
 
 namespace vk {
     /**
@@ -13,7 +13,7 @@ namespace vk {
     public:
         uniform_buffer() = default;
         uniform_buffer(const VkDevice& p_device,
-                       const uniform_buffer_info& p_uniform_info);
+                       const uniform_params& p_uniform_info);
 
         [[nodiscard]] bool alive() const { return m_uniform_handle; }
 
@@ -30,6 +30,6 @@ namespace vk {
     private:
         uint32_t m_size_bytes = 0;
         VkDevice m_device = nullptr;
-        buffer_handler m_uniform_handle{};
+        buffer_stream m_uniform_handle{};
     };
 };

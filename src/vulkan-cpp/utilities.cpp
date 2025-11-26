@@ -20,70 +20,70 @@ namespace vk {
         }
     }
 
-    VkDebugUtilsMessageSeverityFlagsEXT to_debug_message_severity(
-      uint32_t p_flag) {
-        VkDebugUtilsMessageSeverityFlagsEXT flag;
+    // VkDebugUtilsMessageSeverityFlagsEXT to_debug_message_severity(
+    //   uint32_t p_flag) {
+    //     VkDebugUtilsMessageSeverityFlagsEXT flag;
 
-        if (p_flag & vk::message::verbose) {
-            flag |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
-        }
-        else if (p_flag & vk::message::warning) {
-            flag |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT;
-        }
-        else if (p_flag & vk::message::error) {
-            flag |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-        }
+    //     if (p_flag & vk::message::verbose) {
+    //         flag |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
+    //     }
+    //     else if (p_flag & vk::message::warning) {
+    //         flag |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT;
+    //     }
+    //     else if (p_flag & vk::message::error) {
+    //         flag |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    //     }
 
-        return flag;
-    }
+    //     return flag;
+    // }
 
-    VkDebugUtilsMessageTypeFlagsEXT to_message_type(uint32_t p_flag) {
-        VkDebugUtilsMessageTypeFlagsEXT flag;
+    // VkDebugUtilsMessageTypeFlagsEXT to_message_type(uint32_t p_flag) {
+    //     VkDebugUtilsMessageTypeFlagsEXT flag;
 
-        if (p_flag & vk::debug::general) {
-            flag |= VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT;
-        }
-        else if (p_flag & vk::debug::validation) {
-            flag |= VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
-        }
-        else if (p_flag & vk::debug::performance) {
-            flag |= VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-        }
+    //     if (p_flag & vk::debug::general) {
+    //         flag |= VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT;
+    //     }
+    //     else if (p_flag & vk::debug::validation) {
+    //         flag |= VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
+    //     }
+    //     else if (p_flag & vk::debug::performance) {
+    //         flag |= VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    //     }
 
-        return flag;
-    }
+    //     return flag;
+    // }
 
-    uint32_t vk_api_version(const api_version& p_version) {
-        switch (p_version) {
-            case api_version::vk_1_2:
-                return VK_API_VERSION_1_2;
-            case api_version::vk_1_3:
-                return VK_API_VERSION_1_3;
-        }
-    }
+    // uint32_t vk_api_version(const api_version& p_version) {
+    //     switch (p_version) {
+    //         case api_version::vk_1_2:
+    //             return VK_API_VERSION_1_2;
+    //         case api_version::vk_1_3:
+    //             return VK_API_VERSION_1_3;
+    //     }
+    // }
 
-    VkPhysicalDeviceType vk_physical_device_type(physical p_physical_type) {
-        switch (p_physical_type) {
-            case physical::integrated:
-                return VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU;
-            case physical::discrete:
-                return VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
-            case physical::virtualized:
-                return VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU;
-            case physical::cpu:
-                return VK_PHYSICAL_DEVICE_TYPE_CPU;
-            case physical::max_enum:
-                return VK_PHYSICAL_DEVICE_TYPE_MAX_ENUM;
-            case physical::other:
-                return VK_PHYSICAL_DEVICE_TYPE_OTHER;
-        }
+    // VkPhysicalDeviceType vk_physical_device_type(physical p_physical_type) {
+    //     switch (p_physical_type) {
+    //         case physical::integrated:
+    //             return VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU;
+    //         case physical::discrete:
+    //             return VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
+    //         case physical::virtualized:
+    //             return VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU;
+    //         case physical::cpu:
+    //             return VK_PHYSICAL_DEVICE_TYPE_CPU;
+    //         case physical::max_enum:
+    //             return VK_PHYSICAL_DEVICE_TYPE_MAX_ENUM;
+    //         case physical::other:
+    //             return VK_PHYSICAL_DEVICE_TYPE_OTHER;
+    //     }
 
-        throw std::runtime_error("Invalid physical device!");
-    }
+    //     throw std::runtime_error("Invalid physical device!");
+    // }
 
-    struct physical_device_handler {
-        VkPhysicalDevice handler = nullptr;
-    };
+    // struct physical_device_handler {
+    //     VkPhysicalDevice handler = nullptr;
+    // };
 
     VkPhysicalDevice enumerate_physical_devices(
       const VkInstance& p_instance,
@@ -95,9 +95,8 @@ namespace vk {
             throw std::runtime_error("device_count is zero!");
         }
 
-        // std::vector<vk::physical_device>
-        // hardware_physical_devices(device_count);
 
+        // TODO: Turn this into map<VkDescriptorDeviceType, VkPhysicalDevice>
         std::vector<VkPhysicalDevice> physical_devices(device_count);
         vkEnumeratePhysicalDevices(
           p_instance, &device_count, physical_devices.data());
@@ -108,7 +107,7 @@ namespace vk {
             vkGetPhysicalDeviceProperties(device, &device_properties);
 
             if (device_properties.deviceType ==
-                vk_physical_device_type(p_physical_device_type)) {
+                static_cast<VkPhysicalDeviceType>(p_physical_device_type)) {
                 physical_device = device;
             }
         }
@@ -131,13 +130,13 @@ namespace vk {
 
     VkFormat select_compatible_formats(
       const VkPhysicalDevice& p_physical,
-      std::span<const VkFormat> p_format_selection,
+      std::span<const vk::format> p_format_selection,
       VkImageTiling p_tiling,
       VkFormatFeatureFlags p_feature_flag) {
         VkFormat format = VK_FORMAT_UNDEFINED;
 
         for (size_t i = 0; i < p_format_selection.size(); i++) {
-            VkFormat current_format = p_format_selection[i];
+            VkFormat current_format = static_cast<VkFormat>(p_format_selection[i]);
             VkFormatProperties format_properties;
             vkGetPhysicalDeviceFormatProperties(
               p_physical, current_format, &format_properties);
@@ -157,7 +156,7 @@ namespace vk {
     }
 
     VkFormat select_depth_format(const VkPhysicalDevice& p_physical,
-                                 std::span<const VkFormat> p_format_selection) {
+                                 std::span<const vk::format> p_format_selection) {
 
         VkFormat format = select_compatible_formats(
           p_physical,
@@ -184,42 +183,42 @@ namespace vk {
         return -1;
     }
 
-    VkMemoryPropertyFlags to_memory_property_flags(memory_property p_flag) {
-        VkMemoryPropertyFlags flags = 0;
-        if (p_flag & memory_property::device_local_bit) {
-            flags |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-        }
-        if (p_flag & memory_property::host_visible_bit) {
-            flags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-        }
-        if (p_flag & memory_property::host_coherent_bit) {
-            flags |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-        }
-        if (p_flag & memory_property::host_cached_bit) {
-            flags |= VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
-        }
-        if (p_flag & memory_property::lazily_allocated_bit) {
-            flags |= VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
-        }
-        if (p_flag & memory_property::device_protected_bit) {
-            flags |= VK_MEMORY_PROPERTY_PROTECTED_BIT;
-        }
-        if (p_flag & memory_property::device_coherent_bit_amd) {
-            flags |= VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD;
-        }
-        if (p_flag & memory_property::device_uncached_bit_amd) {
-            flags |= VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD;
-        }
-        if (p_flag & memory_property::rdma_capable_bit_nv) {
-            flags |= VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV;
-        }
+    // VkMemoryPropertyFlags to_memory_property_flags(memory_property p_flag) {
+    //     VkMemoryPropertyFlags flags = 0;
+    //     if (p_flag & memory_property::device_local_bit) {
+    //         flags |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    //     }
+    //     if (p_flag & memory_property::host_visible_bit) {
+    //         flags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+    //     }
+    //     if (p_flag & memory_property::host_coherent_bit) {
+    //         flags |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    //     }
+    //     if (p_flag & memory_property::host_cached_bit) {
+    //         flags |= VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+    //     }
+    //     if (p_flag & memory_property::lazily_allocated_bit) {
+    //         flags |= VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
+    //     }
+    //     if (p_flag & memory_property::device_protected_bit) {
+    //         flags |= VK_MEMORY_PROPERTY_PROTECTED_BIT;
+    //     }
+    //     if (p_flag & memory_property::device_coherent_bit_amd) {
+    //         flags |= VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD;
+    //     }
+    //     if (p_flag & memory_property::device_uncached_bit_amd) {
+    //         flags |= VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD;
+    //     }
+    //     if (p_flag & memory_property::rdma_capable_bit_nv) {
+    //         flags |= VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV;
+    //     }
 
-        return flags;
-    }
+    //     return flags;
+    // }
 
-    surface_enumeration enumerate_surface(const VkPhysicalDevice& p_physical,
+    surface_params enumerate_surface(const VkPhysicalDevice& p_physical,
                                           const VkSurfaceKHR& p_surface) {
-        surface_enumeration enumerate_surface_properties{};
+        surface_params enumerate_surface_properties{};
         vk_check(
           vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
             p_physical, p_surface, &enumerate_surface_properties.capabilities),
@@ -266,65 +265,65 @@ namespace vk {
         return final_image_count;
     }
 
-    VkCommandBufferUsageFlags to_command_usage_flag_bits(
-      command_usage p_command_usage_flag) {
-        VkCommandBufferUsageFlags command_usage_flags;
-        if (command_usage_flags & command_usage::one_time_submit) {
-            command_usage_flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-        }
+    // VkCommandBufferUsageFlags to_command_usage_flag_bits(
+    //   command_usage p_command_usage_flag) {
+    //     VkCommandBufferUsageFlags command_usage_flags;
+    //     if (command_usage_flags & command_usage::one_time_submit) {
+    //         command_usage_flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    //     }
 
-        if (command_usage_flags & command_usage::renderpass_continue_bit) {
-            command_usage_flags |=
-              VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
-        }
+    //     if (command_usage_flags & command_usage::renderpass_continue_bit) {
+    //         command_usage_flags |=
+    //           VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
+    //     }
 
-        if (command_usage_flags & command_usage::simulatneous_use_bit) {
-            command_usage_flags |= VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-        }
+    //     if (command_usage_flags & command_usage::simulatneous_use_bit) {
+    //         command_usage_flags |= VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+    //     }
 
-        if (command_usage_flags & command_usage::max_bit) {
-            command_usage_flags |= VK_COMMAND_BUFFER_USAGE_FLAG_BITS_MAX_ENUM;
-        }
+    //     if (command_usage_flags & command_usage::max_bit) {
+    //         command_usage_flags |= VK_COMMAND_BUFFER_USAGE_FLAG_BITS_MAX_ENUM;
+    //     }
 
-        return command_usage_flags;
-    }
+    //     return command_usage_flags;
+    // }
 
-    VkImageAspectFlags to_image_aspect_flags(image_aspect_flags p_flag) {
-        switch (p_flag) {
-            case image_aspect_flags::color_bit:
-                return VK_IMAGE_ASPECT_COLOR_BIT;
-            case image_aspect_flags::depth_bit:
-                return VK_IMAGE_ASPECT_DEPTH_BIT;
-            case image_aspect_flags::stencil_bit:
-                return VK_IMAGE_ASPECT_STENCIL_BIT;
-            case image_aspect_flags::metadata_bit:
-                return VK_IMAGE_ASPECT_METADATA_BIT;
-            case image_aspect_flags::plane0_bit:
-                return VK_IMAGE_ASPECT_PLANE_0_BIT;
-            case image_aspect_flags::plane1_bit:
-                return VK_IMAGE_ASPECT_PLANE_1_BIT;
-            case image_aspect_flags::plane2_bit:
-                return VK_IMAGE_ASPECT_PLANE_2_BIT;
-            case image_aspect_flags::none:
-                return VK_IMAGE_ASPECT_NONE;
-            case image_aspect_flags::memory_plane0_bit_ext:
-                return VK_IMAGE_ASPECT_MEMORY_PLANE_0_BIT_EXT;
-            case image_aspect_flags::memory_plane1_bit_ext:
-                return VK_IMAGE_ASPECT_MEMORY_PLANE_1_BIT_EXT;
-            case image_aspect_flags::memory_plane2_bit_ext:
-                return VK_IMAGE_ASPECT_MEMORY_PLANE_2_BIT_EXT;
-            case image_aspect_flags::plane1_bit_khr:
-                return VK_IMAGE_ASPECT_PLANE_1_BIT_KHR;
-            case image_aspect_flags::plane2_bit_khr:
-                return VK_IMAGE_ASPECT_PLANE_2_BIT_KHR;
-            case image_aspect_flags::none_khr:
-                return VK_IMAGE_ASPECT_NONE_KHR;
-            case image_aspect_flags::bits_max_enum:
-                return VK_IMAGE_ASPECT_FLAG_BITS_MAX_ENUM;
-        }
+    // VkImageAspectFlags to_image_aspect_flags(image_aspect_flags p_flag) {
+    //     switch (p_flag) {
+    //         case image_aspect_flags::color_bit:
+    //             return VK_IMAGE_ASPECT_COLOR_BIT;
+    //         case image_aspect_flags::depth_bit:
+    //             return VK_IMAGE_ASPECT_DEPTH_BIT;
+    //         case image_aspect_flags::stencil_bit:
+    //             return VK_IMAGE_ASPECT_STENCIL_BIT;
+    //         case image_aspect_flags::metadata_bit:
+    //             return VK_IMAGE_ASPECT_METADATA_BIT;
+    //         case image_aspect_flags::plane0_bit:
+    //             return VK_IMAGE_ASPECT_PLANE_0_BIT;
+    //         case image_aspect_flags::plane1_bit:
+    //             return VK_IMAGE_ASPECT_PLANE_1_BIT;
+    //         case image_aspect_flags::plane2_bit:
+    //             return VK_IMAGE_ASPECT_PLANE_2_BIT;
+    //         case image_aspect_flags::none:
+    //             return VK_IMAGE_ASPECT_NONE;
+    //         case image_aspect_flags::memory_plane0_bit_ext:
+    //             return VK_IMAGE_ASPECT_MEMORY_PLANE_0_BIT_EXT;
+    //         case image_aspect_flags::memory_plane1_bit_ext:
+    //             return VK_IMAGE_ASPECT_MEMORY_PLANE_1_BIT_EXT;
+    //         case image_aspect_flags::memory_plane2_bit_ext:
+    //             return VK_IMAGE_ASPECT_MEMORY_PLANE_2_BIT_EXT;
+    //         case image_aspect_flags::plane1_bit_khr:
+    //             return VK_IMAGE_ASPECT_PLANE_1_BIT_KHR;
+    //         case image_aspect_flags::plane2_bit_khr:
+    //             return VK_IMAGE_ASPECT_PLANE_2_BIT_KHR;
+    //         case image_aspect_flags::none_khr:
+    //             return VK_IMAGE_ASPECT_NONE_KHR;
+    //         case image_aspect_flags::bits_max_enum:
+    //             return VK_IMAGE_ASPECT_FLAG_BITS_MAX_ENUM;
+    //     }
 
-        throw std::runtime_error("Invalid image aspect flags specified!!!");
-    }
+    //     throw std::runtime_error("Invalid image aspect flags specified!!!");
+    // }
 
     VkSampler create_sampler(const VkDevice& p_device,
                              const filter_range& p_range,
@@ -380,8 +379,7 @@ namespace vk {
         vkGetImageMemoryRequirements(p_device, p_image, &memory_requirements);
 
         uint32_t type_filter = memory_requirements.memoryTypeBits;
-        VkMemoryPropertyFlags property_flag =
-          to_memory_property_flags(p_property);
+        VkMemoryPropertyFlags property_flag = static_cast<VkMemoryPropertyFlags>(p_property);
 
         VkPhysicalDeviceMemoryProperties mem_props;
         vkGetPhysicalDeviceMemoryProperties(p_physical, &mem_props);
@@ -397,147 +395,111 @@ namespace vk {
         return -1;
     }
 
-    VkCommandBufferLevel to_vk_command_buffer_level(
-      const command_levels& p_level) {
-        switch (p_level) {
-            case command_levels::primary:
-                return VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-            case command_levels::secondary:
-                return VK_COMMAND_BUFFER_LEVEL_SECONDARY;
-            case command_levels::max_enum:
-                return VK_COMMAND_BUFFER_LEVEL_MAX_ENUM;
-        }
+    // VkCommandBufferLevel to_vk_command_buffer_level(
+    //   const command_levels& p_level) {
+    //     switch (p_level) {
+    //         case command_levels::primary:
+    //             return VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    //         case command_levels::secondary:
+    //             return VK_COMMAND_BUFFER_LEVEL_SECONDARY;
+    //         case command_levels::max_enum:
+    //             return VK_COMMAND_BUFFER_LEVEL_MAX_ENUM;
+    //     }
 
-        throw std::runtime_error("Invalid command buffer levels");
-    }
+    //     throw std::runtime_error("Invalid command buffer levels");
+    // }
 
-    VkCommandPoolCreateFlagBits to_command_buffer_pool_flags(
-      command_pool_flags p_command_pool_flag) {
-        switch (p_command_pool_flag) {
-            case command_pool_flags::protected_bit:
-                return VK_COMMAND_POOL_CREATE_PROTECTED_BIT;
-            case command_pool_flags::reset:
-                return VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-            case command_pool_flags::transient:
-                return VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
-            case command_pool_flags::max_enum_bit:
-                return VK_COMMAND_POOL_CREATE_FLAG_BITS_MAX_ENUM;
-        }
+    // VkCommandPoolCreateFlagBits to_command_buffer_pool_flags(
+    //   command_pool_flags p_command_pool_flag) {
+    //     switch (p_command_pool_flag) {
+    //         case command_pool_flags::protected_bit:
+    //             return VK_COMMAND_POOL_CREATE_PROTECTED_BIT;
+    //         case command_pool_flags::reset:
+    //             return VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    //         case command_pool_flags::transient:
+    //             return VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+    //         case command_pool_flags::max_enum_bit:
+    //             return VK_COMMAND_POOL_CREATE_FLAG_BITS_MAX_ENUM;
+    //     }
 
-        return (VkCommandPoolCreateFlagBits)0;
-    }
+    //     return (VkCommandPoolCreateFlagBits)0;
+    // }
 
-    VkSubpassContents to_subpass_contents(subpass_contents p_content) {
-        switch (p_content) {
-            case subpass_contents::inline_bit:
-                return VK_SUBPASS_CONTENTS_INLINE;
-            case subpass_contents::secondary_command:
-                return VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS;
-            case subpass_contents::inline_and_secondary_command_khr:
-                return VK_SUBPASS_CONTENTS_INLINE_AND_SECONDARY_COMMAND_BUFFERS_KHR;
-            case subpass_contents::max_enum_content:
-                return VK_SUBPASS_CONTENTS_MAX_ENUM;
-            default:
-                break;
-        }
-    }
+    // VkSubpassContents to_subpass_contents(subpass_contents p_content) {
+    //     switch (p_content) {
+    //         case subpass_contents::inline_bit:
+    //             return VK_SUBPASS_CONTENTS_INLINE;
+    //         case subpass_contents::secondary_command:
+    //             return VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS;
+    //         case subpass_contents::inline_and_secondary_command_khr:
+    //             return VK_SUBPASS_CONTENTS_INLINE_AND_SECONDARY_COMMAND_BUFFERS_KHR;
+    //         case subpass_contents::max_enum_content:
+    //             return VK_SUBPASS_CONTENTS_MAX_ENUM;
+    //         default:
+    //             break;
+    //     }
+    // }
 
-    VkPipelineBindPoint to_pipeline_bind_point(
-      pipeline_bind_point p_bind_point) {
-        switch (p_bind_point) {
-            case pipeline_bind_point::graphics:
-                return VK_PIPELINE_BIND_POINT_GRAPHICS;
-            case pipeline_bind_point::compute:
-                return VK_PIPELINE_BIND_POINT_COMPUTE;
-            case pipeline_bind_point::ray_tracing_khr:
-                return VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR;
-            case pipeline_bind_point::subpass_shading_hauwei:
-                return VK_PIPELINE_BIND_POINT_SUBPASS_SHADING_HUAWEI;
-            // case pipeline_bind_point::ray_tracing_nv:
-            //     return VK_PIPELINE_BIND_POINT_RAY_TRACING_NV;
-            case pipeline_bind_point::max_enum:
-                return VK_PIPELINE_BIND_POINT_MAX_ENUM;
-            default:
-                break;
-        }
-    }
+    // VkPipelineBindPoint to_pipeline_bind_point(
+    //   pipeline_bind_point p_bind_point) {
+    //     switch (p_bind_point) {
+    //         case pipeline_bind_point::graphics:
+    //             return VK_PIPELINE_BIND_POINT_GRAPHICS;
+    //         case pipeline_bind_point::compute:
+    //             return VK_PIPELINE_BIND_POINT_COMPUTE;
+    //         case pipeline_bind_point::ray_tracing_khr:
+    //             return VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR;
+    //         case pipeline_bind_point::subpass_shading_hauwei:
+    //             return VK_PIPELINE_BIND_POINT_SUBPASS_SHADING_HUAWEI;
+    //         // case pipeline_bind_point::ray_tracing_nv:
+    //         //     return VK_PIPELINE_BIND_POINT_RAY_TRACING_NV;
+    //         case pipeline_bind_point::max_enum:
+    //             return VK_PIPELINE_BIND_POINT_MAX_ENUM;
+    //         default:
+    //             break;
+    //     }
+    // }
 
-    VkAttachmentLoadOp to_attachment_load(attachment_load p_attachment_type) {
-        switch (p_attachment_type) {
-            case attachment_load::load:
-                return VK_ATTACHMENT_LOAD_OP_LOAD;
-            case attachment_load::clear:
-                return VK_ATTACHMENT_LOAD_OP_CLEAR;
-            case attachment_load::dont_care:
-                return VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-            case attachment_load::none_khr:
-                return VK_ATTACHMENT_LOAD_OP_NONE_KHR;
-            case attachment_load::none_ext:
-                return VK_ATTACHMENT_LOAD_OP_NONE_EXT;
-            case attachment_load::max_enum:
-                return VK_ATTACHMENT_LOAD_OP_MAX_ENUM;
-        }
-    }
 
-    VkAttachmentStoreOp to_attachment_store(
-      attachment_store p_attachment_type) {
-        switch (p_attachment_type) {
-            case attachment_store::store:
-                return VK_ATTACHMENT_STORE_OP_STORE;
-            case attachment_store::dont_care:
-                return VK_ATTACHMENT_STORE_OP_DONT_CARE;
-            case attachment_store::none_khr:
-                return VK_ATTACHMENT_STORE_OP_NONE_KHR;
-            case attachment_store::none_qcom:
-                return VK_ATTACHMENT_STORE_OP_NONE_QCOM;
-            case attachment_store::none_ext:
-                return VK_ATTACHMENT_STORE_OP_NONE_EXT;
-            case attachment_store::max_enum:
-                return VK_ATTACHMENT_STORE_OP_MAX_ENUM;
-            default:
-                break;
-        }
-    }
+    // VkSampleCountFlagBits to_sample_count_bits(sample_bit p_sample_count_bit) {
+    //     switch (p_sample_count_bit) {
+    //         case sample_bit::count_1:
+    //             return VK_SAMPLE_COUNT_1_BIT;
+    //         case sample_bit::count_2:
+    //             return VK_SAMPLE_COUNT_2_BIT;
+    //         case sample_bit::count_4:
+    //             return VK_SAMPLE_COUNT_4_BIT;
+    //         case sample_bit::count_8:
+    //             return VK_SAMPLE_COUNT_8_BIT;
+    //         case sample_bit::count_16:
+    //             return VK_SAMPLE_COUNT_16_BIT;
+    //         case sample_bit::count_32:
+    //             return VK_SAMPLE_COUNT_32_BIT;
+    //         case sample_bit::count_64:
+    //             return VK_SAMPLE_COUNT_64_BIT;
+    //         case sample_bit::max_enum:
+    //             return VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM;
+    //     }
+    // }
 
-    VkSampleCountFlagBits to_sample_count_bits(sample_bit p_sample_count_bit) {
-        switch (p_sample_count_bit) {
-            case sample_bit::count_1:
-                return VK_SAMPLE_COUNT_1_BIT;
-            case sample_bit::count_2:
-                return VK_SAMPLE_COUNT_2_BIT;
-            case sample_bit::count_4:
-                return VK_SAMPLE_COUNT_4_BIT;
-            case sample_bit::count_8:
-                return VK_SAMPLE_COUNT_8_BIT;
-            case sample_bit::count_16:
-                return VK_SAMPLE_COUNT_16_BIT;
-            case sample_bit::count_32:
-                return VK_SAMPLE_COUNT_32_BIT;
-            case sample_bit::count_64:
-                return VK_SAMPLE_COUNT_64_BIT;
-            case sample_bit::max_enum:
-                return VK_SAMPLE_COUNT_FLAG_BITS_MAX_ENUM;
-        }
-    }
-
-    VkImageLayout to_image_layout(image_layout p_layout) {
-        switch (p_layout) {
-            case image_layout::undefined:
-                return VK_IMAGE_LAYOUT_UNDEFINED;
-            case image_layout::general:
-                return VK_IMAGE_LAYOUT_GENERAL;
-            case image_layout::color_optimal:
-                return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-            case image_layout::depth_stencil_optimal:
-                return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-            case image_layout::depth_stencil_read_only_optimal:
-                return VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL;
-            case image_layout::present_src_khr:
-                return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-            case image_layout::shader_read_only_optimal:
-                return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        }
-    }
+    // VkImageLayout to_image_layout(image_layout p_layout) {
+    //     switch (p_layout) {
+    //         case image_layout::undefined:
+    //             return VK_IMAGE_LAYOUT_UNDEFINED;
+    //         case image_layout::general:
+    //             return VK_IMAGE_LAYOUT_GENERAL;
+    //         case image_layout::color_optimal:
+    //             return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    //         case image_layout::depth_stencil_optimal:
+    //             return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    //         case image_layout::depth_stencil_read_only_optimal:
+    //             return VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL;
+    //         case image_layout::present_src_khr:
+    //             return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    //         case image_layout::shader_read_only_optimal:
+    //             return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    //     }
+    // }
 
     VkVertexInputRate to_input_rate(input_rate p_input_rate) {
         switch (p_input_rate) {
@@ -561,27 +523,27 @@ namespace vk {
         return false;
     }
 
-    VkShaderStageFlags to_shader_stage(const shader_stage& p_stage) {
-        switch (p_stage) {
-            case shader_stage::vertex:
-                return VK_SHADER_STAGE_VERTEX_BIT;
-            case shader_stage::fragment:
-                return VK_SHADER_STAGE_FRAGMENT_BIT;
-            default:
-                return (VkShaderStageFlagBits)0;
-        }
-    }
+    // VkShaderStageFlags to_shader_stage(const shader_stage& p_stage) {
+    //     switch (p_stage) {
+    //         case shader_stage::vertex:
+    //             return VK_SHADER_STAGE_VERTEX_BIT;
+    //         case shader_stage::fragment:
+    //             return VK_SHADER_STAGE_FRAGMENT_BIT;
+    //         default:
+    //             return (VkShaderStageFlagBits)0;
+    //     }
+    // }
 
-    VkFormat to_format(const format& p_format) {
-        switch (p_format) {
-            case format::rg32_sfloat:
-                return VK_FORMAT_R32G32_SFLOAT;
-            case format::rgb32_sfloat:
-                return VK_FORMAT_R32G32B32A32_SFLOAT;
-            default:
-                return VK_FORMAT_UNDEFINED;
-        }
-    }
+    // VkFormat to_format(const format& p_format) {
+    //     switch (p_format) {
+    //         case format::rg32_sfloat:
+    //             return VK_FORMAT_R32G32_SFLOAT;
+    //         case format::rgb32_sfloat:
+    //             return VK_FORMAT_R32G32B32A32_SFLOAT;
+    //         default:
+    //             return VK_FORMAT_UNDEFINED;
+    //     }
+    // }
 
     VkCommandPool create_single_command_pool(const VkDevice& p_device,
                                              uint32_t p_queue_family_index) {
@@ -615,7 +577,7 @@ namespace vk {
           p_device, queue_family_index, queue_index, &temp_graphics_queue);
 
         // command_buffer_info
-        command_enumeration enumerate_command_info = {
+        command_params enumerate_command_info = {
             .levels = command_levels::primary,
             .queue_index = 0,
         };
@@ -641,18 +603,18 @@ namespace vk {
         copy_command_buffer.destroy();
     }
 
-    VkDescriptorType to_descriptor_type(const buffer& p_type) {
-        switch (p_type) {
-            case buffer::storage:
-                return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-            case buffer::uniform:
-                return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            case buffer::combined_image_sampler:
-                return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            case buffer::sampled_only_image:
-                return VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-        }
-    }
+    // VkDescriptorType to_descriptor_type(const buffer& p_type) {
+    //     switch (p_type) {
+    //         case buffer::storage:
+    //             return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    //         case buffer::uniform:
+    //             return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    //         case buffer::combined_image_sampler:
+    //             return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    //         case buffer::sampled_only_image:
+    //             return VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+    //     }
+    // }
 
     int bytes_per_texture_format(VkFormat p_format) {
         switch (p_format) {
@@ -683,410 +645,35 @@ namespace vk {
                 (p_format == VK_FORMAT_D24_UNORM_S8_UINT));
     }
 
-    void image_memory_barrier(const VkCommandBuffer& p_command_buffer,
-                              const VkImage& p_image,
-                              VkFormat p_format,
-                              VkImageLayout p_old,
-                              VkImageLayout p_new) {
-        VkImageMemoryBarrier image_memory_barrier = {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            .pNext = nullptr,
-            .srcAccessMask = 0,
-            .dstAccessMask = 0,
-            .oldLayout = p_old,
-            .newLayout = p_new,
-            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .image = p_image,
-            .subresourceRange = { .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                                  .baseMipLevel = 0,
-                                  .levelCount = 1,
-                                  .baseArrayLayer = 0,
-                                  .layerCount = 1 }
-        };
+    // VkImageView create_image2d_view(
+    //   const VkDevice& p_device,
+    //   const VkImage& p_image,
+    //   const image_params& p_config) {
+    //     VkImageViewCreateInfo view_info = {
+    //         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+    //         .pNext = nullptr,
+    //         .flags = 0,
+    //         .image = p_image,
+    //         .viewType = VK_IMAGE_VIEW_TYPE_2D,
+    //         .format = p_config.format,
+    //         .components = { .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+    //                         .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+    //                         .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+    //                         .a = VK_COMPONENT_SWIZZLE_IDENTITY },
+    //         .subresourceRange = { .aspectMask =
+    //                                 to_image_aspect_flags(p_config.aspect),
+    //                               .baseMipLevel = 0,
+    //                               .levelCount = 1,
+    //                               .baseArrayLayer = 0,
+    //                               .layerCount = 1 }
+    //     };
 
-        VkPipelineStageFlags source_stage;
-        VkPipelineStageFlags dst_stages;
+    //     VkImageView image_view = nullptr;
+    //     vk_check(vkCreateImageView(p_device, &view_info, nullptr, &image_view),
+    //              "vkCreateImageView");
 
-        if (p_new == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL ||
-            (p_format == VK_FORMAT_D16_UNORM) ||
-            (p_format == VK_FORMAT_X8_D24_UNORM_PACK32) ||
-            (p_format == VK_FORMAT_D32_SFLOAT) ||
-            (p_format == VK_FORMAT_S8_UINT) ||
-            (p_format == VK_FORMAT_D16_UNORM_S8_UINT) ||
-            (p_format == VK_FORMAT_D24_UNORM_S8_UINT)) {
-            image_memory_barrier.subresourceRange.aspectMask =
-              VK_IMAGE_ASPECT_DEPTH_BIT;
-
-            if (has_stencil_attachment(p_format)) {
-                image_memory_barrier.subresourceRange.aspectMask |=
-                  VK_IMAGE_ASPECT_STENCIL_BIT;
-            }
-        }
-        else {
-            image_memory_barrier.subresourceRange.aspectMask =
-              VK_IMAGE_ASPECT_COLOR_BIT;
-        }
-
-        if (p_old == VK_IMAGE_LAYOUT_UNDEFINED &&
-            p_new == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-            image_memory_barrier.srcAccessMask = 0;
-            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-            source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        }
-        else if (p_old == VK_IMAGE_LAYOUT_UNDEFINED &&
-                 p_new == VK_IMAGE_LAYOUT_GENERAL) {
-            image_memory_barrier.srcAccessMask = 0;
-            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-            source_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        }
-
-        if (p_old == VK_IMAGE_LAYOUT_UNDEFINED &&
-            p_new == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
-            image_memory_barrier.srcAccessMask = 0;
-            image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-
-            source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-            dst_stages = VK_PIPELINE_STAGE_TRANSFER_BIT;
-        } // Convert back from read-only to updateable
-        else if (p_old == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL &&
-                 p_new == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
-            image_memory_barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
-            image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-
-            source_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-            dst_stages = VK_PIPELINE_STAGE_TRANSFER_BIT;
-        } // Convert from updateable texture to shader read-only
-        else if (p_old == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
-                 p_new == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-            image_memory_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-            source_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        } // Convert depth texture from undefined state to depth-stencil buffer
-        else if (p_old == VK_IMAGE_LAYOUT_UNDEFINED &&
-                 p_new == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
-            image_memory_barrier.srcAccessMask = 0;
-            image_memory_barrier.dstAccessMask =
-              VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
-              VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-
-            source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-            dst_stages = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-        } // Wait for render pass to complete
-        else if (p_old == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL &&
-                 p_new == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-            image_memory_barrier.srcAccessMask =
-              0; // VK_ACCESS_SHADER_READ_BIT;
-            image_memory_barrier.dstAccessMask = 0;
-            source_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-            dst_stages = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
-            dst_stages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-            source_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        } // Convert back from read-only to color attachment
-        else if (p_old == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL &&
-                 p_new == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
-            image_memory_barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
-            image_memory_barrier.dstAccessMask =
-              VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
-            source_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-            dst_stages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        } // Convert from updateable texture to shader read-only
-        else if (p_old == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL &&
-                 p_new == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-            image_memory_barrier.srcAccessMask =
-              VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-            source_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        } // Convert back from read-only to depth attachment
-        else if (p_old == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL &&
-                 p_new == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
-            image_memory_barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
-            image_memory_barrier.dstAccessMask =
-              VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-
-            source_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-            dst_stages = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-        } // Convert from updateable depth texture to shader read-only
-        else if (p_old == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL &&
-                 p_new == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-            image_memory_barrier.srcAccessMask =
-              VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-            source_stage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        }
-
-        vkCmdPipelineBarrier(p_command_buffer,
-                             source_stage,
-                             dst_stages,
-                             0,
-                             0,
-                             nullptr,
-                             0,
-                             nullptr,
-                             1,
-                             &image_memory_barrier);
-    }
-
-    void image_memory_barrier(const VkCommandBuffer& p_command_buffer,
-                              const VkImage& p_image,
-                              const image_barrier_info& p_info) {
-        VkImageMemoryBarrier image_memory_barrier = {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            .pNext = nullptr,
-            .srcAccessMask = 0,
-            .dstAccessMask = 0,
-            .oldLayout = p_info.old_layout,
-            .newLayout = p_info.new_layout,
-            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .image = p_image,
-            .subresourceRange = { .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                                  .baseMipLevel = 0,
-                                  .levelCount = p_info.level_count,
-                                  .baseArrayLayer = p_info.base_array_count,
-                                  .layerCount = p_info.layer_count }
-        };
-
-        VkPipelineStageFlags source_stage;
-        VkPipelineStageFlags dst_stages;
-
-        if (p_info.new_layout ==
-              VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL ||
-            (p_info.format == VK_FORMAT_D16_UNORM) ||
-            (p_info.format == VK_FORMAT_X8_D24_UNORM_PACK32) ||
-            (p_info.format == VK_FORMAT_D32_SFLOAT) ||
-            (p_info.format == VK_FORMAT_S8_UINT) ||
-            (p_info.format == VK_FORMAT_D16_UNORM_S8_UINT) ||
-            (p_info.format == VK_FORMAT_D24_UNORM_S8_UINT)) {
-            image_memory_barrier.subresourceRange.aspectMask =
-              VK_IMAGE_ASPECT_DEPTH_BIT;
-
-            if (has_stencil_attachment(p_info.format)) {
-                image_memory_barrier.subresourceRange.aspectMask |=
-                  VK_IMAGE_ASPECT_STENCIL_BIT;
-            }
-        }
-        else {
-            image_memory_barrier.subresourceRange.aspectMask =
-              VK_IMAGE_ASPECT_COLOR_BIT;
-        }
-
-        if (p_info.old_layout == VK_IMAGE_LAYOUT_UNDEFINED &&
-            p_info.new_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-            image_memory_barrier.srcAccessMask = 0;
-            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-            source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        }
-        else if (p_info.old_layout == VK_IMAGE_LAYOUT_UNDEFINED &&
-                 p_info.new_layout == VK_IMAGE_LAYOUT_GENERAL) {
-            image_memory_barrier.srcAccessMask = 0;
-            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-            source_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        }
-
-        if (p_info.old_layout == VK_IMAGE_LAYOUT_UNDEFINED &&
-            p_info.new_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
-            image_memory_barrier.srcAccessMask = 0;
-            image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-
-            source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-            dst_stages = VK_PIPELINE_STAGE_TRANSFER_BIT;
-        } // Convert back from read-only to updateable
-        else if (p_info.old_layout ==
-                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL &&
-                 p_info.new_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
-            image_memory_barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
-            image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-
-            source_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-            dst_stages = VK_PIPELINE_STAGE_TRANSFER_BIT;
-        } // Convert from updateable texture to shader read-only
-        else if (p_info.old_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
-                 p_info.new_layout ==
-                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-            image_memory_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-            source_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        } // Convert depth texture from undefined state to depth-stencil buffer
-        else if (p_info.old_layout == VK_IMAGE_LAYOUT_UNDEFINED &&
-                 p_info.new_layout ==
-                   VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
-            image_memory_barrier.srcAccessMask = 0;
-            image_memory_barrier.dstAccessMask =
-              VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
-              VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-
-            source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-            dst_stages = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-        } // Wait for render pass to complete
-        else if (p_info.old_layout ==
-                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL &&
-                 p_info.new_layout ==
-                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-            image_memory_barrier.srcAccessMask =
-              0; // VK_ACCESS_SHADER_READ_BIT;
-            image_memory_barrier.dstAccessMask = 0;
-            source_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-            dst_stages = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
-            dst_stages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-            source_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        } // Convert back from read-only to color attachment
-        else if (p_info.old_layout ==
-                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL &&
-                 p_info.new_layout ==
-                   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
-            image_memory_barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
-            image_memory_barrier.dstAccessMask =
-              VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
-            source_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-            dst_stages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        } // Convert from updateable texture to shader read-only
-        else if (p_info.old_layout ==
-                   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL &&
-                 p_info.new_layout ==
-                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-            image_memory_barrier.srcAccessMask =
-              VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-            source_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        } // Convert back from read-only to depth attachment
-        else if (p_info.old_layout ==
-                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL &&
-                 p_info.new_layout ==
-                   VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
-            image_memory_barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
-            image_memory_barrier.dstAccessMask =
-              VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-
-            source_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-            dst_stages = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-        } // Convert from updateable depth texture to shader read-only
-        else if (p_info.old_layout ==
-                   VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL &&
-                 p_info.new_layout ==
-                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-            image_memory_barrier.srcAccessMask =
-              VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-            source_stage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        }
-
-        vkCmdPipelineBarrier(p_command_buffer,
-                             source_stage,
-                             dst_stages,
-                             0,
-                             0,
-                             nullptr,
-                             0,
-                             nullptr,
-                             1,
-                             &image_memory_barrier);
-    }
-
-    void copy(const VkCommandBuffer& p_command_buffer,
-              const VkImage& p_image,
-              const VkBuffer& p_buffer,
-              uint32_t p_width,
-              uint32_t p_height) {
-        VkBufferImageCopy buffer_image_copy = {
-            .bufferOffset = 0,
-            .bufferRowLength = 0,
-            .bufferImageHeight = 0,
-            .imageSubresource = { .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                                  .mipLevel = 0,
-                                  .baseArrayLayer = 0,
-                                  .layerCount = 1 },
-            .imageOffset = { .x = 0, .y = 0, .z = 0 },
-            .imageExtent = { .width = p_width, .height = p_height, .depth = 1 }
-        };
-
-        vkCmdCopyBufferToImage(p_command_buffer,
-                               p_buffer,
-                               p_image,
-                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                               1,
-                               &buffer_image_copy);
-    }
-
-    void copy(const VkCommandBuffer& p_command_buffer,
-              const VkImage& p_image,
-              const VkBuffer& p_buffer,
-              const copy_info& p_info) {
-        VkBufferImageCopy buffer_image_copy = {
-            .bufferOffset = 0,
-            .bufferRowLength = 0,
-            .bufferImageHeight = 0,
-            .imageSubresource = { .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                                  .mipLevel = 0,
-                                  .baseArrayLayer = p_info.array_layers,
-                                  .layerCount = 1 },
-            .imageOffset = { .x = 0, .y = 0, .z = 0 },
-            .imageExtent = { .width = p_info.width,
-                             .height = p_info.height,
-                             .depth = 1 }
-        };
-
-        vkCmdCopyBufferToImage(p_command_buffer,
-                               p_buffer,
-                               p_image,
-                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                               1,
-                               &buffer_image_copy);
-    }
-
-    VkImageView create_image2d_view(
-      const VkDevice& p_device,
-      const VkImage& p_image,
-      const image_configuration_information& p_config) {
-        VkImageViewCreateInfo view_info = {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .image = p_image,
-            .viewType = VK_IMAGE_VIEW_TYPE_2D,
-            .format = p_config.format,
-            .components = { .r = VK_COMPONENT_SWIZZLE_IDENTITY,
-                            .g = VK_COMPONENT_SWIZZLE_IDENTITY,
-                            .b = VK_COMPONENT_SWIZZLE_IDENTITY,
-                            .a = VK_COMPONENT_SWIZZLE_IDENTITY },
-            .subresourceRange = { .aspectMask =
-                                    to_image_aspect_flags(p_config.aspect),
-                                  .baseMipLevel = 0,
-                                  .levelCount = 1,
-                                  .baseArrayLayer = 0,
-                                  .layerCount = 1 }
-        };
-
-        VkImageView image_view = nullptr;
-        vk_check(vkCreateImageView(p_device, &view_info, nullptr, &image_view),
-                 "vkCreateImageView");
-
-        return image_view;
-    }
+    //     return image_view;
+    // }
 
     uint32_t select_memory_requirements(
       VkPhysicalDeviceMemoryProperties p_physical_memory_props,
@@ -1094,7 +681,7 @@ namespace vk {
       memory_property p_property) {
         uint32_t memory_bits = p_memory_requirements.memoryTypeBits;
         VkMemoryPropertyFlags property_flag =
-          to_memory_property_flags(p_property);
+          static_cast<VkMemoryPropertyFlags>(p_property);
 
         for (uint32_t i = 0; i < p_physical_memory_props.memoryTypeCount; i++) {
             if ((memory_bits & (1 << i)) and

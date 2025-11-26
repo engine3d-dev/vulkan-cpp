@@ -1,7 +1,7 @@
 #pragma once
 #include <vulkan-cpp/types.hpp>
 #include <vulkan/vulkan.h>
-#include <vulkan-cpp/buffer.hpp>
+#include <vulkan-cpp/buffer_streams32.hpp>
 
 namespace vk {
 
@@ -9,7 +9,7 @@ namespace vk {
     public:
         index_buffer() = default;
         index_buffer(const VkDevice& p_device,
-                     const index_buffer_settings& p_info);
+                     const index_params& p_info);
 
         [[nodiscard]] bool alive() const { return m_index_buffer; }
 
@@ -26,6 +26,6 @@ namespace vk {
     private:
         VkDevice m_device = nullptr;
         uint32_t m_indices_count = 0;
-        buffer_handler m_index_buffer{};
+        buffer_stream32 m_index_buffer{};
     };
 };

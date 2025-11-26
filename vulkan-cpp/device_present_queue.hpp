@@ -18,7 +18,7 @@ namespace vk {
         device_present_queue() = default;
         device_present_queue(const VkDevice& p_device,
                              const VkSwapchainKHR& p_swapchain_context,
-                             const queue_enumeration& p_config);
+                             const queue_params& p_config);
 
         void wait_idle();
 
@@ -31,8 +31,8 @@ namespace vk {
         //! @brief Submit commands to this specific present queue
         //! (asynchronously)
         void submit_async(std::span<const VkCommandBuffer> p_commands,
-                          VkPipelineStageFlags p_flags =
-                            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+                          pipeline_stage_flags p_flags =
+                            pipeline_stage_flags::color_attachment_output);
 
         //! @brief Displays specific image to the presentation frame with
         //! specific frame index
@@ -41,6 +41,7 @@ namespace vk {
         //! @return true if this queue is out of date
         // Can occur when acquired_next_image or present_frame are out of date
         // indication swapchain resizeability.
+        // TODO: Change this to using C++'s exceptions for handling out-of-date invalidation cases
         bool out_of_date(bool p_is_reset = true);
 
         void destroy();

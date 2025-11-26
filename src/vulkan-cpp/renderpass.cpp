@@ -33,16 +33,17 @@ namespace vk {
                 .flags = 0,
                 .format = attachment_spec.format,
                 // .samples = VK_SAMPLE_COUNT_1_BIT,
-                .samples = to_sample_count_bits(attachment_spec.samples),
-                .loadOp = to_attachment_load(attachment_spec.load),
-                .storeOp = to_attachment_store(attachment_spec.store),
+                .samples = static_cast<VkSampleCountFlagBits>(attachment_spec.samples),
+                // .loadOp = to_attachment_load(attachment_spec.load),
+				.loadOp = static_cast<VkAttachmentLoadOp>(attachment_spec.load),
+                // .storeOp = to_attachment_store(attachment_spec.store),
+				.storeOp = static_cast<VkAttachmentStoreOp>(attachment_spec.store),
                 .stencilLoadOp =
-                  to_attachment_load(attachment_spec.stencil_load),
+                  static_cast<VkAttachmentLoadOp>(attachment_spec.stencil_load),
                 .stencilStoreOp =
-                  to_attachment_store(attachment_spec.stencil_store),
-                .initialLayout =
-                  to_image_layout(attachment_spec.initial_layout),
-                .finalLayout = to_image_layout(attachment_spec.final_layout)
+                  static_cast<VkAttachmentStoreOp>(attachment_spec.stencil_store),
+                .initialLayout = static_cast<VkImageLayout>(attachment_spec.initial_layout),
+                .finalLayout = static_cast<VkImageLayout>(attachment_spec.final_layout)
             };
 
             // I do a check here to save the slots for specifying the
@@ -65,7 +66,8 @@ namespace vk {
             uint32_t slot = color_attachment_indices[i];
             color_attachment_references[i] = {
                 .attachment = slot,
-                .layout = to_image_layout(p_renderpass_attachments[slot].layout)
+                // .layout = to_image_layout(p_renderpass_attachments[slot].layout)
+				.layout = static_cast<VkImageLayout>(p_renderpass_attachments[slot].layout)
             };
         }
 
@@ -77,7 +79,8 @@ namespace vk {
             uint32_t slot = depth_attachment_indices[i];
             depth_attachment_references[i] = {
                 .attachment = slot,
-                .layout = to_image_layout(p_renderpass_attachments[slot].layout)
+                // .layout = to_image_layout(p_renderpass_attachments[slot].layout)
+				.layout = static_cast<VkImageLayout>(p_renderpass_attachments[slot].layout)
             };
         }
 
@@ -125,7 +128,7 @@ namespace vk {
           "vkCreateRenderPass");
     }
 
-    void renderpass::begin(const renderpass_begin_info& p_begin_info) {
+    void renderpass::begin(const renderpass_begin_params& p_begin_info) {
         // TODO: Move VkViewport and VkScissor to vk::swapchain since these are
         // information more closely set by the swapchain
         VkViewport viewport = {
@@ -156,7 +159,7 @@ namespace vk {
         clear_values[0].color = renderpass_color;
         clear_values[1].depthStencil = { 1.f, 0 };
 
-        VkRenderPassBeginInfo renderpass_begin_info = {
+        VkRenderPassBeginInfo renderpass_begin_params = {
             .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
 			.pNext = nullptr,
 			.renderPass = m_renderpass,
@@ -176,8 +179,8 @@ namespace vk {
         };
 
         vkCmdBeginRenderPass(p_begin_info.current_command,
-                             &renderpass_begin_info,
-                             to_subpass_contents(p_begin_info.subpass));
+                             &renderpass_begin_params,
+                             static_cast<VkSubpassContents>(p_begin_info.subpass));
     }
 
     void renderpass::end(const VkCommandBuffer& p_current) {

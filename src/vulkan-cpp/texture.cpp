@@ -12,16 +12,16 @@ namespace vk {
 
     static sample_image create_texture_with_data(
       const VkDevice& p_device,
-      const image_configuration_information& p_config,
+      const image_params& p_config,
       const void* p_data) {
         // 1. Creating temporary command buffer for texture
-        command_enumeration copy_command_enumeration = {
+        command_params copy_command_params = {
             .levels = command_levels::primary,
             .queue_index = 0,
             .flags = command_pool_flags::reset,
         };
         command_buffer temp_command_buffer =
-          command_buffer(p_device, copy_command_enumeration);
+          command_buffer(p_device, copy_command_params);
 
         // 2. loading texture
 
@@ -44,7 +44,7 @@ namespace vk {
         //     .physical = p_config.physical_device
         // };
 
-        buffer_settings staging_buffer_config = {
+        buffer_parameters staging_buffer_config = {
             .device_size = (uint32_t)image_size,
             .physical_memory_properties = p_config.phsyical_memory_properties,
             .property_flags = (memory_property)property_flag,
@@ -54,7 +54,7 @@ namespace vk {
 
         // buffer_handle staging_buffer = create_buffer(p_device,
         // staging_buffer_config);
-        buffer_handler staging(p_device, staging_buffer_config);
+        buffer_stream staging(p_device, staging_buffer_config);
 
         // 5. write data to the staging buffer with specific size specified
         // write(p_device, staging, p_data, image_size);
@@ -68,27 +68,30 @@ namespace vk {
         temp_command_buffer.begin(command_usage::one_time_submit);
 
         // 6.1 -- transition image layout
-        image_memory_barrier(temp_command_buffer,
-                             texture_image,
-                             texture_format,
-                             old_layout,
-                             new_layout);
+        // image_memory_barrier(temp_command_buffer,
+        //                      texture_image,
+        //                      texture_format,
+        //                      old_layout,
+        //                      new_layout);
+		texture_image.memory_barrier(temp_command_buffer, texture_format, old_layout, new_layout);
 
         // 6.2 -- copy buffer to image handles
-        copy(temp_command_buffer,
-             texture_image,
-             staging,
-             p_config.extent.width,
-             p_config.extent.height);
+        // copy(temp_command_buffer,
+        //      texture_image,
+        //      staging,
+        //      p_config.extent.width,
+        //      p_config.extent.height);
+		staging.copy_to_image(temp_command_buffer, texture_image, p_config.extent);
 
         // 6.3 -- transition image layout back to the layout specification
         old_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
         new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        image_memory_barrier(temp_command_buffer,
-                             texture_image,
-                             texture_format,
-                             old_layout,
-                             new_layout);
+        // image_memory_barrier(temp_command_buffer,
+        //                      texture_image,
+        //                      texture_format,
+        //                      old_layout,
+        //                      new_layout);
+		texture_image.memory_barrier(temp_command_buffer, texture_format, old_layout, new_layout);
 
         temp_command_buffer.end();
 
@@ -121,7 +124,7 @@ namespace vk {
 
 
 	texture::texture(const VkDevice& p_device, const image_extent& p_extent, VkPhysicalDeviceMemoryProperties p_property) : m_device(p_device) {
-		command_enumeration settings = {
+		command_params settings = {
 			.levels = command_levels::primary,
             .queue_index = 0,
 			.flags = command_pool_flags::reset,
@@ -146,13 +149,14 @@ namespace vk {
         //     .format = VK_FORMAT_R8G8B8A8_SRGB
         //     // .format = VK_FORMAT_R64G64B64A64_SFLOAT
         // };
-		image_configuration_information config_image = {
+		image_params config_image = {
             .extent = { .width = p_extent.width, .height = p_extent.height },
             .format = VK_FORMAT_R8G8B8A8_UNORM,
             .property = memory_property::device_local_bit,
             .aspect = image_aspect_flags::color_bit,
-            .usage = (VkImageUsageFlags)(VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-                                         VK_IMAGE_USAGE_SAMPLED_BIT),
+            // .usage = (VkImageUsageFlags)(VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+            //                              VK_IMAGE_USAGE_SAMPLED_BIT),
+            .usage = image_usage::transfer_dst_bit | image_usage::sampled_bit,
             // .physical_device = p_texture_info.physical
             .phsyical_memory_properties = p_property
         };
@@ -186,13 +190,14 @@ namespace vk {
         // 2. create vulkan image handlers + loading in the image data
         uint32_t property_flag = memory_property::device_local_bit;
 
-        image_configuration_information config_image = {
+        image_params config_image = {
             .extent = { .width = (uint32_t)w, .height = (uint32_t)h },
             .format = VK_FORMAT_R8G8B8A8_UNORM,
             .property = (memory_property)property_flag,
             .aspect = image_aspect_flags::color_bit,
-            .usage = (VkImageUsageFlags)(VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-                                         VK_IMAGE_USAGE_SAMPLED_BIT),
+            // .usage = (VkImageUsageFlags)(VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+            //                              VK_IMAGE_USAGE_SAMPLED_BIT),
+            .usage = image_usage::transfer_dst_bit | image_usage::sampled_bit,
             // .physical_device = p_texture_info.physical
             .phsyical_memory_properties =
               p_texture_info.phsyical_memory_properties

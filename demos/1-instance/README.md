@@ -119,7 +119,7 @@ initialize_instance_extensions() {
 }
 ```
 
-## To create a vk::instance you need to pass in `vk::application_configuration` and `vk::debug_message_utility`
+## To create a vk::instance you need to pass in `vk::application_params` and `vk::debug_message_utility`
 
 ```C++
 std::vector<const char*> global_extensions = initialize_instance_extensions();
@@ -129,7 +129,7 @@ vk::debug_message_utility debug_callback_info = {
     .callback = debug_callback
 };
 
-vk::application_configuration config = {
+vk::application_params config = {
     .name = "vulkan instance",
     .version = vk::api_version::vk_1_3, // specify to using vulkan 1.3
     .validations = validation_layers, // .validation takes in a std::span<const char*>

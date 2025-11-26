@@ -8,7 +8,7 @@ import os
 
 class VulkanCpp(ConanFile):
     name = "vulkan-cpp"
-    version = "2.0"
+    version = "3.0"
     settings = "os", "compiler", "build_type", "arch"
     generators = "CMakeDeps", "CMakeToolchain"
 
