@@ -56,7 +56,7 @@ namespace vk {
                 return;
             }
 
-            image_configuration_information skybox_image_info = {
+            image_params skybox_image_info = {
                 .extent = { (uint32_t)m_width, (uint32_t)m_height },
                 .format = VK_FORMAT_R8G8B8A8_UNORM,
                 .usage = (VkImageUsageFlagBits)VK_IMAGE_USAGE_TRANSFER_DST_BIT |
@@ -99,7 +99,7 @@ namespace vk {
         // 2. creating staging buffer
 
         // 2. Load each face with vk::sample_image
-        // image_configuration_information skybox_image_info = {
+        // image_params skybox_image_info = {
         //     .extent = {(uint32_t)m_width, (uint32_t)m_height},
         //     .format = VK_FORMAT_R8G8B8A8_UNORM,
         //     .usage = (VkImageUsageFlagBits)VK_IMAGE_USAGE_TRANSFER_DST_BIT |

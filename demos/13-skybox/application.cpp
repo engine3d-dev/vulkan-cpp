@@ -388,7 +388,7 @@ main() {
     // Setting up the images
     for (uint32_t i = 0; i < swapchain_images.size(); i++) {
 
-        vk::image_configuration_information swapchain_image_config = {
+        vk::image_params swapchain_image_config = {
             .extent = {swapchain_extent.width, swapchain_extent.width},
             .format = surface_properties.format.format,
             .aspect = vk::image_aspect_flags::color_bit,
@@ -402,7 +402,7 @@ main() {
         swapchain_images[i] = vk::sample_image(logical_device, images[i], swapchain_image_config);
 
         // Creating Images for depth buffering
-        vk::image_configuration_information image_config = {
+        vk::image_params image_config = {
             .extent = {swapchain_extent.width, swapchain_extent.width},
             .format = depth_format,
             .aspect = vk::image_aspect_flags::depth_bit,

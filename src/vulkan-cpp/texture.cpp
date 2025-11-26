@@ -12,7 +12,7 @@ namespace vk {
 
     static sample_image create_texture_with_data(
       const VkDevice& p_device,
-      const image_configuration_information& p_config,
+      const image_params& p_config,
       const void* p_data) {
         // 1. Creating temporary command buffer for texture
         command_enumeration copy_command_enumeration = {
@@ -149,13 +149,14 @@ namespace vk {
         //     .format = VK_FORMAT_R8G8B8A8_SRGB
         //     // .format = VK_FORMAT_R64G64B64A64_SFLOAT
         // };
-		image_configuration_information config_image = {
+		image_params config_image = {
             .extent = { .width = p_extent.width, .height = p_extent.height },
             .format = VK_FORMAT_R8G8B8A8_UNORM,
             .property = memory_property::device_local_bit,
             .aspect = image_aspect_flags::color_bit,
-            .usage = (VkImageUsageFlags)(VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-                                         VK_IMAGE_USAGE_SAMPLED_BIT),
+            // .usage = (VkImageUsageFlags)(VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+            //                              VK_IMAGE_USAGE_SAMPLED_BIT),
+            .usage = image_usage::transfer_dst_bit | image_usage::sampled_bit,
             // .physical_device = p_texture_info.physical
             .phsyical_memory_properties = p_property
         };
@@ -189,7 +190,7 @@ namespace vk {
         // 2. create vulkan image handlers + loading in the image data
         uint32_t property_flag = memory_property::device_local_bit;
 
-        image_configuration_information config_image = {
+        image_params config_image = {
             .extent = { .width = (uint32_t)w, .height = (uint32_t)h },
             .format = VK_FORMAT_R8G8B8A8_UNORM,
             .property = (memory_property)property_flag,

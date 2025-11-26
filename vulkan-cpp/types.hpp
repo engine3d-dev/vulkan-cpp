@@ -330,6 +330,32 @@ namespace vk {
         sampled_only_image = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE               // represents VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE
     };
 
+    enum image_usage : uint32_t {
+        transfer_src_bit = VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+        transfer_dst_bit = VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+        sampled_bit = VK_IMAGE_USAGE_SAMPLED_BIT,
+        storage_bit = VK_IMAGE_USAGE_STORAGE_BIT,
+        color_attachment_bit = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+        depth_stencil_bit = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+        transient_attachment_bit = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT,
+        input_attachment_bit= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
+        video_decide_dst_bit_khr = VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR,
+        video_decode_src_bit_khr = VK_IMAGE_USAGE_VIDEO_DECODE_SRC_BIT_KHR,
+        video_decode_dpb_bit_khr = VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR,
+        fragment_density_map_bit_ext = VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT,
+        fragment_shading_rate_attachment_bit_khr = VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR,
+        host_transfer_bit_ext = VK_IMAGE_USAGE_HOST_TRANSFER_BIT_EXT,
+        video_encode_dst_bit_khr = VK_IMAGE_USAGE_VIDEO_ENCODE_DST_BIT_KHR,
+        video_encode_src_bit_khr = VK_IMAGE_USAGE_VIDEO_ENCODE_SRC_BIT_KHR,
+        video_encode_dpb_bit_khr = VK_IMAGE_USAGE_VIDEO_ENCODE_DPB_BIT_KHR,
+        attachment_feedback_loop_bit_ext = VK_IMAGE_USAGE_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT,
+        invocation_mask_bit_huawei = VK_IMAGE_USAGE_INVOCATION_MASK_BIT_HUAWEI,
+        sample_weight_bit_qcom = VK_IMAGE_USAGE_SAMPLE_WEIGHT_BIT_QCOM,
+        sample_block_mtch_bit_qcom = VK_IMAGE_USAGE_SAMPLE_BLOCK_MATCH_BIT_QCOM,
+        shading_rate_image_bit_nv = VK_IMAGE_USAGE_SHADING_RATE_IMAGE_BIT_NV,
+        max_enum_usage = VK_IMAGE_USAGE_FLAG_BITS_MAX_ENUM
+    };
+
     /**
      * @brief Refers to the input rate
      *
@@ -718,12 +744,13 @@ namespace vk {
         uint32_t height = 1;
     };
 
-    struct image_configuration_information {
+    struct image_params {
         image_extent extent;
         VkFormat format;
         memory_property property = memory_property::device_local_bit;
         image_aspect_flags aspect = image_aspect_flags::color_bit;
-        VkImageUsageFlags usage;
+        // VkImageUsageFlags usage;
+        uint32_t usage;
         VkImageCreateFlags image_flags = 0;
         VkImageViewType view_type = VK_IMAGE_VIEW_TYPE_2D;
         uint32_t mip_levels = 1;

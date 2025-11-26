@@ -8,10 +8,10 @@ namespace vk {
     public:
         sample_image() = default;
         sample_image(const VkDevice& p_device,
-                     const image_configuration_information& p_image_properties);
+                     const image_params& p_image_properties);
         sample_image(const VkDevice& p_device,
                      const VkImage& p_image,
-                     const image_configuration_information& p_image_properties);
+                     const image_params& p_image_properties);
 
         [[nodiscard]] VkSampler sampler() const { return m_sampler; }
 

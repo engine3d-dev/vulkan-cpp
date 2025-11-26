@@ -648,7 +648,7 @@ namespace vk {
     // VkImageView create_image2d_view(
     //   const VkDevice& p_device,
     //   const VkImage& p_image,
-    //   const image_configuration_information& p_config) {
+    //   const image_params& p_config) {
     //     VkImageViewCreateInfo view_info = {
     //         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
     //         .pNext = nullptr,

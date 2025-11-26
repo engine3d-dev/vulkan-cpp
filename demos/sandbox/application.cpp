@@ -225,11 +225,12 @@ main() {
     uint32_t layer_count = 1;
     uint32_t mip_levels = 1;
     for (uint32_t i = 0; i < swapchain_images.size(); i++) {
-        vk::image_configuration_information swapchain_image_config = {
+        vk::image_params swapchain_image_config = {
             .extent = {swapchain_extent.width, swapchain_extent.width},
             .format = surface_properties.format.format,
             .aspect = vk::image_aspect_flags::color_bit,
-            .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+            // .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+            .usage = vk::image_usage::color_attachment_bit,
             .mip_levels = 1,
             .layer_count = 1,
             .phsyical_memory_properties = physical_device.memory_properties(),
@@ -240,11 +241,12 @@ main() {
 
 
         // Creating Images for depth buffering
-        vk::image_configuration_information image_config = {
+        vk::image_params image_config = {
             .extent = {swapchain_extent.width, swapchain_extent.width},
             .format = depth_format,
             .aspect = vk::image_aspect_flags::depth_bit,
-            .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+            // .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+            .usage = vk::image_usage::depth_stencil_bit,
             .mip_levels = 1,
             .layer_count = 1,
             .phsyical_memory_properties = physical_device.memory_properties(),

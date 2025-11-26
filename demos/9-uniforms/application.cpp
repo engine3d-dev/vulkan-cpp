@@ -237,7 +237,7 @@ main() {
         // };
         // swapchain_images[i] =
         //   create_image2d_view(logical_device, enumerate_image_properties);
-        vk::image_configuration_information swapchain_image_config = {
+        vk::image_params swapchain_image_config = {
             .extent = { swapchain_extent.width, swapchain_extent.width },
             .format = surface_properties.format.format,
             .aspect = vk::image_aspect_flags::color_bit,
@@ -270,7 +270,7 @@ main() {
         //   physical_device, logical_device, swapchain_images[i]);
         // swapchain_depth_images[i] = create_depth_image2d(
         //   logical_device, depth_image_enumeration, memory_type_index);
-        vk::image_configuration_information image_config = {
+        vk::image_params image_config = {
             .extent = { swapchain_extent.width, swapchain_extent.width },
             .format = depth_format,
             .aspect = vk::image_aspect_flags::depth_bit,

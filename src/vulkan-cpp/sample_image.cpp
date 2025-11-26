@@ -6,7 +6,7 @@ namespace vk {
 
     sample_image::sample_image(
       const VkDevice& p_device,
-      const image_configuration_information& p_image_properties)
+      const image_params& p_image_properties)
       : m_device(p_device) {
 
         // 1. creating VkImage handle
@@ -23,7 +23,7 @@ namespace vk {
             .arrayLayers = p_image_properties.array_layers,
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .tiling = VK_IMAGE_TILING_OPTIMAL,
-            .usage = p_image_properties.usage,
+            .usage = static_cast<VkImageUsageFlags>(p_image_properties.usage),
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
             .queueFamilyIndexCount = 0,
             .pQueueFamilyIndices = nullptr,
@@ -117,7 +117,7 @@ namespace vk {
     sample_image::sample_image(
       const VkDevice& p_device,
       const VkImage& p_image,
-      const image_configuration_information& p_image_properties)
+      const image_params& p_image_properties)
       : m_device(p_device)
       , m_image(p_image) {
 
