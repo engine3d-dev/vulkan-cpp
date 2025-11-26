@@ -193,7 +193,7 @@ namespace vk {
      * @param extent are for framebuffers to pass in frame image views to the
      * screen. Should be the size of the window viewport specified
      */
-    struct framebuffer_settings {
+    struct framebuffer_params {
         VkRenderPass renderpass = nullptr;
         std::span<VkImageView> views;
         VkExtent2D extent;

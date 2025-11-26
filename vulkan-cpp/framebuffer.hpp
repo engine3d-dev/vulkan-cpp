@@ -16,7 +16,7 @@ namespace vk {
     public:
         framebuffer() = default;
         framebuffer(const VkDevice& p_device,
-                    const framebuffer_settings& p_setting);
+                    const framebuffer_params& p_setting);
 
         [[nodiscard]] bool alive() const { return m_framebuffer; }
 

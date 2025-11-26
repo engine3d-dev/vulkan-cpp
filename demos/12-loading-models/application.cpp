@@ -478,7 +478,7 @@ main() {
           image_view_attachments = { swapchain_images[i].image_view(),
                                      swapchain_depth_images[i].image_view() };
 
-        vk::framebuffer_settings framebuffer_info = {
+        vk::framebuffer_params framebuffer_info = {
             .renderpass = main_renderpass,
             .views = image_view_attachments,
             .extent = swapchain_extent
