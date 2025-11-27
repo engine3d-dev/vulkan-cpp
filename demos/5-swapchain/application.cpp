@@ -146,8 +146,8 @@ main() {
 
     // We provide a selection of format support that we want to check is
     // supported on current hardware device.
-    VkFormat depth_format =
-      vk::select_depth_format(physical_device, format_support);
+    // VkFormat depth_format =
+    //   vk::select_depth_format(physical_device, format_support);
 
     vk::queue_indices queue_indices = physical_device.family_indices();
 
@@ -157,7 +157,7 @@ main() {
     vk::device_params logical_device_params = {
         .queue_priorities = priorities,
         .extensions = extensions,
-        .queue_family_index = 0,
+        .queue_family_index = queue_indices.graphics,
     };
 
     vk::device logical_device(physical_device, logical_device_params);
@@ -189,7 +189,7 @@ main() {
 
     // Creating Images
     std::vector<vk::sample_image> swapchain_images(image_count);
-    std::vector<vk::sample_image> swapchain_depth_images(image_count);
+    // std::vector<vk::sample_image> swapchain_depth_images(image_count);
 
     VkExtent2D swapchain_extent = surface_properties.capabilities.currentExtent;
 
@@ -211,17 +211,17 @@ main() {
           vk::sample_image(logical_device, images[i], swapchain_image_config);
 
         // Creating Depth Images for depth buffering
-        vk::image_params depth_image_config = {
-            .extent = { swapchain_extent.width, swapchain_extent.width },
-            .format = depth_format,
-            .aspect = vk::image_aspect_flags::depth_bit,
-            .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-            .mip_levels = 1,
-            .layer_count = 1,
-            .phsyical_memory_properties = physical_device.memory_properties(),
-        };
-        swapchain_depth_images[i] =
-          vk::sample_image(logical_device, depth_image_config);
+        // vk::image_params depth_image_config = {
+        //     .extent = { swapchain_extent.width, swapchain_extent.width },
+        //     .format = depth_format,
+        //     .aspect = vk::image_aspect_flags::depth_bit,
+        //     .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+        //     .mip_levels = 1,
+        //     .layer_count = 1,
+        //     .phsyical_memory_properties = physical_device.memory_properties(),
+        // };
+        // swapchain_depth_images[i] =
+        //   vk::sample_image(logical_device, depth_image_config);
     }
 
     // setting up command buffers
@@ -238,7 +238,7 @@ main() {
     }
 
     // setting up attachments for the renderpass
-    std::array<vk::attachment, 2> renderpass_attachments = {
+    std::array<vk::attachment, 1> renderpass_attachments = {
         vk::attachment{
           .format = surface_properties.format.format,
           .layout = vk::image_layout::color_optimal,
@@ -250,28 +250,25 @@ main() {
           .initial_layout = vk::image_layout::undefined,
           .final_layout = vk::image_layout::present_src_khr,
         },
-        vk::attachment{
-          .format = depth_format,
-          .layout = vk::image_layout::depth_stencil_optimal,
-          .samples = vk::sample_bit::count_1,
-          .load = vk::attachment_load::clear,
-          .store = vk::attachment_store::dont_care,
-          .stencil_load = vk::attachment_load::clear,
-          .stencil_store = vk::attachment_store::dont_care,
-          .initial_layout = vk::image_layout::undefined,
-          .final_layout = vk::image_layout::present_src_khr,
-        },
+        // vk::attachment{
+        //   .format = depth_format,
+        //   .layout = vk::image_layout::depth_stencil_optimal,
+        //   .samples = vk::sample_bit::count_1,
+        //   .load = vk::attachment_load::clear,
+        //   .store = vk::attachment_store::dont_care,
+        //   .stencil_load = vk::attachment_load::clear,
+        //   .stencil_store = vk::attachment_store::dont_care,
+        //   .initial_layout = vk::image_layout::undefined,
+        //   .final_layout = vk::image_layout::present_src_khr,
+        // },
     };
-
     vk::renderpass main_renderpass(logical_device, renderpass_attachments);
-
-    std::println("renderpass created!!!");
 
     std::vector<vk::framebuffer> swapchain_framebuffers(image_count);
     for (uint32_t i = 0; i < swapchain_framebuffers.size(); i++) {
-        std::array<VkImageView, 2> image_view_attachments = {
+        std::array<VkImageView, renderpass_attachments.size()> image_view_attachments = {
             swapchain_images[i].image_view(),
-            swapchain_depth_images[i].image_view()
+            // swapchain_depth_images[i].image_view()
         };
 
         vk::framebuffer_params framebuffer_info = {
@@ -343,9 +340,9 @@ main() {
         image.destroy();
     }
 
-    for (auto& depth_image : swapchain_depth_images) {
-        depth_image.destroy();
-    }
+    // for (auto& depth_image : swapchain_depth_images) {
+    //     depth_image.destroy();
+    // }
 
     main_renderpass.destroy();
     presentation_queue.destroy();
