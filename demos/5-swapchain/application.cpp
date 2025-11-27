@@ -150,9 +150,6 @@ main() {
       vk::select_depth_format(physical_device, format_support);
 
     vk::queue_indices queue_indices = physical_device.family_indices();
-    std::println("Graphics Queue Family Index = {}", queue_indices.graphics);
-    std::println("Compute Queue Family Index = {}", queue_indices.compute);
-    std::println("Transfer Queue Family Index = {}", queue_indices.transfer);
 
     // setting up logical device
     std::array<float, 1> priorities = { 0.f };
@@ -166,14 +163,13 @@ main() {
     vk::device logical_device(physical_device, logical_device_params);
 
     vk::surface window_surface(api_instance, window);
-    std::println("Starting implementation of the swapchain!!!");
 
     vk::surface_params surface_properties =
       vk::enumerate_surface(physical_device, window_surface);
 
-    if (surface_properties.format.format != VK_FORMAT_UNDEFINED) {
-        std::println("Surface Format.format is not undefined!!!");
-    }
+    // if (surface_properties.format.format != VK_FORMAT_UNDEFINED) {
+    //     std::println("Surface Format.format is not undefined!!!");
+    // }
 
     vk::swapchain_params enumerate_swapchain_settings = {
         .width = (uint32_t)width,
@@ -187,17 +183,9 @@ main() {
                                  enumerate_swapchain_settings,
                                  surface_properties);
 
-    // querying swapchain images
-    uint32_t image_count = 0;
-    vkGetSwapchainImagesKHR(logical_device,
-                            main_swapchain,
-                            &image_count,
-                            nullptr); // used to get the amount of images
-    std::vector<VkImage> images(image_count);
-    vkGetSwapchainImagesKHR(logical_device,
-                            main_swapchain,
-                            &image_count,
-                            images.data()); // used to store in the images
+    // querying presentable images
+    std::span<const VkImage> images = main_swapchain.presentable_images();
+    uint32_t image_count = images.size();
 
     // Creating Images
     std::vector<vk::sample_image> swapchain_images(image_count);
@@ -218,8 +206,7 @@ main() {
             .layer_count = 1,
             .phsyical_memory_properties = physical_device.memory_properties(),
         };
-        // swapchain_images[i] = create_image2d_view(logical_device,
-        // enumerate_image_properties);
+
         swapchain_images[i] =
           vk::sample_image(logical_device, images[i], swapchain_image_config);
 
@@ -249,8 +236,6 @@ main() {
         swapchain_command_buffers[i] =
           vk::command_buffer(logical_device, settings);
     }
-
-    // setting up renderpass
 
     // setting up attachments for the renderpass
     std::array<vk::attachment, 2> renderpass_attachments = {
