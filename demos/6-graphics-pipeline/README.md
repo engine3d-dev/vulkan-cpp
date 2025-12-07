@@ -30,7 +30,9 @@ This image shows the difference between a clip coordinate. Clip coordinate a 4D 
 
 These normalized device coordinates are `homogeneous coordinates` that map the framebuffer to a [-1,1] by [-1,1] coordinate system as shown below:
 
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+![Uploading normalized_device_c<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
@@ -248,7 +250,7 @@ These normalized device coordinates are `homogeneous coordinates` that map the f
          y="231.15146">(0, 0)</tspan></text>
   </g>
 </svg>
-</xml>
+oordinates.svg…]()
 
 ### Tessellation Shader
 * Used for subdividing geometry based on rules to increase mesh quality.
