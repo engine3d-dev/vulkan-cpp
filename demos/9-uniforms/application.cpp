@@ -175,13 +175,13 @@ main() {
     // setting up logical device
     std::array<float, 1> priorities = { 0.f };
     std::array<const char*, 1> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
-    vk::device_enumeration logical_device_enumeration = {
+    vk::device_params logical_device_params = {
         .queue_priorities = priorities,
         .extensions = extensions,
         .queue_family_index = 0,
     };
 
-    vk::device logical_device(physical_device, logical_device_enumeration);
+    vk::device logical_device(physical_device, logical_device_params);
 
     vk::surface window_surface(api_instance, window);
     std::println("Starting implementation of the swapchain!!!");

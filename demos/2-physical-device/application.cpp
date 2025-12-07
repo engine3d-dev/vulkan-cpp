@@ -98,27 +98,19 @@ main() {
         .extensions = global_extensions // .extensions also takes in std::span<const char*>
     };
 
-    // 1. Setting up vk instance
+    // Setting up vk instance
     vk::instance api_instance(config, debug_callback_info);
 
     if(api_instance.alive()) {
         std::println("\napi_instance alive and initiated!!!");
     }
 
-
-    // TODO: Implement this as a way to setup physical devices
-    // vk::enumerate_physical_devices(vk::instance) -> returns std::span<vk::physical_device>
-
     // setting up physical device
     vk::physical_enumeration enumerate_devices {
         .device_type = vk::physical::discrete
     };
-    std::println("DEBUG STATEMENT CALLED!!!");
-    vk::physical_device device(api_instance, enumerate_devices);
-    if(device.alive()) {
-        std::println("physical device is alive!!!");
-    }
 
+    vk::physical_device device(api_instance, enumerate_devices);
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();

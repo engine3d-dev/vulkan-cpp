@@ -4,7 +4,7 @@
 namespace vk {
 
     device::device(const VkPhysicalDevice& p_physical,
-                   const device_enumeration& p_config) {
+                   const device_params& p_config) {
 
         VkDeviceQueueCreateInfo device_queue_ci = {
             .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,

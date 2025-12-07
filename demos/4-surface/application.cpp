@@ -140,20 +140,19 @@ main() {
       vk::select_depth_format(physical_device, format_support);
 
     vk::queue_indices queue_indices = physical_device.family_indices();
-    std::println("Graphics Queue Family Index = {}", queue_indices.graphics);
-    std::println("Compute Queue Family Index = {}", queue_indices.compute);
-    std::println("Transfer Queue Family Index = {}", queue_indices.transfer);
 
     // setting up logical device
     std::array<float, 1> priorities = { 0.f };
     std::array<const char*, 1> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
-    vk::device_enumeration logical_device_enumeration = {
+    vk::device_params logical_device_params = {
         .queue_priorities = priorities,
         .extensions = extensions,
         .queue_family_index = 0,
     };
 
-    vk::device logical_device(physical_device, logical_device_enumeration);
+    vk::device logical_device(physical_device, logical_device_params);
+
+    vk::surface window_surface(api_instance, window);
 
     // Presentation queue family uses graphics queue
     vk::queue_params present_queue_enumerate = {
@@ -161,8 +160,6 @@ main() {
         .index = queue_indices.graphics,
     };
     vk::device_queue presesnt_queue(logical_device, present_queue_enumerate);
-    vk::surface window_surface(api_instance, window);
-    std::println("Surface Created with no errors!!!");
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();

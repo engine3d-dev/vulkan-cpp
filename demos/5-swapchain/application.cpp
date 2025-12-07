@@ -146,34 +146,30 @@ main() {
 
     // We provide a selection of format support that we want to check is
     // supported on current hardware device.
-    VkFormat depth_format =
-      vk::select_depth_format(physical_device, format_support);
+    // VkFormat depth_format =
+    //   vk::select_depth_format(physical_device, format_support);
 
     vk::queue_indices queue_indices = physical_device.family_indices();
-    std::println("Graphics Queue Family Index = {}", queue_indices.graphics);
-    std::println("Compute Queue Family Index = {}", queue_indices.compute);
-    std::println("Transfer Queue Family Index = {}", queue_indices.transfer);
 
     // setting up logical device
     std::array<float, 1> priorities = { 0.f };
     std::array<const char*, 1> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
-    vk::device_enumeration logical_device_enumeration = {
+    vk::device_params logical_device_params = {
         .queue_priorities = priorities,
         .extensions = extensions,
-        .queue_family_index = 0,
+        .queue_family_index = queue_indices.graphics,
     };
 
-    vk::device logical_device(physical_device, logical_device_enumeration);
+    vk::device logical_device(physical_device, logical_device_params);
 
     vk::surface window_surface(api_instance, window);
-    std::println("Starting implementation of the swapchain!!!");
 
     vk::surface_params surface_properties =
       vk::enumerate_surface(physical_device, window_surface);
 
-    if (surface_properties.format.format != VK_FORMAT_UNDEFINED) {
-        std::println("Surface Format.format is not undefined!!!");
-    }
+    // if (surface_properties.format.format != VK_FORMAT_UNDEFINED) {
+    //     std::println("Surface Format.format is not undefined!!!");
+    // }
 
     vk::swapchain_params enumerate_swapchain_settings = {
         .width = (uint32_t)width,
@@ -187,21 +183,13 @@ main() {
                                  enumerate_swapchain_settings,
                                  surface_properties);
 
-    // querying swapchain images
-    uint32_t image_count = 0;
-    vkGetSwapchainImagesKHR(logical_device,
-                            main_swapchain,
-                            &image_count,
-                            nullptr); // used to get the amount of images
-    std::vector<VkImage> images(image_count);
-    vkGetSwapchainImagesKHR(logical_device,
-                            main_swapchain,
-                            &image_count,
-                            images.data()); // used to store in the images
+    // querying presentable images
+    std::span<const VkImage> images = main_swapchain.presentable_images();
+    uint32_t image_count = images.size();
 
     // Creating Images
     std::vector<vk::sample_image> swapchain_images(image_count);
-    std::vector<vk::sample_image> swapchain_depth_images(image_count);
+    // std::vector<vk::sample_image> swapchain_depth_images(image_count);
 
     VkExtent2D swapchain_extent = surface_properties.capabilities.currentExtent;
 
@@ -218,23 +206,22 @@ main() {
             .layer_count = 1,
             .phsyical_memory_properties = physical_device.memory_properties(),
         };
-        // swapchain_images[i] = create_image2d_view(logical_device,
-        // enumerate_image_properties);
+
         swapchain_images[i] =
           vk::sample_image(logical_device, images[i], swapchain_image_config);
 
         // Creating Depth Images for depth buffering
-        vk::image_params depth_image_config = {
-            .extent = { swapchain_extent.width, swapchain_extent.width },
-            .format = depth_format,
-            .aspect = vk::image_aspect_flags::depth_bit,
-            .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-            .mip_levels = 1,
-            .layer_count = 1,
-            .phsyical_memory_properties = physical_device.memory_properties(),
-        };
-        swapchain_depth_images[i] =
-          vk::sample_image(logical_device, depth_image_config);
+        // vk::image_params depth_image_config = {
+        //     .extent = { swapchain_extent.width, swapchain_extent.width },
+        //     .format = depth_format,
+        //     .aspect = vk::image_aspect_flags::depth_bit,
+        //     .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+        //     .mip_levels = 1,
+        //     .layer_count = 1,
+        //     .phsyical_memory_properties = physical_device.memory_properties(),
+        // };
+        // swapchain_depth_images[i] =
+        //   vk::sample_image(logical_device, depth_image_config);
     }
 
     // setting up command buffers
@@ -250,10 +237,8 @@ main() {
           vk::command_buffer(logical_device, settings);
     }
 
-    // setting up renderpass
-
     // setting up attachments for the renderpass
-    std::array<vk::attachment, 2> renderpass_attachments = {
+    std::array<vk::attachment, 1> renderpass_attachments = {
         vk::attachment{
           .format = surface_properties.format.format,
           .layout = vk::image_layout::color_optimal,
@@ -265,28 +250,25 @@ main() {
           .initial_layout = vk::image_layout::undefined,
           .final_layout = vk::image_layout::present_src_khr,
         },
-        vk::attachment{
-          .format = depth_format,
-          .layout = vk::image_layout::depth_stencil_optimal,
-          .samples = vk::sample_bit::count_1,
-          .load = vk::attachment_load::clear,
-          .store = vk::attachment_store::dont_care,
-          .stencil_load = vk::attachment_load::clear,
-          .stencil_store = vk::attachment_store::dont_care,
-          .initial_layout = vk::image_layout::undefined,
-          .final_layout = vk::image_layout::present_src_khr,
-        },
+        // vk::attachment{
+        //   .format = depth_format,
+        //   .layout = vk::image_layout::depth_stencil_optimal,
+        //   .samples = vk::sample_bit::count_1,
+        //   .load = vk::attachment_load::clear,
+        //   .store = vk::attachment_store::dont_care,
+        //   .stencil_load = vk::attachment_load::clear,
+        //   .stencil_store = vk::attachment_store::dont_care,
+        //   .initial_layout = vk::image_layout::undefined,
+        //   .final_layout = vk::image_layout::present_src_khr,
+        // },
     };
-
     vk::renderpass main_renderpass(logical_device, renderpass_attachments);
-
-    std::println("renderpass created!!!");
 
     std::vector<vk::framebuffer> swapchain_framebuffers(image_count);
     for (uint32_t i = 0; i < swapchain_framebuffers.size(); i++) {
-        std::array<VkImageView, 2> image_view_attachments = {
+        std::array<VkImageView, renderpass_attachments.size()> image_view_attachments = {
             swapchain_images[i].image_view(),
-            swapchain_depth_images[i].image_view()
+            // swapchain_depth_images[i].image_view()
         };
 
         vk::framebuffer_params framebuffer_info = {
@@ -358,9 +340,9 @@ main() {
         image.destroy();
     }
 
-    for (auto& depth_image : swapchain_depth_images) {
-        depth_image.destroy();
-    }
+    // for (auto& depth_image : swapchain_depth_images) {
+    //     depth_image.destroy();
+    // }
 
     main_renderpass.destroy();
     presentation_queue.destroy();

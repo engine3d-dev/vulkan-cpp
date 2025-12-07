@@ -16,7 +16,7 @@ namespace vk {
 
     public:
         device(const VkPhysicalDevice& p_physical,
-               const device_enumeration& p_config);
+               const device_params& p_config);
 
         [[nodiscard]] queue_family family() const { return m_queue_family; }
 
