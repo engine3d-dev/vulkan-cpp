@@ -279,6 +279,23 @@ while (!glfwWindowShouldClose(window)) {
 
 ```
 
+# Cleanup
+
+After you have created the graphics pipeline. Do not forget to do the post cleanup after the mainloop call.
+
+```C++
+
+while (!glfwWindowShouldClose(window)) {
+    // ....
+}
+
+// make sure to destroy child objects of Vulkan before the actual logical device.
+main_graphics_pipeline.destroy();
+geometry_resource.destroy();
+
+logical_device.destroy();
+```
+
 # Final Result
 
 As soon those two lines of code have been added. This is what the final result should look like:
