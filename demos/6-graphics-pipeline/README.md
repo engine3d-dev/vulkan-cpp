@@ -1,4 +1,4 @@
-# Demo 6 -- Setting up Graphics Pipeline
+![normalized_device_coordinates](https://github.com/user-attachments/assets/a23de82b-0cb0-4fe1-b329-88cc9180bd49)# Demo 6 -- Setting up Graphics Pipeline
 
 This demo will show how to set up the `VkPipeline` handle. Which is the graphics pipeline.
 
@@ -30,8 +30,7 @@ This image shows the difference between a clip coordinate. Clip coordinate a 4D 
 
 These normalized device coordinates are `homogeneous coordinates` that map the framebuffer to a [-1,1] by [-1,1] coordinate system as shown below:
 
-
-![Uploading normalized_device_c<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+![Uploading normalized_device_coordinat<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
@@ -250,7 +249,8 @@ These normalized device coordinates are `homogeneous coordinates` that map the f
          y="231.15146">(0, 0)</tspan></text>
   </g>
 </svg>
-oordinates.svg…]()
+es.svg…]()
+
 
 ### Tessellation Shader
 * Used for subdividing geometry based on rules to increase mesh quality.
