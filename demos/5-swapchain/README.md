@@ -580,3 +580,9 @@ Which allows for prototyping and easier to interopt into other projects that may
 Whew! We finally did it!
 
 On that note, that is it! You should be able to see a blue screen on your window now!
+
+# Final Result
+
+The final result should be a window with a changed background color.
+
+<img width="796" height="625" alt="Screenshot 2025-12-06 183239" src="https://github.com/user-attachments/assets/cf6b3ae5-bf7e-4a77-898f-0ec0c7b6f8c0" />
