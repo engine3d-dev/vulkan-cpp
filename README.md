@@ -1,34 +1,34 @@
 # Vulkan-CPP
 
-Vulkan abstraction layer, that uses modern C++ at an attempt to simplify the development with vulkan.
+Modern abstraction layer for Vulkan using C++23 to simplify and modernize development for graphical applications.
 
-# Overview
+![NOTE]
+> vulkan-cpp assumes you have some knowledge of computer graphics and API's such as with OpenGL or Direct3D
 
-This does not mean that the instnace, physical, and logical devices are handled for you. You still would need to create those. This abstracion allows for a simpler design as to how those creation get done. Allowing you to focus on the specification of those creation without much of the verbose of the vulkan's API.
+# Why another abstraction around Vulkan?
 
-This API focuses on simplicity, but providing enough information to still be flexible in your own application. Whether you want to build a device management system that understands your hardware specifications and support multiple GPU's configurations for multi-viewport. To even having a single logical device for simpler use.
+I chose to make this vulkan abstraction for developing graphics applications using Vulkan much simpler. This involved providing ways for specifying operations that had quite a bit of boilerplate being done in raw Vulkan.
 
-That is the purpose as to why I decided to make vulkan-cpp, to focus on usability and simplicity. While introducing minimal code to get something working if possible.
+Examples of these are renderpass attachments and setting up descriptor set handles. These take up extroadinary amount of code to implement. Though there are not always a one size fit all situation.
+
 
 ## How to Build
 
-This project uses the C++ conan package manager to manage dependencies. Reference to [getting started](https://engine3d-dev.github.io/0.1/getting_started) to setup the development environment.
+For building our projects we use Conan, the C++ package manager to manage our dependencies and build vulkan-cpp demos.
 
-## Demos
+Required to start at the [getting started](https://engine3d-dev.github.io/0.1/getting_started) page for setting up the development environment.
 
-The demos are meant to act as the tutorial in using vulkan to write basic primitives or use the ones provided by vulkan-cpp.
+## Example Demos
 
-`vulkan-cpp` still requires you to know how to use vulkan in some capacity. The reason I made this was to help with making some modifications into my own projects with handling specific things with vulkan, I find bug-prone.
+The demos are meant to reflect closely enough to the Vulkan tutorial documentation site. Where they show you how to learn how to use Vulkan.
 
-These demos also act as a way to show how to utilize vulkan-cpp from rendering a basic triangle to a more complex renderer objects. Such as textures, skybox's, etc.
+These demos are supposed to enable you in learning more about how vulkan-cpp works, and how you can effectively build a renderer using the current API's of vulkan-cpp.
 
 ## Shader Samples
 
-The demos use the shader samples provided. Shader samples are samples that are used by the same official vulkan tutorial guide.
-
-Here are which demos uses the shader samples
+These are shader samples used by the specific demos that you see referenced below. Which demo utilizes those specific shader samples.
 
 * sample 1 -- used by demo 6 and 7
 * sample 2 -- used by demo 8
-* sample 3 -- used by demo 9 (descriptors + camera data)
+* sample 3 -- used by demo 9 (descriptors + camera uniforms)
 * sample 4 -- used by demo 10 (textures)
