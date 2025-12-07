@@ -15,7 +15,8 @@ This is the following graphics sequence diagram:
 ![NOTE]
 > Credit to the vulkan web-page that can be seen used in this [link](https://vulkan-tutorial.com/Drawing_a_triangle/Graphics_pipeline_basics/Introduction)
 
-![alt text](vulkan_simplified_pipeline.svg)
+<!-- ![alt text](vulkan_simplified_pipeline.svg) -->
+![vulkan_simplified_pipeline](https://github.com/user-attachments/assets/978c738c-9d58-4c69-866a-12471475254e)
 
 ### Input Assembler
 * collects raw verticse from buffers you specify as inputs
