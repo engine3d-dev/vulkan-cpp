@@ -5,7 +5,7 @@ build_library(
     DIRECTORIES
     src
     demos/1-instance
-    # demos/2-physical-device
+    demos/2-physical-device
     # demos/3-logical-device
     # demos/4-surface
     # demos/5-swapchain
@@ -42,8 +42,9 @@ target_sources(${PROJECT_NAME} PUBLIC
     TYPE CXX_MODULES
     FILES
     vk-modules/vk.cppm
-    vk-modules/instance.cppm
     vk-modules/utilities.cppm
+    vk-modules/instance.cppm
+    vk-modules/physical_device.cppm
 )
 
 generate_compile_commands()
