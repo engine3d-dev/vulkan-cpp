@@ -1,22 +1,35 @@
+#define GLFW_INCLUDE_VULKAN
+#if _WIN32
+#define VK_USE_PLATFORM_WIN32_KHR
+#include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
+#include <vulkan/vulkan.h>
+#else
+#include <GLFW/glfw3.h>
+#include <vulkan/vulkan.h>
+#endif
+
 #include <array>
 #include <print>
+#include <span>
 
-#include <vulkan-cpp/imports.hpp>
+// #include <vulkan-cpp/imports.hpp>
+#include <vulkan/vulkan.h>
 
-#define FMT_HEADER_ONLY
-#include <fmt/format.h>
-#include <vulkan-cpp/utilities.hpp>
-#include <vulkan-cpp/instance.hpp>
-#include <vulkan-cpp/physical_device.hpp>
-#include <vulkan-cpp/device.hpp>
-#include <vulkan-cpp/device_queue.hpp>
-#include <vulkan-cpp/surface.hpp>
-#include <vulkan-cpp/swapchain.hpp>
-#include <vulkan-cpp/device_present_queue.hpp>
-#include <vulkan-cpp/command_buffer.hpp>
-#include <vulkan-cpp/renderpass.hpp>
-#include <vulkan-cpp/framebuffer.hpp>
-#include <vulkan-cpp/sample_image.hpp>
+// #include <vulkan-cpp/utilities.hpp>
+// #include <vulkan-cpp/instance.hpp>
+// #include <vulkan-cpp/physical_device.hpp>
+// #include <vulkan-cpp/device.hpp>
+// #include <vulkan-cpp/device_queue.hpp>
+// #include <vulkan-cpp/surface.hpp>
+// #include <vulkan-cpp/swapchain.hpp>
+// #include <vulkan-cpp/device_present_queue.hpp>
+// #include <vulkan-cpp/command_buffer.hpp>
+// #include <vulkan-cpp/renderpass.hpp>
+// #include <vulkan-cpp/framebuffer.hpp>
+// #include <vulkan-cpp/sample_image.hpp>
+import vk;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 debug_callback(
@@ -68,7 +81,7 @@ int
 main() {
     //! @note Just added the some test code to test the conan-starter setup code
     if (!glfwInit()) {
-        fmt::print("glfwInit could not be initialized!\n");
+        std::print("glfwInit could not be initialized!\n");
         return -1;
     }
 
