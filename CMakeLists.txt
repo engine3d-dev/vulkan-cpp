@@ -10,7 +10,7 @@ build_library(
     demos/4-surface
     demos/5-swapchain
     demos/6-graphics-pipeline
-    # demos/7-vertex-buffer
+    demos/7-vertex-buffer
     # demos/8-index-uniform-buffers
     # demos/9-uniforms
     # demos/10-textures
@@ -57,6 +57,8 @@ target_sources(${PROJECT_NAME} PUBLIC
     vk-modules/sample_image.cppm
     vk-modules/shader_resource.cppm
     vk-modules/pipeline.cppm
+    vk-modules/buffer_streams.cppm
+    vk-modules/vertex_buffer.cppm
 )
 
 generate_compile_commands()

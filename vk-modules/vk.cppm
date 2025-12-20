@@ -14,6 +14,8 @@ export import :framebuffer;
 export import :sample_image;
 export import :shader_resource;
 export import :pipeline;
+export import :buffer_streams;
+export import :vertex_buffer;
 
 namespace vk {
     inline namespace v1 {
