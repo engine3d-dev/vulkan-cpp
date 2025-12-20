@@ -4,6 +4,10 @@ project(vulkan-cpp CXX)
 build_library(
     DIRECTORIES
     src
+    # demos/1-instance
+    # demos/2-physical-device
+    # demos/3-logical-device
+    # demos/4-surface
     # demos/5-swapchain
     # demos/6-graphics-pipeline
     # demos/7-vertex-buffer
@@ -18,7 +22,6 @@ build_library(
 
     PACKAGES
     glfw3
-    fmt
     Vulkan
     VulkanHeaders
     glm
@@ -27,7 +30,6 @@ build_library(
 
     LINK_PACKAGES
     glfw
-    fmt::fmt
     Vulkan::Vulkan
     vulkan-headers::vulkan-headers
     glm::glm
