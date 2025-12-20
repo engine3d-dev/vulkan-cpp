@@ -1,12 +1,26 @@
+#define GLFW_INCLUDE_VULKAN
+#if _WIN32
+#define VK_USE_PLATFORM_WIN32_KHR
+#include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
+#include <vulkan/vulkan.h>
+#else
+#include <GLFW/glfw3.h>
+#include <vulkan/vulkan.h>
+#endif
+
+#include <array>
+#include <print>
+#include <span>
+
+#include <vulkan/vulkan.h>
+
 // #include <vulkan-cpp/instance.hpp>
 // #include <vulkan-cpp/physical_device.hpp>
 // #include <vulkan-cpp/types.hpp>
-#include <vulkan-cpp/imports.hpp>
+// #include <vulkan-cpp/imports.hpp>
 import vk;
-#include <array>
-#include <print>
-#include <vector>
-#include <exception>
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 debug_callback(

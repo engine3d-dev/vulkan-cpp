@@ -2,8 +2,7 @@ cmake_minimum_required(VERSION 3.27)
 project(vulkan-cpp CXX)
 
 build_library(
-    DIRECTORIES
-    src
+    DIRECTORIES vulkan-cpp/
     demos/1-instance
     demos/2-physical-device
     demos/3-logical-device
@@ -41,30 +40,30 @@ target_sources(${PROJECT_NAME} PUBLIC
     FILE_SET CXX_MODULES
     TYPE CXX_MODULES
     FILES
-    vk-modules/vk.cppm
-    vk-modules/types.cppm
-    vk-modules/utilities.cppm
-    vk-modules/instance.cppm
-    vk-modules/physical_device.cppm
-    vk-modules/device.cppm
-    vk-modules/device_queue.cppm
-    vk-modules/surface.cppm
-    vk-modules/swapchain.cppm
-    vk-modules/device_present_queue.cppm
-    vk-modules/command_buffer.cppm
-    vk-modules/renderpass.cppm
-    vk-modules/framebuffer.cppm
-    vk-modules/sample_image.cppm
-    vk-modules/shader_resource.cppm
-    vk-modules/pipeline.cppm
-    vk-modules/buffer_streams.cppm
-    vk-modules/vertex_buffer.cppm
-    vk-modules/buffer_streams16.cppm
-    vk-modules/buffer_streams32.cppm
-    vk-modules/index_buffer.cppm
-    vk-modules/uniform_buffer.cppm
-    vk-modules/descriptor_resource.cppm
-    vk-modules/texture.cppm
+    vulkan-cpp/vk.cppm
+    vulkan-cpp/types.cppm
+    vulkan-cpp/utilities.cppm
+    vulkan-cpp/instance.cppm
+    vulkan-cpp/physical_device.cppm
+    vulkan-cpp/device.cppm
+    vulkan-cpp/device_queue.cppm
+    vulkan-cpp/surface.cppm
+    vulkan-cpp/swapchain.cppm
+    vulkan-cpp/device_present_queue.cppm
+    vulkan-cpp/command_buffer.cppm
+    vulkan-cpp/renderpass.cppm
+    vulkan-cpp/framebuffer.cppm
+    vulkan-cpp/sample_image.cppm
+    vulkan-cpp/shader_resource.cppm
+    vulkan-cpp/pipeline.cppm
+    vulkan-cpp/buffer_streams.cppm
+    vulkan-cpp/vertex_buffer.cppm
+    vulkan-cpp/buffer_streams16.cppm
+    vulkan-cpp/buffer_streams32.cppm
+    vulkan-cpp/index_buffer.cppm
+    vulkan-cpp/uniform_buffer.cppm
+    vulkan-cpp/descriptor_resource.cppm
+    vulkan-cpp/texture.cppm
 )
 
 generate_compile_commands()

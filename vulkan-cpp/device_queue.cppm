@@ -1,6 +1,6 @@
 module;
 
-#include <vulkan-cpp/imports.hpp>
+#include <vulkan/vulkan.h>
 
 export module vk:device_queue;
 
