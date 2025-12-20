@@ -9,7 +9,7 @@ build_library(
     demos/3-logical-device
     demos/4-surface
     demos/5-swapchain
-    # demos/6-graphics-pipeline
+    demos/6-graphics-pipeline
     # demos/7-vertex-buffer
     # demos/8-index-uniform-buffers
     # demos/9-uniforms
@@ -55,6 +55,8 @@ target_sources(${PROJECT_NAME} PUBLIC
     vk-modules/renderpass.cppm
     vk-modules/framebuffer.cppm
     vk-modules/sample_image.cppm
+    vk-modules/shader_resource.cppm
+    vk-modules/pipeline.cppm
 )
 
 generate_compile_commands()

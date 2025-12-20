@@ -12,6 +12,8 @@ export import :device_present_queue;
 export import :renderpass;
 export import :framebuffer;
 export import :sample_image;
+export import :shader_resource;
+export import :pipeline;
 
 namespace vk {
     inline namespace v1 {
