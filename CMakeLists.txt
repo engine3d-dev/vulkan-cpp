@@ -41,7 +41,7 @@ target_sources(${PROJECT_NAME} PUBLIC
     FILE_SET CXX_MODULES
     TYPE CXX_MODULES
     FILES
-    modules/vk.cppm
+    vk-modules/vk.cppm
     vk-modules/instance.cppm
     vk-modules/utilities.cppm
 )
@@ -49,3 +49,4 @@ target_sources(${PROJECT_NAME} PUBLIC
 generate_compile_commands()
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(${PROJECT_NAME} PUBLIC ./)
