@@ -1,0 +1,15 @@
+# Breaking change was removing the bit timing sections from hal::can::settings,
+# now it is just baud_rate.
+name: 🚀 Deploy Version
+
+on:
+  workflow_dispatch:
+
+jobs:
+  engine3d:
+    uses: engine3d-dev/ci/.github/workflows/deploy.yml@main
+    with:
+      # version: ${{ github.ref_name }}
+      arch: x86_64
+      os: Linux
+    secrets: inherit
