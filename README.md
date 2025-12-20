@@ -32,3 +32,5 @@ These are shader samples used by the specific demos that you see referenced belo
 * sample 2 -- used by demo 8
 * sample 3 -- used by demo 9 (descriptors + camera uniforms)
 * sample 4 -- used by demo 10 (textures)
+
+## Added Modules Support
