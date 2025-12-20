@@ -11,7 +11,7 @@ build_library(
     demos/5-swapchain
     demos/6-graphics-pipeline
     demos/7-vertex-buffer
-    # demos/8-index-uniform-buffers
+    demos/8-index-uniform-buffers
     # demos/9-uniforms
     # demos/10-textures
     # demos/11-depth-buffering
@@ -59,6 +59,9 @@ target_sources(${PROJECT_NAME} PUBLIC
     vk-modules/pipeline.cppm
     vk-modules/buffer_streams.cppm
     vk-modules/vertex_buffer.cppm
+    vk-modules/buffer_streams32.cppm
+    vk-modules/index_buffer.cppm
+    vk-modules/uniform_buffer.cppm
 )
 
 generate_compile_commands()

@@ -109,7 +109,11 @@ export namespace vk {
 
             [[nodiscard]] bool alive() const { return m_vertex_handler; }
 
-            void bind(const VkCommandBuffer& p_current);
+            void bind(const VkCommandBuffer& p_current) {
+                std::array<VkBuffer, 1> handlers = { m_vertex_handler };
+                VkDeviceSize offsets[] = { 0 };
+                vkCmdBindVertexBuffers(p_current, 0, 1, handlers.data(), offsets);
+            }
 
             operator VkBuffer() const { return m_vertex_handler; }
 
