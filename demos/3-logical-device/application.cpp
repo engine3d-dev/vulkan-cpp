@@ -1,14 +1,12 @@
+#include <GLFW/glfw3.h>
+// #include <vulkan-cpp/physical_device.hpp>
+// #include <vulkan-cpp/device.hpp>
+// #include <vulkan-cpp/device_queue.hpp>
+#include <vulkan-cpp/types.hpp>
+import vk;
 #include <array>
 #include <print>
 
-#define FMT_HEADER_ONLY
-#include <fmt/format.h>
-#include <GLFW/glfw3.h>
-#include <vulkan-cpp/utilities.hpp>
-#include <vulkan-cpp/instance.hpp>
-#include <vulkan-cpp/physical_device.hpp>
-#include <vulkan-cpp/device.hpp>
-#include <vulkan-cpp/device_queue.hpp>
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 debug_callback(
@@ -60,7 +58,7 @@ int
 main() {
     //! @note Just added the some test code to test the conan-starter setup code
     if (!glfwInit()) {
-        fmt::print("glfwInit could not be initialized!\n");
+        std::print("glfwInit could not be initialized!\n");
         return -1;
     }
 
