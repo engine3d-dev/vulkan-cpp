@@ -59,6 +59,7 @@ target_sources(${PROJECT_NAME} PUBLIC
     vk-modules/pipeline.cppm
     vk-modules/buffer_streams.cppm
     vk-modules/vertex_buffer.cppm
+    vk-modules/buffer_streams16.cppm
     vk-modules/buffer_streams32.cppm
     vk-modules/index_buffer.cppm
     vk-modules/uniform_buffer.cppm
