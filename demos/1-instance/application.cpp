@@ -1,7 +1,7 @@
-#define FMT_HEADER_ONLY
-#include <fmt/format.h>
 #include <GLFW/glfw3.h>
-#include <vulkan-cpp/instance.hpp>
+// #include <vulkan-cpp/instance.hpp>
+#include <vulkan-cpp/types.hpp>
+import vk;
 #include <array>
 #include <print>
 
@@ -55,7 +55,7 @@ int
 main() {
     //! @note Just added the some test code to test the conan-starter setup code
     if (!glfwInit()) {
-        fmt::print("glfwInit could not be initialized!\n");
+        std::print("glfwInit could not be initialized!\n");
         return -1;
     }
 

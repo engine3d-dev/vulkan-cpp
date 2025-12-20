@@ -4,7 +4,7 @@ project(vulkan-cpp CXX)
 build_library(
     DIRECTORIES
     src
-    # demos/1-instance
+    demos/1-instance
     # demos/2-physical-device
     # demos/3-logical-device
     # demos/4-surface
@@ -35,6 +35,15 @@ build_library(
     glm::glm
     stb::stb
     tinyobjloader::tinyobjloader
+)
+
+target_sources(${PROJECT_NAME} PUBLIC
+    FILE_SET CXX_MODULES
+    TYPE CXX_MODULES
+    FILES
+    modules/vk.cppm
+    vk-modules/instance.cppm
+    vk-modules/utilities.cppm
 )
 
 generate_compile_commands()
