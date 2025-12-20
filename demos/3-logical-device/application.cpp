@@ -1,11 +1,13 @@
-#include <GLFW/glfw3.h>
+#include <vulkan-cpp/imports.hpp>
 // #include <vulkan-cpp/physical_device.hpp>
 // #include <vulkan-cpp/device.hpp>
 // #include <vulkan-cpp/device_queue.hpp>
-#include <vulkan-cpp/types.hpp>
-import vk;
+// #include <vulkan-cpp/types.hpp>
 #include <array>
 #include <print>
+#include <vector>
+#include <span>
+import vk;
 
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL

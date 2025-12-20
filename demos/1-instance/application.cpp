@@ -1,9 +1,13 @@
 #include <GLFW/glfw3.h>
 // #include <vulkan-cpp/instance.hpp>
-#include <vulkan-cpp/types.hpp>
+// #include <vulkan-cpp/types.hpp>
+#include <vulkan-cpp/imports.hpp>
 import vk;
 #include <array>
 #include <print>
+#include <span>
+#include <vector>
+
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 debug_callback(

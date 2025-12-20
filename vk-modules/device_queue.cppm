@@ -1,10 +1,10 @@
 module;
 
-#include <vulkan-cpp/types.hpp>
 #include <vulkan-cpp/imports.hpp>
 
 export module vk:device_queue;
 
+export import :types;
 export import :utilities;
 
 

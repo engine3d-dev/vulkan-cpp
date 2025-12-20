@@ -1,11 +1,13 @@
 module;
 
 #include <vulkan/vulkan.h>
-#include <vulkan-cpp/types.hpp>
+#include <vector>
+#include <stdexcept>
 
 export module vk:physical_device;
 
 export import :utilities;
+export import :types;
 
 
 export namespace vk {
@@ -92,6 +94,37 @@ export namespace vk {
             operator VkPhysicalDevice() { return m_physical_device; }
 
             operator VkPhysicalDevice() const { return m_physical_device; }
+
+
+        private:
+            VkPhysicalDevice enumerate_physical_devices(
+                const VkInstance& p_instance,
+                const physical& p_physical_device_type) {
+                uint32_t device_count = 0;
+                vkEnumeratePhysicalDevices(p_instance, &device_count, nullptr);
+
+                if (device_count == 0) {
+                    throw std::runtime_error("device_count is zero!");
+                }
+
+
+                // TODO: Turn this into map<VkDescriptorDeviceType, VkPhysicalDevice>
+                std::vector<VkPhysicalDevice> physical_devices(device_count);
+                vkEnumeratePhysicalDevices(
+                p_instance, &device_count, physical_devices.data());
+                VkPhysicalDevice physical_device = nullptr;
+
+                for (const auto& device : physical_devices) {
+                    VkPhysicalDeviceProperties device_properties;
+                    vkGetPhysicalDeviceProperties(device, &device_properties);
+
+                    if (device_properties.deviceType ==
+                        static_cast<VkPhysicalDeviceType>(p_physical_device_type)) {
+                        physical_device = device;
+                    }
+                }
+                return physical_device;
+        }
 
         private:
             VkPhysicalDevice m_physical_device = nullptr;

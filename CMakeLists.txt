@@ -42,6 +42,7 @@ target_sources(${PROJECT_NAME} PUBLIC
     TYPE CXX_MODULES
     FILES
     vk-modules/vk.cppm
+    vk-modules/types.cppm
     vk-modules/utilities.cppm
     vk-modules/instance.cppm
     vk-modules/physical_device.cppm

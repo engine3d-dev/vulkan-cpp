@@ -1,11 +1,13 @@
-#include <array>
-#include <print>
-#include <GLFW/glfw3.h>
 // #include <vulkan-cpp/instance.hpp>
 // #include <vulkan-cpp/physical_device.hpp>
-#include <vulkan-cpp/types.hpp>
+// #include <vulkan-cpp/types.hpp>
+#include <vulkan-cpp/imports.hpp>
 import vk;
+#include <array>
+#include <print>
 #include <vector>
+#include <exception>
+
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 debug_callback(
   [[maybe_unused]] VkDebugUtilsMessageSeverityFlagBitsEXT p_message_severity,

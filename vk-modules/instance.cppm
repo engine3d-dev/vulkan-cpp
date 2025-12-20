@@ -1,12 +1,13 @@
 module;
 
-#include <vulkan-cpp/types.hpp>
+// #include <vulkan-cpp/types.hpp>
 #include <vulkan-cpp/utilities.hpp>
 #include <span>
 #include <vector>
 
 export module vk:instance;
 
+export import :types;
 export import :utilities;
 
 export namespace vk {

@@ -1,6 +1,5 @@
 module;
 
-#include <vulkan-cpp/types.hpp>
 #include <vulkan/vulkan.h>
 #include <filesystem>
 #include <print>
@@ -8,6 +7,8 @@ module;
 #include <source_location>
 
 export module vk:utilities;
+
+export import :types;
 
 export namespace vk {
     inline namespace v1 {
@@ -90,35 +91,6 @@ export namespace vk {
     // struct physical_device_handler {
     //     VkPhysicalDevice handler = nullptr;
     // };
-
-    VkPhysicalDevice enumerate_physical_devices(
-      const VkInstance& p_instance,
-      const physical& p_physical_device_type) {
-        uint32_t device_count = 0;
-        vkEnumeratePhysicalDevices(p_instance, &device_count, nullptr);
-
-        if (device_count == 0) {
-            throw std::runtime_error("device_count is zero!");
-        }
-
-
-        // TODO: Turn this into map<VkDescriptorDeviceType, VkPhysicalDevice>
-        std::vector<VkPhysicalDevice> physical_devices(device_count);
-        vkEnumeratePhysicalDevices(
-          p_instance, &device_count, physical_devices.data());
-        VkPhysicalDevice physical_device = nullptr;
-
-        for (const auto& device : physical_devices) {
-            VkPhysicalDeviceProperties device_properties;
-            vkGetPhysicalDeviceProperties(device, &device_properties);
-
-            if (device_properties.deviceType ==
-                static_cast<VkPhysicalDeviceType>(p_physical_device_type)) {
-                physical_device = device;
-            }
-        }
-        return physical_device;
-    }
 
     std::vector<VkQueueFamilyProperties> enumerate_queue_family_properties(
       const VkPhysicalDevice& p_physical) {
