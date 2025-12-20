@@ -1,29 +1,41 @@
+#define GLFW_INCLUDE_VULKAN
+#if _WIN32
+#define VK_USE_PLATFORM_WIN32_KHR
+#include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
+#include <vulkan/vulkan.h>
+#else
+#include <GLFW/glfw3.h>
+#include <vulkan/vulkan.h>
+#endif
+
 #include <array>
 #include <print>
+#include <span>
+#include <filesystem>
 
-// This is required to select the correct extension for specific platform
-#include <vulkan-cpp/imports.hpp>
+// #include <vulkan-cpp/utilities.hpp>
+// #include <vulkan-cpp/instance.hpp>
+// #include <vulkan-cpp/physical_device.hpp>
+// #include <vulkan-cpp/device.hpp>
+// #include <vulkan-cpp/device_queue.hpp>
+// #include <vulkan-cpp/surface.hpp>
+// #include <vulkan-cpp/swapchain.hpp>
+// #include <vulkan-cpp/device_present_queue.hpp>
+// #include <vulkan-cpp/command_buffer.hpp>
+// #include <vulkan-cpp/renderpass.hpp>
+// #include <vulkan-cpp/framebuffer.hpp>
+// #include <vulkan-cpp/sample_image.hpp>
 
-#include <vulkan-cpp/utilities.hpp>
-#include <vulkan-cpp/instance.hpp>
-#include <vulkan-cpp/physical_device.hpp>
-#include <vulkan-cpp/device.hpp>
-#include <vulkan-cpp/device_queue.hpp>
-#include <vulkan-cpp/surface.hpp>
-#include <vulkan-cpp/swapchain.hpp>
-#include <vulkan-cpp/device_present_queue.hpp>
-#include <vulkan-cpp/command_buffer.hpp>
-#include <vulkan-cpp/renderpass.hpp>
-#include <vulkan-cpp/framebuffer.hpp>
-#include <vulkan-cpp/sample_image.hpp>
-
-#include <vulkan-cpp/shader_resource.hpp>
-#include <vulkan-cpp/pipeline.hpp>
-#include <vulkan-cpp/vertex_buffer.hpp>
-#include <vulkan-cpp/index_buffer.hpp>
-#include <vulkan-cpp/uniform_buffer.hpp>
-#include <vulkan-cpp/descriptor_resource.hpp>
-#include <vulkan-cpp/texture.hpp>
+// #include <vulkan-cpp/shader_resource.hpp>
+// #include <vulkan-cpp/pipeline.hpp>
+// #include <vulkan-cpp/vertex_buffer.hpp>
+// #include <vulkan-cpp/index_buffer.hpp>
+// #include <vulkan-cpp/uniform_buffer.hpp>
+// #include <vulkan-cpp/descriptor_resource.hpp>
+// #include <vulkan-cpp/texture.hpp>
+import vk;
 
 #include <chrono>
 #define GLM_FORCE_RADIANS

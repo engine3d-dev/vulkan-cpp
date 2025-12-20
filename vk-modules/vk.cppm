@@ -20,6 +20,7 @@ export import :vertex_buffer;
 export import :index_buffer;
 export import :uniform_buffer;
 export import :descriptor_resource;
+export import :texture;
 
 namespace vk {
     inline namespace v1 {

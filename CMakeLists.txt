@@ -13,9 +13,9 @@ build_library(
     demos/7-vertex-buffer
     demos/8-index-uniform-buffers
     demos/9-uniforms
-    # demos/10-textures
-    # demos/11-depth-buffering
-    # demos/12-loading-models
+    demos/10-textures
+    demos/11-depth-buffering
+    demos/12-loading-models
     # demos/13-skybox
     # demos/sandbox
     ENABLE_TESTS OFF
@@ -63,6 +63,7 @@ target_sources(${PROJECT_NAME} PUBLIC
     vk-modules/index_buffer.cppm
     vk-modules/uniform_buffer.cppm
     vk-modules/descriptor_resource.cppm
+    vk-modules/texture.cppm
 )
 
 generate_compile_commands()
