@@ -19,6 +19,7 @@ export import :buffer_streams32;
 export import :vertex_buffer;
 export import :index_buffer;
 export import :uniform_buffer;
+export import :descriptor_resource;
 
 namespace vk {
     inline namespace v1 {
