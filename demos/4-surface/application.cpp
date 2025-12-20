@@ -13,15 +13,6 @@
 #include <array>
 #include <print>
 #include <span>
-
-#include <vulkan/vulkan.h>
-
-// #include <vulkan-cpp/utilities.hpp>
-// #include <vulkan-cpp/instance.hpp>
-// #include <vulkan-cpp/physical_device.hpp>
-// #include <vulkan-cpp/device.hpp>
-// #include <vulkan-cpp/device_queue.hpp>
-// #include <vulkan-cpp/surface.hpp>
 import vk;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL

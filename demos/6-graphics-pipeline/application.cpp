@@ -13,26 +13,8 @@
 #include <array>
 #include <print>
 #include <span>
-
-#include <vulkan/vulkan.h>
-
-// #include <vulkan-cpp/utilities.hpp>
-// #include <vulkan-cpp/instance.hpp>
-// #include <vulkan-cpp/physical_device.hpp>
-// #include <vulkan-cpp/device.hpp>
-// #include <vulkan-cpp/device_queue.hpp>
-// #include <vulkan-cpp/surface.hpp>
-// #include <vulkan-cpp/swapchain.hpp>
-// #include <vulkan-cpp/device_present_queue.hpp>
-// #include <vulkan-cpp/command_buffer.hpp>
-// #include <vulkan-cpp/renderpass.hpp>
-// #include <vulkan-cpp/framebuffer.hpp>
-// #include <vulkan-cpp/sample_image.hpp>
-
 import vk;
 
-// #include <vulkan-cpp/shader_resource.hpp>
-// #include <vulkan-cpp/pipeline.hpp>
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 debug_callback(

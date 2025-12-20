@@ -13,11 +13,6 @@
 #include <array>
 #include <print>
 #include <span>
-
-#include <vulkan/vulkan.h>
-
-// #include <vulkan-cpp/instance.hpp>
-// #include <vulkan-cpp/types.hpp>
 import vk;
 
 
