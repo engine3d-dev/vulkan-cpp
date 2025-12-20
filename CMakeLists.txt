@@ -7,7 +7,7 @@ build_library(
     demos/1-instance
     demos/2-physical-device
     demos/3-logical-device
-    # demos/4-surface
+    demos/4-surface
     # demos/5-swapchain
     # demos/6-graphics-pipeline
     # demos/7-vertex-buffer
@@ -48,6 +48,7 @@ target_sources(${PROJECT_NAME} PUBLIC
     vk-modules/physical_device.cppm
     vk-modules/device.cppm
     vk-modules/device_queue.cppm
+    vk-modules/surface.cppm
 )
 
 generate_compile_commands()
