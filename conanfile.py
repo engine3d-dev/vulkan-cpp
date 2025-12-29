@@ -1,8 +1,6 @@
 import os
 from conan import ConanFile
 from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout, CMakeDeps
-from conan.tools.system.package_manager import Apt, Yum, PacMan, Zypper
-from conan.tools.scm import Git
 from conan.tools.files import copy
 import os
 
@@ -10,7 +8,6 @@ class VulkanCpp(ConanFile):
     name = "vulkan-cpp"
     version = "4.0"
     settings = "os", "compiler", "build_type", "arch"
-    generators = "CMakeDeps", "CMakeToolchain"
 
     def build_requirements(self):
         self.tool_requires("cmake/4.1.2")
@@ -33,6 +30,12 @@ class VulkanCpp(ConanFile):
         copy(self,"src/CMakeLists.txt", self.recipe_folder, self.export_sources_folder)
         copy(self,"*.hpp", self.recipe_folder, self.export_sources_folder)
         copy(self,"*.cpp", self.recipe_folder, self.export_sources_folder)
+
+    def generate(self):
+        deps = CMakeDeps(self)
+        deps.generate()
+        tc = CMakeToolchain(self)
+        tc.generate()
 
     def build(self):
         cmake = CMake(self)
