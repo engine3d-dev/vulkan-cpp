@@ -66,7 +66,7 @@ target_sources(${PROJECT_NAME} PUBLIC
     vulkan-cpp/texture.cppm
 )
 
-generate_compile_commands()
+# generate_compile_commands()
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 target_include_directories(${PROJECT_NAME} PUBLIC ./)
