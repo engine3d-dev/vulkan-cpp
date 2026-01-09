@@ -32,7 +32,7 @@ jobs:
                 vulkan-use-cache: true
 
             - name: Installing Conan
-              run: pipx install "conan>=2.10.1"
+              run: pipx install "conan>=2.18.1"
 
             - name: Setting up Conan Profiles
               run: conan config install -sf profiles/x86_64/linux/ -tf profiles https://github.com/engine3d-dev/conan-config.git
