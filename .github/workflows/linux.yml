@@ -9,8 +9,8 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
-            - name: Install LLVM
-              run: wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh
+            # - name: Install LLVM
+            #   run: wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh
 
             - name: Install LLVM's C++ Standard Library
               run: sudo apt-get install libc++-20-dev libc++abi-20-dev
