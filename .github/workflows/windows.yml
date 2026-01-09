@@ -22,9 +22,17 @@ jobs:
                 clang++ --version
                 choco install git make mingw
 
-          - name: Installing Vulkan SDK
-            shell: pwsh
-            run: winget install --id=KhronosGroup.VulkanSDK -e --accept-package-agreements --accept-source-agreements
+          # - name: Installing Vulkan SDK
+          #   shell: pwsh
+          #   # run: winget install --id=KhronosGroup.VulkanSDK -e --accept-licenses --default-answer --confirm-command install
+          #   run: |
+          #     winget install --id=KhronosGroup.VulkanSDK -e --force --silent --accept-package-agreements --accept-source-agreements
+          - name: Install Vulkan SDK
+            uses: humbletim/install-vulkan-sdk@v1.2
+            with:
+              version: latest
+              cache: true
+
           
           - name: Pip installing conan
             shell: pwsh
