@@ -39,82 +39,6 @@
 # #     tinyobjloader::tinyobjloader
 # # )
 
-# find_package(glfw3 REQUIRED)
-# find_package(Vulkan REQUIRED)
-# find_package(glm REQUIRED)
-# find_package(stb REQUIRED)
-# find_package(tinyobjloader REQUIRED)
-
-# add_library(vulkan-cpp STATIC)
-
-# target_link_libraries(
-#     ${PROJECT_NAME} PRIVATE
-#     glfw
-#     Vulkan::Vulkan
-#     glm::glm
-#     stb::stb
-#     tinyobjloader::tinyobjloader
-# )
-
-# target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
-
-# target_sources(${PROJECT_NAME} PUBLIC
-#     FILE_SET CXX_MODULES
-#     TYPE CXX_MODULES
-#     FILES
-#     vulkan-cpp/vk.cppm
-#     vulkan-cpp/types.cppm
-#     vulkan-cpp/utilities.cppm
-#     vulkan-cpp/instance.cppm
-#     vulkan-cpp/physical_device.cppm
-#     vulkan-cpp/device.cppm
-#     vulkan-cpp/device_queue.cppm
-#     vulkan-cpp/surface.cppm
-#     vulkan-cpp/swapchain.cppm
-#     vulkan-cpp/device_present_queue.cppm
-#     vulkan-cpp/command_buffer.cppm
-#     vulkan-cpp/renderpass.cppm
-#     vulkan-cpp/framebuffer.cppm
-#     vulkan-cpp/sample_image.cppm
-#     vulkan-cpp/shader_resource.cppm
-#     vulkan-cpp/pipeline.cppm
-#     vulkan-cpp/buffer_streams.cppm
-#     vulkan-cpp/vertex_buffer.cppm
-#     vulkan-cpp/buffer_streams16.cppm
-#     vulkan-cpp/buffer_streams32.cppm
-#     vulkan-cpp/index_buffer.cppm
-#     vulkan-cpp/uniform_buffer.cppm
-#     vulkan-cpp/descriptor_resource.cppm
-#     vulkan-cpp/texture.cppm
-# )
-
-# target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR})
-# target_include_directories(${PROJECT_NAME} PUBLIC ./)
-
-# install(
-#     TARGETS ${PROJECT_NAME}
-#     EXPORT vulkan-cpp_targets
-#     FILE_SET CXX_MODULES DESTINATION "."
-#     LIBRARY DESTINATION "lib"
-#     ARCHIVE DESTINATION "lib"
-#     CXX_MODULES_BMI DESTINATION "bmi"
-# )
-
-# install(
-#     EXPORT vulkan-cpp_targets
-#     FILE "vulkan-cpp-config.cmake"
-#     DESTINATION "lib/cmake"
-#     CXX_MODULES_DIRECTORY "cxx-modules"
-# )
-
-# # Always run this custom target by making it depend on ALL
-# add_custom_target(copy_compile_commands ALL
-#     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#     ${CMAKE_BINARY_DIR}/compile_commands.json
-#     ${CMAKE_SOURCE_DIR}/compile_commands.json
-#     DEPENDS ${CMAKE_BINARY_DIR}/compile_commands.json)
-
-
 cmake_minimum_required(VERSION 4.0)
 
 # Generate compile commands for anyone using our libraries.
@@ -123,16 +47,19 @@ set(CMAKE_COLOR_DIAGNOSTICS ON)
 
 project(vulkan-cpp LANGUAGES CXX)
 
-add_library(${PROJECT_NAME} STATIC)
+# add_library(${PROJECT_NAME} STATIC)
+build_library(
+    DIRECTORIES vulkan-cpp/
+    ENABLE_TESTS OFF
 
-# find_package(miniaudio REQUIRED)
-find_package(glfw3 REQUIRED)
-find_package(Vulkan REQUIRED)
-find_package(glm REQUIRED)
-find_package(stb REQUIRED)
-find_package(tinyobjloader REQUIRED)
-target_link_libraries(
-    ${PROJECT_NAME} PRIVATE
+    PACKAGES
+    glfw3
+    Vulkan
+    glm
+    stb
+    tinyobjloader
+
+    LINK_PACKAGES
     glfw
     Vulkan::Vulkan
     glm::glm
