@@ -27,12 +27,21 @@ jobs:
                   sudo apt install software-properties-common -y
                   sudo add-apt-repository ppa:deadsnakes/ppa
 
+            - name: Installing Vulkan SDK
+              run: |
+                wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo tee /etc/apt/trusted.gpg.d/lunarg.asc
+                sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-noble.list http://packages.lunarg.com/vulkan/lunarg-vulkan-noble.list
+                sudo apt update
+                sudo apt install vulkan-sdk
+                source ~/vulkan/1.4.335.1/setup-env.sh
+                echo "source ~/vulkan/1.4.335.1/setup-env.sh" >> ~/.bashrc
+                vulkaninfo --summary
+
             - name: Installing Conan
               run: pipx install "conan>=2.10.1"
 
             - name: Setting up Conan Profiles
-              # run: conan config install -sf profiles/x86_64/linux/ -tf profiles https://github.com/engine3d-dev/conan-config.git
-              run: conan config install -sf profiles/x86_64/linux/ -tf profiles https://github.com/engine3d-dev/conan-config.git --args "profiles_update"
+              run: conan config install -sf profiles/x86_64/linux/ -tf profiles https://github.com/engine3d-dev/conan-config.git
 
             - name: Installing project dependencies
               run: conan remote add engine3d-conan https://libhal.jfrog.io/artifactory/api/conan/engine3d-conan
