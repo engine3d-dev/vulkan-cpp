@@ -24,7 +24,7 @@ jobs:
 
           - name: Installing Vulkan SDK
             shell: pwsh
-            run: winget install --id=KhronosGroup.VulkanSDK -e
+            run: winget install --id=KhronosGroup.VulkanSDK -e --accept-package-agreements --accept-source-agreements
           
           - name: Pip installing conan
             shell: pwsh
