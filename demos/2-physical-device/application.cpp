@@ -82,7 +82,7 @@ main() {
     std::string title = "Hello Window";
     GLFWwindow* window =
       glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
-    
+
     glfwMakeContextCurrent(window);
 
     std::array<const char*, 1> validation_layers = {
@@ -94,29 +94,32 @@ main() {
       initialize_instance_extensions();
 
     vk::debug_message_utility debug_callback_info = {
-        .severity = vk::message::verbose | vk::message::warning | vk::message::error,
-        .message_type = vk::debug::general | vk::debug::validation | vk::debug::performance,
+        .severity =
+          vk::message::verbose | vk::message::warning | vk::message::error,
+        .message_type =
+          vk::debug::general | vk::debug::validation | vk::debug::performance,
         .callback = debug_callback
     };
 
     vk::application_params config = {
         .name = "vulkan instance",
         .version = vk::api_version::vk_1_3, // specify to using vulkan 1.3
-        .validations = validation_layers, // .validation takes in a std::span<const char*>
-        .extensions = global_extensions // .extensions also takes in std::span<const char*>
+        .validations =
+          validation_layers, // .validation takes in a std::span<const char*>
+        .extensions =
+          global_extensions // .extensions also takes in std::span<const char*>
     };
 
     // Setting up vk instance
     vk::instance api_instance(config, debug_callback_info);
 
-    if(api_instance.alive()) {
+    if (api_instance.alive()) {
         std::println("\napi_instance alive and initiated!!!");
     }
 
     // setting up physical device
-    vk::physical_enumeration enumerate_devices {
-        .device_type = vk::physical::discrete
-    };
+    vk::physical_enumeration enumerate_devices{ .device_type =
+                                                  vk::physical::discrete };
 
     vk::physical_device device(api_instance, enumerate_devices);
 

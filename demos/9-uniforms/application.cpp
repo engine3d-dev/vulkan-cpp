@@ -423,9 +423,9 @@ main() {
 
     // Setting up descriptor set layout for the set0
     vk::descriptor_layout set0_layout = {
-        .slot = 0,                     // indicate that this is descriptor set 0
+        .slot = 0,               // indicate that this is descriptor set 0
         .max_sets = image_count, // max of descriptor sets able to allocate
-        .entries = entries,       // specifies pool sizes and descriptor layout
+        .entries = entries,      // specifies pool sizes and descriptor layout
     };
 
     // Setting up the actual descriptor set 0 and array to pass into the
@@ -486,29 +486,21 @@ main() {
     // bind so the shader resource knows how to look up our data layout and see
     // if they match Will get validation layer error messages if the data layout
     // does not match (meaning size_bytes doesn't match)
-    vk::uniform_params test_ubo_info = {
-        // .physical_handle = physical_device,
-        .phsyical_memory_properties = physical_device.memory_properties(),
-        .size_bytes = sizeof(global_uniform)
+    vk::uniform_params test_ubo_info = { // .physical_handle = physical_device,
+                                         .phsyical_memory_properties =
+                                           physical_device.memory_properties(),
+                                         .size_bytes = sizeof(global_uniform)
     };
     vk::uniform_buffer test_ubo =
       vk::uniform_buffer(logical_device, test_ubo_info);
     std::println("uniform_buffer.alive() = {}", test_ubo.alive());
 
     // vk::write_buffer_descriptor
-    std::array<vk::write_buffer, 1> uniforms0 = {
-        vk::write_buffer{
-            .buffer = test_ubo,
-            .offset = 0,
-            .range = test_ubo.size_bytes()
-        }
-    };
+    std::array<vk::write_buffer, 1> uniforms0 = { vk::write_buffer{
+      .buffer = test_ubo, .offset = 0, .range = test_ubo.size_bytes() } };
 
     std::array<vk::write_buffer_descriptor, 1> uniforms = {
-        vk::write_buffer_descriptor{
-            .dst_binding = 0,
-            .uniforms = uniforms0
-        }
+        vk::write_buffer_descriptor{ .dst_binding = 0, .uniforms = uniforms0 }
     };
     set0_resource.update(uniforms);
 
@@ -567,8 +559,7 @@ main() {
         // before making any of the draw calls Something to note: You cannot
         // update descriptor sets in the process of a current-recording command
         // buffers or else that becomes undefined behavior
-        set0_resource.bind(
-          current, main_graphics_pipeline.layout());
+        set0_resource.bind(current, main_graphics_pipeline.layout());
 
         // Drawing-call to render actual triangle to the screen
         // vkCmdDraw(current, 3, 1, 0, 0);

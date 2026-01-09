@@ -15,7 +15,6 @@
 #include <span>
 import vk;
 
-
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 debug_callback(
   [[maybe_unused]] VkDebugUtilsMessageSeverityFlagBitsEXT p_message_severity,

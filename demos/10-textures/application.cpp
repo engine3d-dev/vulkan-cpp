@@ -36,7 +36,7 @@ initialize_instance_extensions() {
     std::vector<const char*> extension_names;
 
     extension_names.emplace_back(VK_KHR_SURFACE_EXTENSION_NAME);
-    
+
     extension_names.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
     // An additional surface extension needs to be loaded. This extension is
@@ -410,9 +410,9 @@ main() {
     };
     // uint32_t image_count = image_count;
     vk::descriptor_layout set0_layout = {
-        .slot = 0,                     // indicate that this is descriptor set 0
+        .slot = 0,               // indicate that this is descriptor set 0
         .max_sets = image_count, // max of descriptor sets able to allocate
-        .entries = entries,       // specifies pool sizes and descriptor layout
+        .entries = entries,      // specifies pool sizes and descriptor layout
     };
     vk::descriptor_resource set0_resource(logical_device, set0_layout);
     std::array<VkDescriptorSetLayout, 1> layouts = { set0_resource.layout() };
@@ -474,26 +474,17 @@ main() {
     std::println("index_buffer.alive() = {}", test_ibo.alive());
 
     // Setting up descriptor sets for handling uniforms
-    vk::uniform_params test_ubo_info = {
-        .phsyical_memory_properties = physical_device.memory_properties(),
-        .size_bytes = sizeof(global_uniform)
-    };
-    vk::uniform_buffer test_ubo = vk::uniform_buffer(logical_device, test_ubo_info);
+    vk::uniform_params test_ubo_info = { .phsyical_memory_properties =
+                                           physical_device.memory_properties(),
+                                         .size_bytes = sizeof(global_uniform) };
+    vk::uniform_buffer test_ubo =
+      vk::uniform_buffer(logical_device, test_ubo_info);
 
-
-    std::array<vk::write_buffer, 1> uniforms0 = {
-        vk::write_buffer{
-            .buffer = test_ubo,
-            .offset = 0,
-            .range = test_ubo.size_bytes()
-        }
-    };
+    std::array<vk::write_buffer, 1> uniforms0 = { vk::write_buffer{
+      .buffer = test_ubo, .offset = 0, .range = test_ubo.size_bytes() } };
 
     std::array<vk::write_buffer_descriptor, 1> uniforms = {
-        vk::write_buffer_descriptor{
-            .dst_binding = 0,
-            .uniforms = uniforms0
-        }
+        vk::write_buffer_descriptor{ .dst_binding = 0, .uniforms = uniforms0 }
     };
 
     // Loading a texture -- for testing
@@ -511,37 +502,28 @@ main() {
         .phsyical_memory_properties = physical_device.memory_properties(),
         .size_bytes = sizeof(material_uniform)
     };
-    vk::uniform_buffer material_ubo = vk::uniform_buffer(logical_device, material_ubfo_info);
+    vk::uniform_buffer material_ubo =
+      vk::uniform_buffer(logical_device, material_ubfo_info);
 
-
-    std::array<vk::write_buffer, 1> set1_uniforms0 = {
-        vk::write_buffer{
-            .buffer = material_ubo,
-            .offset = 0,
-            .range = material_ubo.size_bytes()
-        }
-    };
+    std::array<vk::write_buffer, 1> set1_uniforms0 = { vk::write_buffer{
+      .buffer = material_ubo,
+      .offset = 0,
+      .range = material_ubo.size_bytes() } };
 
     std::array<vk::write_buffer_descriptor, 1> uniforms_set1 = {
-        vk::write_buffer_descriptor{
-            .dst_binding = 0,
-            .uniforms = set1_uniforms0
-        }
+        vk::write_buffer_descriptor{ .dst_binding = 0,
+                                     .uniforms = set1_uniforms0 }
     };
 
-    std::array<vk::write_image, 1> set1_samplers = {
-        vk::write_image{
-            .sampler = texture1.image().sampler(),
-            .view = texture1.image().image_view(),
-            .layout = vk::image_layout::shader_read_only_optimal,
-        }
-    };
+    std::array<vk::write_image, 1> set1_samplers = { vk::write_image{
+      .sampler = texture1.image().sampler(),
+      .view = texture1.image().image_view(),
+      .layout = vk::image_layout::shader_read_only_optimal,
+    } };
 
     std::array<vk::write_image_descriptor, 1> sample_images = {
-        vk::write_image_descriptor{
-            .dst_binding = 1,
-            .sample_images = set1_samplers
-        }
+        vk::write_image_descriptor{ .dst_binding = 1,
+                                    .sample_images = set1_samplers }
     };
 
     set0_resource.update(uniforms, sample_images);
@@ -601,8 +583,7 @@ main() {
         // before making any of the draw calls Something to note: You cannot
         // update descriptor sets in the process of a current-recording command
         // buffers or else that becomes undefined behavior
-        set0_resource.bind(
-          current, main_graphics_pipeline.layout());
+        set0_resource.bind(current, main_graphics_pipeline.layout());
         // Drawing-call to render actual triangle to the screen
         // vkCmdDraw(current, 3, 1, 0, 0);
         vkCmdDrawIndexed(

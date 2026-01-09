@@ -128,7 +128,8 @@ main() {
     // std::span<vk::physical_device>
 
     // setting up physical device
-	// TODO: Probably enforce the use of vk::enumerate_physical_device({.device_type = vk::physical::discrete})
+    // TODO: Probably enforce the use of
+    // vk::enumerate_physical_device({.device_type = vk::physical::discrete})
     vk::physical_enumeration enumerate_devices{ .device_type =
                                                   vk::physical::discrete };
     vk::physical_device physical_device(api_instance, enumerate_devices);
@@ -182,8 +183,9 @@ main() {
                                  surface_properties);
 
     // querying swapchain images
-	// TODO: Make the images and framebuffers contained within the vk::swapchain
-	// Considering if you have two display they will prob have their own set of images to display to the two separate screens
+    // TODO: Make the images and framebuffers contained within the vk::swapchain
+    // Considering if you have two display they will prob have their own set of
+    // images to display to the two separate screens
     uint32_t image_count = 0;
     vkGetSwapchainImagesKHR(logical_device,
                             main_swapchain,
@@ -227,7 +229,8 @@ main() {
         // Retrieving the image resource memory requirements for specific memory
         // allocation Parameter is default to using
         // vk::memory_property::device_local_bit
-		// TODO: think about how to minimize the requirement of vk::physical_device for requesting vk::image_memory_requirements
+        // TODO: think about how to minimize the requirement of
+        // vk::physical_device for requesting vk::image_memory_requirements
         uint32_t memory_type_index = vk::image_memory_requirements(
           physical_device, logical_device, swapchain_images[i]);
         swapchain_depth_images[i] = create_depth_image2d(
@@ -281,26 +284,28 @@ main() {
 
     // Setting up swapchain framebuffers
 
-	std::vector<vk::framebuffer> swapchain_framebuffers(image_count);
-	for (uint32_t i = 0; i < swapchain_framebuffers.size(); i++) {
-		// image_view_attachments.push_back(swapchain_images[i].view);
+    std::vector<vk::framebuffer> swapchain_framebuffers(image_count);
+    for (uint32_t i = 0; i < swapchain_framebuffers.size(); i++) {
+        // image_view_attachments.push_back(swapchain_images[i].view);
         // image_view_attachments.push_back(swapchain_depth_images[i].view);
 
-		// NOTE: This must match the amount of attachments the renderpass also has to match the image_view attachment for per-framebuffers as well
-		// I just set the size to whatever the renderpass attachment size are to ensure this is the case
-		// Since you have an image for color attachment and another image for the depth atttachment to specify
-		std::array<VkImageView, renderpass_attachments.size()> image_view_attachments = {
-			swapchain_images[i].view,
-			swapchain_depth_images[i].view
-		};
+        // NOTE: This must match the amount of attachments the renderpass also
+        // has to match the image_view attachment for per-framebuffers as well
+        // I just set the size to whatever the renderpass attachment size are to
+        // ensure this is the case Since you have an image for color attachment
+        // and another image for the depth atttachment to specify
+        std::array<VkImageView, renderpass_attachments.size()>
+          image_view_attachments = { swapchain_images[i].view,
+                                     swapchain_depth_images[i].view };
 
-		vk::framebuffer_params framebuffer_info = {
-			.renderpass = main_renderpass,
-			.views = image_view_attachments,
-			.extent = swapchain_extent
-		};
-		swapchain_framebuffers[i] = vk::framebuffer(logical_device, framebuffer_info);
-	}
+        vk::framebuffer_params framebuffer_info = {
+            .renderpass = main_renderpass,
+            .views = image_view_attachments,
+            .extent = swapchain_extent
+        };
+        swapchain_framebuffers[i] =
+          vk::framebuffer(logical_device, framebuffer_info);
+    }
 
     std::println("Created VkFramebuffer's with size = {}",
                  swapchain_framebuffers.size());
@@ -316,56 +321,58 @@ main() {
     // gets set with the renderpass
     std::array<float, 4> color = { 0.f, 0.5f, 0.5f, 1.f };
 
-	std::println("Start implementing graphics pipeline!!!");
+    std::println("Start implementing graphics pipeline!!!");
 
-	// Now creating a vulkan graphics pipeline for the shader loading
-	std::array<vk::shader_source, 2> shader_sources = {
-		vk::shader_source{
-			.filename = "shader_samples/test.vert.spv",
-			.stage = vk::shader_stage::vertex
-		},
-		vk::shader_source{
-			.filename = "shader_samples/test.frag.spv",
-			.stage = vk::shader_stage::fragment
-		},
-	};
+    // Now creating a vulkan graphics pipeline for the shader loading
+    std::array<vk::shader_source, 2> shader_sources = {
+        vk::shader_source{ .filename = "shader_samples/test.vert.spv",
+                           .stage = vk::shader_stage::vertex },
+        vk::shader_source{ .filename = "shader_samples/test.frag.spv",
+                           .stage = vk::shader_stage::fragment },
+    };
 
     // To render triangle, we do not need to set any vertex attributes
-	vk::shader_resource_info shader_info = {
-		.sources = shader_sources,
-		.vertex_attributes = {} // this is to explicitly set to none, but also dont need to set this at all regardless
-	};
-	vk::shader_resource geometry_resource(logical_device, shader_info);
+    vk::shader_resource_info shader_info = {
+        .sources = shader_sources,
+        .vertex_attributes = {} // this is to explicitly set to none, but also
+                                // dont need to set this at all regardless
+    };
+    vk::shader_resource geometry_resource(logical_device, shader_info);
 
-	if(geometry_resource.is_valid()) {
-		std::println("geometry resource is valid!");
-	}
+    if (geometry_resource.is_valid()) {
+        std::println("geometry resource is valid!");
+    }
 
-	/*
-		// This get_pipeline_configuration can work as an easy way for specfying the vulkan configurations as an ease of setting things up
-		// TODO: Probably provide a shorthand - which could work as this:
-		vk::pipeline_settings pipeline_configuration = vk::get_pipeline_configuration(main_renderpass, geometry_resource);
-	*/
-	vk::pipeline_settings pipeline_configuration = {
-		.renderpass = main_renderpass,
-		.shader_modules = geometry_resource.handles(),
-		.vertex_attributes = geometry_resource.vertex_attributes(),
-		.vertex_bind_attributes = geometry_resource.vertex_bind_attributes()
-	};
-	vk::pipeline main_graphics_pipeline(logical_device, pipeline_configuration);
+    /*
+            // This get_pipeline_configuration can work as an easy way for
+       specfying the vulkan configurations as an ease of setting things up
+            // TODO: Probably provide a shorthand - which could work as this:
+            vk::pipeline_settings pipeline_configuration =
+       vk::get_pipeline_configuration(main_renderpass, geometry_resource);
+    */
+    vk::pipeline_settings pipeline_configuration = {
+        .renderpass = main_renderpass,
+        .shader_modules = geometry_resource.handles(),
+        .vertex_attributes = geometry_resource.vertex_attributes(),
+        .vertex_bind_attributes = geometry_resource.vertex_bind_attributes()
+    };
+    vk::pipeline main_graphics_pipeline(logical_device, pipeline_configuration);
 
-	if(main_graphics_pipeline.alive()) {
-		std::println("Main graphics pipeline alive() = {}", main_graphics_pipeline.alive());
-	}
+    if (main_graphics_pipeline.alive()) {
+        std::println("Main graphics pipeline alive() = {}",
+                     main_graphics_pipeline.alive());
+    }
 
-    // NOTE: THis is for testing to see how to setup secondary command buffers for imgui-specifically
+    // NOTE: THis is for testing to see how to setup secondary command buffers
+    // for imgui-specifically
     /*
         Notes for self -- am going to try to consider this with the API's
     */
     /*
     VkCommandBufferBeginInfo imgui_cmd_buffer_begin_info = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-        .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT | VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT
+        .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT |
+    VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT
     };
 
     // Gets assigned to VkCommandBufferBeginInfo
@@ -381,18 +388,20 @@ main() {
     imgui_cmd_buffer_begin_info.pInheritanceInfo = &cmd_buffer_inherit_info;
     */
 
-    // TODO -- Add this support to vk::command_buffer for preparing for applying secondary command buffers
-    uint32_t usage_flags = uint32_t(vk::command_usage::one_time_submit | vk::command_usage::renderpass_continue_bit);
+    // TODO -- Add this support to vk::command_buffer for preparing for applying
+    // secondary command buffers
+    uint32_t usage_flags = uint32_t(vk::command_usage::one_time_submit |
+                                    vk::command_usage::renderpass_continue_bit);
     vk::command_usage usage = (vk::command_usage)usage_flags;
 
-    if(usage & vk::command_usage::one_time_submit) {
+    if (usage & vk::command_usage::one_time_submit) {
         std::println("bitwise and'd vk::command_usage::one_time_submit");
     }
 
-    if(usage & vk::command_usage::renderpass_continue_bit) {
-        std::println("bitwise and'd vk::command_usage::renderpass_continue_bit");
+    if (usage & vk::command_usage::renderpass_continue_bit) {
+        std::println(
+          "bitwise and'd vk::command_usage::renderpass_continue_bit");
     }
-
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -412,12 +421,13 @@ main() {
         };
         main_renderpass.begin(begin_renderpass);
 
-		// Binding a graphics pipeline -- before drawing stuff
-		// Inside of this graphics pipeline bind, is where you want to do the drawing stuff to
-		main_graphics_pipeline.bind(current);
+        // Binding a graphics pipeline -- before drawing stuff
+        // Inside of this graphics pipeline bind, is where you want to do the
+        // drawing stuff to
+        main_graphics_pipeline.bind(current);
 
         // Drawing-call to render actual triangle to the screen
-		vkCmdDraw(current, 3, 1, 0, 0);
+        vkCmdDraw(current, 3, 1, 0, 0);
 
         main_renderpass.end(current);
         current.end();
@@ -438,10 +448,9 @@ main() {
         command.destroy();
     }
 
-	for (auto& fb : swapchain_framebuffers) {
-		fb.destroy();
-	}
-
+    for (auto& fb : swapchain_framebuffers) {
+        fb.destroy();
+    }
 
     for (auto& img : swapchain_images) {
         // vk::free_image(logical_device, img);
@@ -452,8 +461,8 @@ main() {
         vk::free_image(logical_device, depth_img);
     }
 
-	main_graphics_pipeline.destroy();
-	geometry_resource.destroy();
+    main_graphics_pipeline.destroy();
+    geometry_resource.destroy();
     main_renderpass.destroy();
     presentation_queue.destroy();
 
@@ -463,8 +472,6 @@ main() {
     api_instance.destroy();
     return 0;
 }
-
-
 
 /*
 

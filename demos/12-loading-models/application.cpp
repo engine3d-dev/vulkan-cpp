@@ -183,15 +183,13 @@ public:
                 indices.push_back(unique_vertices[vertex]);
             }
         }
-        vk::vertex_params vertex_info = {
-            .phsyical_memory_properties = p_physical.memory_properties(),
-            .vertices = vertices
-        };
+        vk::vertex_params vertex_info = { .phsyical_memory_properties =
+                                            p_physical.memory_properties(),
+                                          .vertices = vertices };
 
-        vk::index_params index_info = {
-            .phsyical_memory_properties = p_physical.memory_properties(),
-            .indices = indices
-        };
+        vk::index_params index_info = { .phsyical_memory_properties =
+                                          p_physical.memory_properties(),
+                                        .indices = indices };
         m_vertex_buffer = vk::vertex_buffer(p_device, vertex_info);
         m_index_buffer = vk::index_buffer(p_device, index_info);
         m_is_loaded = true;
@@ -231,9 +229,11 @@ private:
     vk::index_buffer m_index_buffer{};
 };
 
-VkDeviceSize get_alignment(VkDeviceSize p_original_size, VkDeviceSize p_min_ubo_alignment) {
+VkDeviceSize
+get_alignment(VkDeviceSize p_original_size, VkDeviceSize p_min_ubo_alignment) {
     // Round up originalSize to the nearest multiple of min_ubo_alignment
-    VkDeviceSize aligned_size = (p_original_size + p_min_ubo_alignment - 1) & ~(p_min_ubo_alignment - 1);
+    VkDeviceSize aligned_size =
+      (p_original_size + p_min_ubo_alignment - 1) & ~(p_min_ubo_alignment - 1);
     return aligned_size;
 }
 
@@ -296,7 +296,6 @@ main() {
     if (api_instance.alive()) {
         std::println("\napi_instance alive and initiated!!!");
     }
-
 
     // setting up physical device
     // TODO: Probably enforce the use of
@@ -575,11 +574,11 @@ main() {
         }
     };
     vk::descriptor_layout set0_layout = {
-        .slot = 0,                     // indicate that this is descriptor set 0
-                                       // set layout able to be allocated
+        .slot = 0,               // indicate that this is descriptor set 0
+                                 // set layout able to be allocated
         .max_sets = image_count, // max of descriptor sets able to allocate
-                                  // this descriptor sets
-        .entries = entries,       // specifies pool sizes and descriptor layout
+                                 // this descriptor sets
+        .entries = entries,      // specifies pool sizes and descriptor layout
     };
     vk::descriptor_resource set0_resource(logical_device, set0_layout);
 
@@ -600,26 +599,17 @@ main() {
                          physical_device);
 
     // Setting up descriptor sets for handling uniforms
-    vk::uniform_params test_ubo_info = {
-        .phsyical_memory_properties = physical_device.memory_properties(),
-        .size_bytes = sizeof(global_uniform)
-    };
+    vk::uniform_params test_ubo_info = { .phsyical_memory_properties =
+                                           physical_device.memory_properties(),
+                                         .size_bytes = sizeof(global_uniform) };
     vk::uniform_buffer test_ubo =
       vk::uniform_buffer(logical_device, test_ubo_info);
     std::println("uniform_buffer.alive() = {}", test_ubo.alive());
 
-    std::array<vk::write_buffer, 1> uniforms0 = {
-        vk::write_buffer{
-            .buffer = test_ubo,
-            .offset = 0,
-            .range = test_ubo.size_bytes()
-        }
-    };
+    std::array<vk::write_buffer, 1> uniforms0 = { vk::write_buffer{
+      .buffer = test_ubo, .offset = 0, .range = test_ubo.size_bytes() } };
     std::array<vk::write_buffer_descriptor, 1> uniforms = {
-        vk::write_buffer_descriptor{
-            .dst_binding = 0,
-            .uniforms = uniforms0
-        }
+        vk::write_buffer_descriptor{ .dst_binding = 0, .uniforms = uniforms0 }
     };
 
     // Loading a texture -- for testing
@@ -631,17 +621,17 @@ main() {
 
     std::array<vk::write_image, 1> samplers = {
         vk::write_image{
-            .sampler = texture1.image().sampler(),
-            .view = texture1.image().image_view(),
-            .layout = vk::image_layout::shader_read_only_optimal,
+          .sampler = texture1.image().sampler(),
+          .view = texture1.image().image_view(),
+          .layout = vk::image_layout::shader_read_only_optimal,
         },
     };
 
     // Moving update call here because now we add textures to set0
     std::array<vk::write_image_descriptor, 1> sample_images = {
         vk::write_image_descriptor{
-            .dst_binding = 1,
-            .sample_images = samplers,
+          .dst_binding = 1,
+          .sample_images = samplers,
         }
     };
     set0_resource.update(uniforms, sample_images);

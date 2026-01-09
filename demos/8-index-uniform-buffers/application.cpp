@@ -428,9 +428,8 @@ main() {
     std::println("index_buffer.alive() = {}", test_ibo.alive());
 
     vk::uniform_params ubo_info = { .phsyical_memory_properties =
-                                           physical_device.memory_properties(),
-                                         .size_bytes =
-                                           sizeof(vk::vertex_input) };
+                                      physical_device.memory_properties(),
+                                    .size_bytes = sizeof(vk::vertex_input) };
     vk::uniform_buffer test_ubo(logical_device, ubo_info);
     std::println("uniform_buffer.alive() = {}", test_ubo.alive());
 
