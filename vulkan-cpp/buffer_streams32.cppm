@@ -3,6 +3,7 @@ module;
 #include <vulkan/vulkan.h>
 #include <span>
 #include <array>
+#include <cstring>
 
 export module vk:buffer_streams32;
 
