@@ -8,10 +8,6 @@ jobs:
       runs-on: windows-latest
       steps:
           - uses: actions/checkout@v4
-
-          # - name: Setting up C++ on Windows
-          #   shell: pwsh
-          #   run: winget install Microsoft.VisualStudio.2022.BuildTools --override "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended -p --installWhileDownloading"
           
           - name: Installing Choco
             shell: pwsh
@@ -26,26 +22,23 @@ jobs:
                 clang++ --version
                 choco install git make mingw
           
-          # - name: Installing python
-          #   run: choco install python --version=3.12.2
-          
           - name: Pip installing conan
             shell: pwsh
             run: pip install conan
-
-          # - name: Installing vulkan
-          #   shell: pwsh
-          #   run: winget install --id=KhronosGroup.VulkanSDK -e
           
           - name: Setting up conan profiles
             shell: pwsh
-            run: conan config install -sf profiles/x86_64/Windows/ -tf profiles https://github.com/engine3d-dev/conan-config.git --args "profiles_update"
+            run: conan config install -sf profiles/x86_64/Windows/ -tf profiles https://github.com/engine3d-dev/conan-config.git
           
           - name: Setting up packages
             shell: pwsh
-            run: conan remote add engine3d-conan https://libhal.jfrog.io/artifactory/api/conan/engine3d-conan
+            run: |
+              conan remote add engine3d-conan https://libhal.jfrog.io/artifactory/api/conan/engine3d-conan
+              conan remote add libhal-trunk https://libhal.jfrog.io/artifactory/api/conan/trunk-conan
           
-          - name: Running Test Cases
+          - name: Building audio-cpp
             shell: pwsh
-            run: conan build . -b missing
-          
+            run: |
+                conan create . -b missing -s build_type=Release -pr windows_x86_64
+                conan create . -b missing -s build_type=Debug -pr windows_x86_64
+                conan create . -b missing -s build_type=MinSizeRel -pr windows_x86_64

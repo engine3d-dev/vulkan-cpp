@@ -14,10 +14,12 @@ jobs:
 
             - name: Install LLVM
               run: |
-                brew install python pipx llvm@17
+                brew install python pipx llvm@20
 
             - name: Installing conan
-              run: pipx install "conan>=2.10.2"
+              run: |
+                pipx install "conan>=2.18.2"
+                pipx upgrade conan
 
             - name: Installing clang-tidy
               run: sudo ln -s $(brew --prefix llvm)/bin/clang-tidy /usr/local/bin/
@@ -29,10 +31,12 @@ jobs:
               run: conan config install -sf profiles/armv8/mac/ -tf profiles https://github.com/engine3d-dev/conan-config.git
 
             - name: Installing Atlas repositories
-              run: conan remote add engine3d-conan https://libhal.jfrog.io/artifactory/api/conan/engine3d-conan
+              run: |
+                conan remote add engine3d-conan https://libhal.jfrog.io/artifactory/api/conan/engine3d-conan
+                conan remote add libhal-trunk https://libhal.jfrog.io/artifactory/api/conan/trunk-conan
 
-            - name: Cloning Atlas repository
-              run: git clone https://github.com/engine3d-dev/TheAtlasEngine
-
-            - name: Building the project
-              run: conan build . -b missing
+            - name: Building audio-cpp
+              run: |
+                conan create . -b missing -s build_type=Release -pr mac_armv8
+                conan create . -b missing -s build_type=Debug -pr mac_armv8
+                conan create . -b missing -s build_type=MinSizeRel -pr mac_armv8
