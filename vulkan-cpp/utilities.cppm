@@ -5,6 +5,7 @@ module;
 #include <print>
 #include <span>
 #include <source_location>
+#include <vector>
 
 export module vk:utilities;
 
