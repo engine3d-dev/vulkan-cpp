@@ -1,4 +1,4 @@
-name: Macos Build Tests
+name: Macos Platform Build
 
 on: [pull_request]
 
@@ -17,27 +17,11 @@ jobs:
                 brew install python pipx llvm@20
 
             - name: Install Vulkan SDK
-              run: |
-                curl -O https://sdk.lunarg.com/sdk/download/1.4.335.1/mac/vulkansdk-macos-1.4.335.1.zip
-                unzip vulkansdk-macos-1.4.335.1.zip
-                # Navigate to the installer directory
-                cd vulkansdk-macOS-1.4.335.1.app
-
-                # Run the installer (requires sudo for system-wide installation)
-                # Replace '~/VulkanSDK/1.4.335.1' with your preferred installation path
-                ls vulkansdk-macOS-1.4.335.1.app/Contents/MacOS
-                sudo ./vulkansdk-macOS-1.4.335.1.app/Contents/MacOS/vulkansdk-macOS-1.4.335.1 \
-                    --root ~/VulkanSDK/1.4.335.1 \
-                    --accept-licenses \
-                    --default-answer \
-                    --confirm-command install
-                source ~/VulkanSDK/1.4.335.1/setup-env.sh
-                export VULKAN_SDK=$HOME/VulkanSDK/1.4.335.1/macOS
-                export PATH=$VULKAN_SDK/bin:$PATH
-                export DYLD_LIBRARY_PATH=$VULKAN_SDK/lib:$DYLD_LIBRARY_PATH
-                export VK_ICD_FILENAMES=$VULKAN_SDK/share/vulkan/icd.d/MoltenVK_icd.json
-                export VK_LAYER_PATH=$VULKAN_SDK/share/vulkan/explicit_layer.d
-                vulkaninfo --summary
+              uses: humbletim/setup-vulkan-sdk@v1.2.1
+              with:
+                vulkan-query-version: 1.4.304.1
+                vulkan-components: Vulkan-Headers, Vulkan-Loader
+                vulkan-use-cache: true
 
 
             - name: Installing conan
