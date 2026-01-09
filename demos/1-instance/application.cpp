@@ -15,7 +15,6 @@
 #include <span>
 import vk;
 
-
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 debug_callback(
   [[maybe_unused]] VkDebugUtilsMessageSeverityFlagBitsEXT p_message_severity,
@@ -83,7 +82,7 @@ main() {
     std::string title = "Hello Window";
     GLFWwindow* window =
       glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
-    
+
     glfwMakeContextCurrent(window);
 
     std::array<const char*, 1> validation_layers = {
@@ -95,29 +94,33 @@ main() {
       initialize_instance_extensions();
 
     vk::debug_message_utility debug_callback_info = {
-        .severity = vk::message::verbose | vk::message::warning | vk::message::error,
-        .message_type = vk::debug::general | vk::debug::validation | vk::debug::performance,
+        .severity =
+          vk::message::verbose | vk::message::warning | vk::message::error,
+        .message_type =
+          vk::debug::general | vk::debug::validation | vk::debug::performance,
         .callback = debug_callback
     };
 
     vk::application_params config = {
         .name = "vulkan instance",
         .version = vk::api_version::vk_1_3, // specify to using vulkan 1.3
-        .validations = validation_layers, // .validation takes in a std::span<const char*>
-        .extensions = global_extensions // .extensions also takes in std::span<const char*>
+        .validations =
+          validation_layers, // .validation takes in a std::span<const char*>
+        .extensions =
+          global_extensions // .extensions also takes in std::span<const char*>
     };
 
     vk::instance api_instance(config, debug_callback_info);
 
-    std::span<const vk::layer_properties> properties = api_instance.validation();
-    for(vk::layer_properties property : properties) {
+    std::span<const vk::layer_properties> properties =
+      api_instance.validation();
+    for (vk::layer_properties property : properties) {
         std::println("Validation Layer Name:\t\t{}", property.name);
         std::println("Validation Layer Description: {}", property.description);
     }
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
-        
     }
 
     glfwDestroyWindow(window);
