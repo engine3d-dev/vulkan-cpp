@@ -28,10 +28,11 @@ jobs:
           #   run: |
           #     winget install --id=KhronosGroup.VulkanSDK -e --force --silent --accept-package-agreements --accept-source-agreements
           - name: Install Vulkan SDK
-            uses: humbletim/install-vulkan-sdk@v1.2
+            uses: humbletim/setup-vulkan-sdk@v1.2.1
             with:
-              version: latest
-              cache: true
+              vulkan-query-version: 1.4.304.1
+              vulkan-components: Vulkan-Headers, Vulkan-Loader
+              vulkan-use-cache: true
 
           
           - name: Pip installing conan
