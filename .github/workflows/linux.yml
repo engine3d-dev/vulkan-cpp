@@ -38,7 +38,9 @@ jobs:
               run: conan config install -sf profiles/x86_64/linux/ -tf profiles https://github.com/engine3d-dev/conan-config.git
 
             - name: Adding Conan remote dependencies
-              run: conan remote add engine3d-conan https://libhal.jfrog.io/artifactory/api/conan/engine3d-conan
+              run: |
+                conan remote add engine3d-conan https://libhal.jfrog.io/artifactory/api/conan/engine3d-conan
+                conan remote add libhal-trunk https://libhal.jfrog.io/artifactory/api/conan/trunk-conan
 
             - name: Building vulkan-cpp
               run: conan create . -b missing -pr linux_x86_64 -c tools.system.package_manager:sudo=True -c tools.system.package_manager:mode=install
