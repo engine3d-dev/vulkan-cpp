@@ -25,6 +25,7 @@ jobs:
 
                 # Run the installer (requires sudo for system-wide installation)
                 # Replace '~/VulkanSDK/1.4.335.1' with your preferred installation path
+                ls vulkansdk-macOS-1.4.335.1.app/Contents/MacOS
                 sudo ./vulkansdk-macOS-1.4.335.1.app/Contents/MacOS/vulkansdk-macOS-1.4.335.1 \
                     --root ~/VulkanSDK/1.4.335.1 \
                     --accept-licenses \
