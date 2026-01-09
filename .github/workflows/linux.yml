@@ -13,7 +13,7 @@ jobs:
               run: wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh
 
             - name: Install LLVM's C++ Standard Library
-              run: sudo apt install libc++-17-dev libc++abi-17-dev
+              run: sudo apt-get install libc++-20-dev libc++abi-20-dev
 
             - name: Installing pipx
               run: sudo apt install pipx
