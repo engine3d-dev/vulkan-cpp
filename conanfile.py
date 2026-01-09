@@ -87,7 +87,6 @@ class VulkanCppRecipe(ConanFile):
         self.requires("glfw/3.4")
         self.requires("glm/1.0.1")
         self.requires("stb/cci.20230920")
-        self.requires("tinyobjloader/2.0.0-rc10")
 
     def layout(self):
         cmake_layout(self)

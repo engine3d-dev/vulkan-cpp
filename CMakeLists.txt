@@ -57,14 +57,12 @@ build_library(
     Vulkan
     glm
     stb
-    tinyobjloader
 
     LINK_PACKAGES
     glfw
     Vulkan::Vulkan
     glm::glm
     stb::stb
-    tinyobjloader::tinyobjloader
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
