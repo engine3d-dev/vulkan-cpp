@@ -1,0 +1,251 @@
+module;
+
+#include <vulkan/vulkan.h>
+#include <span>
+#include <array>
+#include <filesystem>
+
+#ifndef STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+#endif
+
+export module vk:texture;
+
+
+export import :types;
+export import :utilities;
+export import :buffer_streams;
+export import :sample_image;
+export import :command_buffer;
+
+export namespace vk {
+    inline namespace v1 {
+        sample_image create_texture_with_data(const VkDevice& p_device, const image_params& p_config, const void* p_data) {
+            // 1. Creating temporary command buffer for texture
+            command_params copy_command_params = {
+                .levels = command_levels::primary,
+                .queue_index = 0,
+                .flags = command_pool_flags::reset,
+            };
+            command_buffer temp_command_buffer =
+            command_buffer(p_device, copy_command_params);
+
+            // 2. loading texture
+
+            sample_image texture_image = sample_image(p_device, p_config);
+            int bytes_per_pixel = bytes_per_texture_format(p_config.format);
+
+            // 3. getting layer size
+            uint32_t layer_size_with_bytes =
+            p_config.extent.width * p_config.extent.height * bytes_per_pixel;
+            uint32_t layer_count = 1;
+            uint32_t image_size = layer_size_with_bytes * layer_count;
+
+            // 4. transfer data from staging buffer
+            uint32_t property_flag =
+            memory_property::host_visible_bit | memory_property::host_cached_bit;
+            // buffer_configuration staging_buffer_config = {
+            //     .device_size = (uint32_t)image_size,
+            //     .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            //     .property_flags = (memory_property)property_flag,
+            //     .physical = p_config.physical_device
+            // };
+
+            buffer_parameters staging_buffer_config = {
+                .device_size = (uint32_t)image_size,
+                .physical_memory_properties = p_config.phsyical_memory_properties,
+                .property_flags = (memory_property)property_flag,
+                .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                // .physical = p_config.physical_device
+            };
+
+            // buffer_handle staging_buffer = create_buffer(p_device,
+            // staging_buffer_config);
+            buffer_stream staging(p_device, staging_buffer_config);
+
+            // 5. write data to the staging buffer with specific size specified
+            // write(p_device, staging, p_data, image_size);
+            staging.write(p_data, image_size);
+
+            // 6. start recording to this command buffer
+            VkImageLayout old_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+            VkImageLayout new_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            VkFormat texture_format = p_config.format;
+
+            temp_command_buffer.begin(command_usage::one_time_submit);
+
+            // 6.1 -- transition image layout
+            // image_memory_barrier(temp_command_buffer,
+            //                      texture_image,
+            //                      texture_format,
+            //                      old_layout,
+            //                      new_layout);
+            texture_image.memory_barrier(temp_command_buffer, texture_format, old_layout, new_layout);
+
+            // 6.2 -- copy buffer to image handles
+            // copy(temp_command_buffer,
+            //      texture_image,
+            //      staging,
+            //      p_config.extent.width,
+            //      p_config.extent.height);
+            staging.copy_to_image(temp_command_buffer, texture_image, p_config.extent);
+
+            // 6.3 -- transition image layout back to the layout specification
+            old_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            // image_memory_barrier(temp_command_buffer,
+            //                      texture_image,
+            //                      texture_format,
+            //                      old_layout,
+            //                      new_layout);
+            texture_image.memory_barrier(temp_command_buffer, texture_format, old_layout, new_layout);
+
+            temp_command_buffer.end();
+
+            // 7. Create temporary graphics queue to offload the texture image into
+            // GPU memory
+            //! TODO: Do this better then just retrieving graphics queue 0
+            uint32_t queue_family_index = 0;
+            uint32_t queue_index = 0;
+            VkQueue temp_graphics_queue;
+            vkGetDeviceQueue(
+            p_device, queue_family_index, queue_index, &temp_graphics_queue);
+
+            // 8. now submit that texture data to be stored in GPU memory
+            VkCommandBuffer handle = temp_command_buffer;
+            VkSubmitInfo submit_info = {
+                .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+                .commandBufferCount = 1,
+                .pCommandBuffers = &handle,
+            };
+
+            vkQueueSubmit(temp_graphics_queue, 1, &submit_info, nullptr);
+            vkQueueWaitIdle(temp_graphics_queue);
+
+            temp_command_buffer.destroy();
+            // free_buffer(p_device, staging_buffer);
+            staging.destroy();
+
+            return texture_image;
+        }
+
+        struct texture_info {
+            // for getting image memory requirements for the texture
+            VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
+            std::filesystem::path filepath;
+        };
+
+        struct texture_extent {
+            uint32_t width=0;
+            uint32_t height=0;
+        };
+
+        class texture {
+        public:
+            texture() = default;
+            
+            texture(const VkDevice& p_device, const image_extent& p_extent, VkPhysicalDeviceMemoryProperties p_property) : m_device(p_device) {
+                command_params settings = {
+                    .levels = command_levels::primary,
+                    .queue_index = 0,
+                    .flags = command_pool_flags::reset,
+                };
+
+                // 1.) Load in extent dimensions
+                // Loading in raw white pixels for our texture.
+                // TODO: Take in a std::span<uint8_t> for pixels that will then be
+                // written to the texture
+                std::array<uint8_t, 4> white_color = { 0xFF, 0xFF, 0xFF, 0xFF };
+
+                m_width = p_extent.width;
+                m_height = p_extent.height;
+
+                // texture_properties properties = {
+                //     .width = m_width,
+                //     .height = m_height,
+                //     .usage = (VkImageUsageFlagBits)(VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                //                                     VK_IMAGE_USAGE_SAMPLED_BIT),
+                //     .property = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                //     // .format = VK_FORMAT_R8G8B8A8_UNORM,
+                //     .format = VK_FORMAT_R8G8B8A8_SRGB
+                //     // .format = VK_FORMAT_R64G64B64A64_SFLOAT
+                // };
+                image_params config_image = {
+                    .extent = { .width = p_extent.width, .height = p_extent.height },
+                    .format = VK_FORMAT_R8G8B8A8_UNORM,
+                    .property = memory_property::device_local_bit,
+                    .aspect = image_aspect_flags::color_bit,
+                    // .usage = (VkImageUsageFlags)(VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                    //                              VK_IMAGE_USAGE_SAMPLED_BIT),
+                    .usage = image_usage::transfer_dst_bit | image_usage::sampled_bit,
+                    // .physical_device = p_texture_info.physical
+                    .phsyical_memory_properties = p_property
+                };
+                m_image =
+                create_texture_with_data(m_device, config_image, white_color.data());
+                m_texture_loaded = true;
+            }
+
+            texture(const VkDevice& p_device, const texture_info& p_texture_info) : m_device(p_device) {
+                // 1. load from file
+                int w, h;
+                int channels;
+                stbi_uc* image_pixel_data =
+                stbi_load(p_texture_info.filepath.string().c_str(),
+                            &w,
+                            &h,
+                            &channels,
+                            STBI_rgb_alpha);
+
+                m_width = w;
+                m_height = h;
+
+                if (!image_pixel_data) {
+                    m_texture_loaded = false;
+                    return;
+                }
+
+                // 2. create vulkan image handlers + loading in the image data
+                uint32_t property_flag = memory_property::device_local_bit;
+
+                image_params config_image = {
+                    .extent = { .width = (uint32_t)w, .height = (uint32_t)h },
+                    .format = VK_FORMAT_R8G8B8A8_UNORM,
+                    .property = (memory_property)property_flag,
+                    .aspect = image_aspect_flags::color_bit,
+                    // .usage = (VkImageUsageFlags)(VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                    //                              VK_IMAGE_USAGE_SAMPLED_BIT),
+                    .usage = image_usage::transfer_dst_bit | image_usage::sampled_bit,
+                    // .physical_device = p_texture_info.physical
+                    .phsyical_memory_properties =
+                    p_texture_info.phsyical_memory_properties
+                };
+
+                m_image = create_texture_with_data(p_device, config_image, image_pixel_data);
+
+                m_texture_loaded = true;
+            }
+
+            [[nodiscard]] bool loaded() const { return m_texture_loaded; }
+
+            [[nodiscard]] sample_image image() const { return m_image; }
+
+            [[nodiscard]] uint32_t width() const { return m_width; }
+
+            [[nodiscard]] uint32_t height() const { return m_height; }
+
+            void destroy() {
+                m_image.destroy();
+            }
+
+        private:
+            VkDevice m_device = nullptr;
+            bool m_texture_loaded = false;
+            // sampled_image m_image_handle{};
+            sample_image m_image{};
+            uint32_t m_width = 0;
+            uint32_t m_height = 0;
+        };
+    };
+};

@@ -6,13 +6,13 @@ build_application(
     application.cpp
 
     PACKAGES
-    Vulkan
-    VulkanHeaders
-    # vulkan-cpp
-
-    LINK_PACKAGES
-    Vulkan::Vulkan
-    vulkan-headers::vulkan-headers
-    # vulkan-cpp::vulkan-cpp
     vulkan-cpp
+    Vulkan
+    glfw3
+    glm
+    stb
+    
+    LINK_PACKAGES
+    vulkan-cpp
+    Vulkan::Vulkan
 )

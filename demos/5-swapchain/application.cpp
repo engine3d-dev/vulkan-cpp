@@ -1,22 +1,19 @@
+#define GLFW_INCLUDE_VULKAN
+#if _WIN32
+#define VK_USE_PLATFORM_WIN32_KHR
+#include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
+#include <vulkan/vulkan.h>
+#else
+#include <GLFW/glfw3.h>
+#include <vulkan/vulkan.h>
+#endif
+
 #include <array>
 #include <print>
-
-#include <vulkan-cpp/imports.hpp>
-
-#define FMT_HEADER_ONLY
-#include <fmt/format.h>
-#include <vulkan-cpp/utilities.hpp>
-#include <vulkan-cpp/instance.hpp>
-#include <vulkan-cpp/physical_device.hpp>
-#include <vulkan-cpp/device.hpp>
-#include <vulkan-cpp/device_queue.hpp>
-#include <vulkan-cpp/surface.hpp>
-#include <vulkan-cpp/swapchain.hpp>
-#include <vulkan-cpp/device_present_queue.hpp>
-#include <vulkan-cpp/command_buffer.hpp>
-#include <vulkan-cpp/renderpass.hpp>
-#include <vulkan-cpp/framebuffer.hpp>
-#include <vulkan-cpp/sample_image.hpp>
+#include <span>
+import vk;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 debug_callback(
@@ -68,7 +65,7 @@ int
 main() {
     //! @note Just added the some test code to test the conan-starter setup code
     if (!glfwInit()) {
-        fmt::print("glfwInit could not be initialized!\n");
+        std::print("glfwInit could not be initialized!\n");
         return -1;
     }
 
@@ -218,7 +215,8 @@ main() {
         //     .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
         //     .mip_levels = 1,
         //     .layer_count = 1,
-        //     .phsyical_memory_properties = physical_device.memory_properties(),
+        //     .phsyical_memory_properties =
+        //     physical_device.memory_properties(),
         // };
         // swapchain_depth_images[i] =
         //   vk::sample_image(logical_device, depth_image_config);
@@ -266,10 +264,11 @@ main() {
 
     std::vector<vk::framebuffer> swapchain_framebuffers(image_count);
     for (uint32_t i = 0; i < swapchain_framebuffers.size(); i++) {
-        std::array<VkImageView, renderpass_attachments.size()> image_view_attachments = {
-            swapchain_images[i].image_view(),
-            // swapchain_depth_images[i].image_view()
-        };
+        std::array<VkImageView, renderpass_attachments.size()>
+          image_view_attachments = {
+              swapchain_images[i].image_view(),
+              // swapchain_depth_images[i].image_view()
+          };
 
         vk::framebuffer_params framebuffer_info = {
             .renderpass = main_renderpass,
