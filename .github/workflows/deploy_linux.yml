@@ -1,5 +1,4 @@
-name: Deploy to Windows
-
+name: Deploy to Linux
 # on:
 #   pull_request:
 #     types: [closed]
@@ -10,21 +9,21 @@ on: [pull_request, workflow_dispatch]
 jobs:
   if_merged:
     if: github.event.pull_request.merged == true
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Installing Choco
-        shell: pwsh
-        run: Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 
-      - name: Install tooling with Choco
-        shell: pwsh
+      - name: Install LLVM's C++ Standard Library
+        run: sudo apt-get install libc++-20-dev libc++abi-20-dev
+
+      - name: Installing pipx
+        run: sudo apt install pipx
+
+      - name: Installing Prerequisites for Linux
         run: |
-            choco install cmake.install --version=3.31.6
-            cmake --version
-            choco install llvm --version=20.1.4
-            clang++ --version
-            choco install git make mingw
+            sudo apt-get update
+            sudo apt install software-properties-common -y
+            sudo add-apt-repository ppa:deadsnakes/ppa
 
       - name: Install Vulkan SDK
         uses: humbletim/setup-vulkan-sdk@v1.2.1
@@ -33,10 +32,9 @@ jobs:
           vulkan-components: Vulkan-Headers, Vulkan-Loader
           vulkan-use-cache: true
 
-      
       - name: Pip installing conan
         shell: pwsh
-        run: pip install conan
+        run: pipx install conan
       
       - name: Setting up conan profiles
         shell: pwsh
