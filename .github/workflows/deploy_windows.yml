@@ -1,15 +1,14 @@
 name: Deploy to Windows
 
-# on:
-#   pull_request:
-#     types: [closed]
-#     branches:
-#       - main  # Only trigger for PRs merged into main
-on: [pull_request, workflow_dispatch]
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main  # Only trigger for PRs merged into main
 
 jobs:
-  if_merged:
-    if: github.event.pull_request.merged == false
+  windows_x86_64:
+    if: github.event.pull_request.merged == true
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -63,6 +62,6 @@ jobs:
       - name: Login to JFrog
         run: conan remote login -p ${{ secrets.JFROG_USER_TOKEN_ID }} engine3d-conan ${{ secrets.JFROG_USERNAME }}
       
-      # - name: Upload vulkan-cpp to engine3d-conan remote repositories
-      #   shell: pwsh
-      #   run: conan upload vulkan-cpp/4.0 --r=engine3d-conan --confirm
+      - name: Uploading vulkan-cpp to engine3d-conan remote repositories
+        shell: pwsh
+        run: conan upload vulkan-cpp/4.0 --r=engine3d-conan --confirm
