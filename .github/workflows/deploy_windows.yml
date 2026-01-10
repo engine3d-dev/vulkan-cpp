@@ -53,10 +53,7 @@ jobs:
           conan remote add libhal-trunk https://libhal.jfrog.io/artifactory/api/conan/trunk-conan
 
       - name: Login to JFrog
-        env:
-            PASSWORD: ${{ secrets.JFROG_USER_TOKEN_ID }}
-            JFROG_USER: ${{ secrets.JFROG_USERNAME }}
-        run: conan remote login -p $PASSWORD engine3d-conan $JFROG_USER
+        run: conan remote login -p ${{ secrets.JFROG_USER_TOKEN_ID }} engine3d-conan ${{ secrets.JFROG_USERNAME }}
       
       # - name: Building vulkan-cpp
       #   shell: pwsh
