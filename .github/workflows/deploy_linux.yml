@@ -38,7 +38,7 @@ jobs:
       
       - name: Setting up conan profiles
         shell: pwsh
-        run: conan config install -sf profiles/x86_64/Windows/ -tf profiles https://github.com/engine3d-dev/conan-config.git
+        run: conan config install -sf profiles/x86_64/linux/ -tf profiles https://github.com/engine3d-dev/conan-config.git
       
       - name: Setting up Remote Repositories
         shell: pwsh
