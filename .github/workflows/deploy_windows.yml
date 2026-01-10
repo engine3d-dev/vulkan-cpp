@@ -1,14 +1,13 @@
 name: Deploy to Windows
-# on:
-#   pull_request:
-#     types: [closed]
-#     branches:
-#       - main  # Only trigger for PRs merged into main
-on: [pull_request, workflow_dispatch]
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main  # Only trigger for PRs merged into main
 
 jobs:
   if_merged:
-    if: github.event.pull_request.merged == false
+    if: github.event.pull_request.merged == true
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
