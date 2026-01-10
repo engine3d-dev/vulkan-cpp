@@ -1,7 +1,5 @@
 from conan import ConanFile
 from conan.tools.cmake import CMake, cmake_layout, CMakeToolchain, CMakeDeps
-from conan.tools.build import can_run
-import os
 
 
 class TestPackageConan(ConanFile):
