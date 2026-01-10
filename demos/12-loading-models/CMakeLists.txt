@@ -15,5 +15,6 @@ build_application(
 
     LINK_PACKAGES
     vulkan-cpp
+    tinyobjloader
     Vulkan::Vulkan
 )

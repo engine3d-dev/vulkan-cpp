@@ -11,8 +11,7 @@ build_application(
     glfw3
     glm
     stb
-    tinyobjloader
-
+    
     LINK_PACKAGES
     vulkan-cpp
     Vulkan::Vulkan
