@@ -57,7 +57,7 @@ jobs:
         env:
             PASSWORD: ${{ secrets.JFROG_USER_TOKEN_ID }}
             JFROG_USER: ${{ secrets.JFROG_USERNAME }}
-        run: conan remote -p $PASSWORD engine3d-conan $JFROG_USER
+        run: conan remote login -p $PASSWORD engine3d-conan $JFROG_USER
       
       # - name: Building vulkan-cpp
       #   shell: pwsh
