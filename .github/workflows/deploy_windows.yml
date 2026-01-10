@@ -16,26 +16,21 @@ jobs:
         shell: pwsh
         run: Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 
-      # - name: Install tooling with Choco
-      #   shell: pwsh
-      #   run: |
-      #       choco install cmake.install --version=3.31.6
-      #       cmake --version
-      #       choco install llvm --version=20.1.4
-      #       clang++ --version
-      #       choco install git make mingw
+      - name: Install tooling with Choco
+        shell: pwsh
+        run: |
+            choco install cmake.install --version=3.31.6
+            cmake --version
+            choco install llvm --version=20.1.4
+            clang++ --version
+            choco install git make mingw
 
-      # # - name: Installing Vulkan SDK
-      # #   shell: pwsh
-      # #   # run: winget install --id=KhronosGroup.VulkanSDK -e --accept-licenses --default-answer --confirm-command install
-      # #   run: |
-      # #     winget install --id=KhronosGroup.VulkanSDK -e --force --silent --accept-package-agreements --accept-source-agreements
-      # - name: Install Vulkan SDK
-      #   uses: humbletim/setup-vulkan-sdk@v1.2.1
-      #   with:
-      #     vulkan-query-version: 1.4.304.1
-      #     vulkan-components: Vulkan-Headers, Vulkan-Loader
-      #     vulkan-use-cache: true
+      - name: Install Vulkan SDK
+        uses: humbletim/setup-vulkan-sdk@v1.2.1
+        with:
+          vulkan-query-version: 1.4.304.1
+          vulkan-components: Vulkan-Headers, Vulkan-Loader
+          vulkan-use-cache: true
 
       
       - name: Pip installing conan
@@ -52,12 +47,21 @@ jobs:
           conan remote add engine3d-conan https://libhal.jfrog.io/artifactory/api/conan/engine3d-conan
           conan remote add libhal-trunk https://libhal.jfrog.io/artifactory/api/conan/trunk-conan
 
+      - name: Creating Release build for vulkan-cpp 
+        shell: pwsh
+        run: conan create . -b missing -s build_type=Release -pr windows_x86_64
+      
+      - name: Creating Debug build for vulkan-cpp 
+        shell: pwsh
+        run: conan create . -b missing -s build_type=Debug -pr windows_x86_64
+      
+      - name: Creating MinSizeRel build for vulkan-cpp
+        shell: pwsh
+        run: conan create . -b missing -s build_type=MinSizeRel -pr windows_x86_64
+      
       - name: Login to JFrog
         run: conan remote login -p ${{ secrets.JFROG_USER_TOKEN_ID }} engine3d-conan ${{ secrets.JFROG_USERNAME }}
       
-      # - name: Building vulkan-cpp
-      #   shell: pwsh
-      #   run: |
-      #       conan create . -b missing -s build_type=Release -pr windows_x86_64
-      #       conan create . -b missing -s build_type=Debug -pr windows_x86_64
-      #       conan create . -b missing -s build_type=MinSizeRel -pr windows_x86_64
+      - name: Upload vulkan-cpp to engine3d-conan remote repositories
+        shell: pwsh
+        run: conan upload vulkan-cpp/4.0 --r=engine3d-conan --confirm
