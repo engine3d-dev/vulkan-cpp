@@ -9,7 +9,7 @@ on: [pull_request, workflow_dispatch]
 jobs:
   if_merged:
     if: github.event.pull_request.merged == false
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - name: Installing Choco
