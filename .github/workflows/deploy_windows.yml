@@ -53,7 +53,6 @@ jobs:
       #     conan remote add libhal-trunk https://libhal.jfrog.io/artifactory/api/conan/trunk-conan
 
       - name: Login to JFrog
-        shell: pwsh
         env:
             PASSWORD: ${{ secrets.JFROG_USER_TOKEN_ID }}
             JFROG_USER: ${{ secrets.JFROG_USERNAME }}
