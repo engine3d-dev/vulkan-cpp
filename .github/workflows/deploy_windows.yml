@@ -12,9 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # - name: Installing Choco
-      #   shell: pwsh
-      #   run: Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+      - name: Installing Choco
+        shell: pwsh
+        run: Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 
       # - name: Install tooling with Choco
       #   shell: pwsh
@@ -38,9 +38,9 @@ jobs:
       #     vulkan-use-cache: true
 
       
-      # - name: Pip installing conan
-      #   shell: pwsh
-      #   run: pip install conan
+      - name: Pip installing conan
+        shell: pwsh
+        run: pip install conan
       
       # - name: Setting up conan profiles
       #   shell: pwsh
