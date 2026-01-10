@@ -1,44 +1,3 @@
-# cmake_minimum_required(VERSION 4.0)
-
-# # Generate compile commands for anyone using our libraries.
-# set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-# set(CMAKE_COLOR_DIAGNOSTICS ON)
-
-# project(vulkan-cpp LANGUAGES CXX)
-
-# # build_library(
-# #     DIRECTORIES vulkan-cpp/
-# #     # demos/1-instance
-# #     # demos/2-physical-device
-# #     # demos/3-logical-device
-# #     # demos/4-surface
-# #     # demos/5-swapchain
-# #     # demos/6-graphics-pipeline
-# #     # demos/7-vertex-buffer
-# #     # demos/8-index-uniform-buffers
-# #     # demos/9-uniforms
-# #     # demos/10-textures
-# #     # demos/11-depth-buffering
-# #     # demos/12-loading-models
-# #     # demos/13-skybox
-# #     # demos/sandbox
-# #     ENABLE_TESTS OFF
-
-# #     PACKAGES
-# #     glfw3
-# #     Vulkan
-# #     glm
-# #     stb
-# #     tinyobjloader
-
-# #     LINK_PACKAGES
-# #     glfw
-# #     Vulkan::Vulkan
-# #     glm::glm
-# #     stb::stb
-# #     tinyobjloader::tinyobjloader
-# # )
-
 cmake_minimum_required(VERSION 4.0)
 
 # Generate compile commands for anyone using our libraries.
@@ -47,10 +6,10 @@ set(CMAKE_COLOR_DIAGNOSTICS ON)
 
 project(vulkan-cpp LANGUAGES CXX)
 
-# add_library(${PROJECT_NAME} STATIC)
-build_library(
-    DIRECTORIES vulkan-cpp/
+static_library(
     ENABLE_TESTS OFF
+
+    INCLUDE_DIRS ${CMAKE_CURRENT_LIST_DIR}
 
     PACKAGES
     glfw3
