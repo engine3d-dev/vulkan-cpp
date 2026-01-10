@@ -48,15 +48,15 @@ jobs:
 
       - name: Creating Release build for vulkan-cpp 
         shell: pwsh
-        run: conan create . -b missing -s build_type=Release -pr windows_x86_64
+        run: conan create . -b missing -s build_type=Release -pr linux_x86_64 -c tools.system.package_manager:sudo=True -c tools.system.package_manager:mode=install
       
       - name: Creating Debug build for vulkan-cpp 
         shell: pwsh
-        run: conan create . -b missing -s build_type=Debug -pr windows_x86_64
+        run: conan create . -b missing -s build_type=Debug -pr linux_x86_64 -c tools.system.package_manager:sudo=True -c tools.system.package_manager:mode=install
       
       - name: Creating MinSizeRel build for vulkan-cpp
         shell: pwsh
-        run: conan create . -b missing -s build_type=MinSizeRel -pr windows_x86_64
+        run: conan create . -b missing -s build_type=MinSizeRel -pr linux_x86_64 -c tools.system.package_manager:sudo=True -c tools.system.package_manager:mode=install
       
       - name: Login to JFrog
         run: conan remote login -p ${{ secrets.JFROG_USER_TOKEN_ID }} engine3d-conan ${{ secrets.JFROG_USERNAME }}
