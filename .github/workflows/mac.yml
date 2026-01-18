@@ -45,6 +45,6 @@ jobs:
 
             - name: Building vulkan-cpp
               run: |
-                conan atlas create . -b missing -s build_type=Release
-                conan atlas create .  -b missing -s build_type=Debug
-                conan atlas create . -b missing -s build_type=MinSizeRel
+                conan atlas create . -s build_type=Release
+                conan atlas create . -s build_type=Debug
+                conan atlas create . -s build_type=MinSizeRel
