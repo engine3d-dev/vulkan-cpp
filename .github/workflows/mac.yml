@@ -36,15 +36,14 @@ jobs:
               run: /usr/sbin/softwareupdate --install-rosetta --agree-to-license
 
             - name: Setting up Conan profile
-              run: conan config install -sf profiles/armv8/mac/ -tf profiles https://github.com/engine3d-dev/conan-config.git
+              # run: conan config install -sf profiles/armv8/mac/ -tf profiles https://github.com/engine3d-dev/conan-config.git
+              run: conan config install https://github.com/engine3d-dev/conan-config.git
 
-            - name: Installing Atlas repositories
-              run: |
-                conan remote add engine3d-conan https://libhal.jfrog.io/artifactory/api/conan/engine3d-conan
-                conan remote add libhal-trunk https://libhal.jfrog.io/artifactory/api/conan/trunk-conan
+            - name: Setting up vulkan-cpp Development Environment
+              run: conan atlas setup
 
             - name: Building vulkan-cpp
               run: |
-                conan create . -b missing -s build_type=Release -pr mac_armv8
-                conan create . -b missing -s build_type=Debug -pr mac_armv8
-                conan create . -b missing -s build_type=MinSizeRel -pr mac_armv8
+                conan atlas create . -b missing -s build_type=Release
+                conan atlas create .  -b missing -s build_type=Debug
+                conan atlas create . -b missing -s build_type=MinSizeRel
