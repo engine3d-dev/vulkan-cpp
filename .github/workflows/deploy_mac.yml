@@ -9,7 +9,7 @@ on: [pull_request, workflow_dispatch]
 
 jobs:
   macos_armv8:
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == false
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
