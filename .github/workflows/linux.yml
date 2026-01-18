@@ -44,13 +44,13 @@ jobs:
 
             - name: Creating Release build for vulkan-cpp
               # run: conan create . -b missing -s build_type=Release -pr linux_x86_64 -c tools.system.package_manager:sudo=True -c tools.system.package_manager:mode=install
-              run: conan atlas create -s build_type=Release
+              run: conan atlas create . -s build_type=Release
             
             - name: Creating Debug build for vulkan-cpp
               # run: conan create . -b missing -s build_type=Debug -pr linux_x86_64 -c tools.system.package_manager:sudo=True -c tools.system.package_manager:mode=install
-              run: conan atlas create -s build_type=Debug
+              run: conan atlas create . -s build_type=Debug
             
             - name: Creating MinSizeRel build for vulkan-cpp
               # run: conan create . -b missing -s build_type=MinSizeRel -pr linux_x86_64 -c tools.system.package_manager:sudo=True -c tools.system.package_manager:mode=install
-              run: conan atlas create -s build_type=MinSizeRel
+              run: conan atlas create . -s build_type=MinSizeRel
 
