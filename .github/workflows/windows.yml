@@ -30,11 +30,9 @@ jobs:
               vulkan-use-cache: true
           
           - name: Pip installing conan
-            shell: pwsh
-            run: pipx install conan
+            run: pip install conan
           
           - name: Setting up Conan configuration
-            shell: pwsh
             run: |
               conan config install https://github.com/engine3d-dev/conan-config.git
               conan atlas setup
