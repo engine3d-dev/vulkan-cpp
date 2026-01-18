@@ -1,10 +1,11 @@
 name: Deploy to MacOS Armv8
 
-on:
-  pull_request:
-    types: [closed]
-    branches:
-      - main  # Only trigger for PRs merged into main
+# on:
+#   pull_request:
+#     types: [closed]
+#     branches:
+#       - main  # Only trigger for PRs merged into main
+on: [workflow_dispatch]
 
 jobs:
   macos_armv8:
@@ -17,7 +18,7 @@ jobs:
         run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
       - name: Install LLVM
-        run: brew install python pipx llvm@20
+        run: brew install python pipx
 
       - name: Install Vulkan SDK
         uses: humbletim/setup-vulkan-sdk@v1.2.1
@@ -44,19 +45,20 @@ jobs:
 
       - name: Creating Release build for vulkan-cpp 
         shell: pwsh
-        run: conan create . -b missing -s build_type=Release -pr mac_armv8
+        run: conan atlas create . -s build_type=Release
       
       - name: Creating Debug build for vulkan-cpp 
         shell: pwsh
-        run: conan create . -b missing -s build_type=Debug -pr mac_armv8
+        run: conan atlas create . -s build_type=Debug
       
       - name: Creating MinSizeRel build for vulkan-cpp
         shell: pwsh
-        run: conan create . -b missing -s build_type=MinSizeRel -pr mac_armv8
+        run: conan atlas create . -s build_type=MinSizeRel
       
-      - name: Login to JFrog
-        run: conan remote login -p ${{ secrets.JFROG_USER_TOKEN_ID }} engine3d-conan ${{ secrets.JFROG_USERNAME }}
+      # Uncomment before merging these changes
+      # - name: Login to JFrog
+      #   run: conan remote login -p ${{ secrets.JFROG_USER_TOKEN_ID }} engine3d-conan ${{ secrets.JFROG_USERNAME }}
       
-      - name: Uploading vulkan-cpp to engine3d-conan remote repositories
-        shell: pwsh
-        run: conan upload vulkan-cpp/4.0 --r=engine3d-conan --confirm
+      # - name: Uploading vulkan-cpp to engine3d-conan remote repositories
+      #   shell: pwsh
+      #   run: conan upload vulkan-cpp/4.0 --r=engine3d-conan --confirm
