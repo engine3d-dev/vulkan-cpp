@@ -37,12 +37,10 @@ jobs:
 
             - name: Setting up Conan profile
               # run: conan config install -sf profiles/armv8/mac/ -tf profiles https://github.com/engine3d-dev/conan-config.git
-              run: conan config install https://github.com/engine3d-dev/conan-config.git
+              run: conan atlas update
 
             - name: Setting up vulkan-cpp Development Environment
-              run: |
-                conan atlas setup
-                conan atlas update
+              run: conan atlas setup
 
             - name: Building vulkan-cpp
               run: |
