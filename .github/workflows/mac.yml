@@ -14,7 +14,7 @@ jobs:
 
             - name: Install LLVM
               run: |
-                brew install python pipx llvm@20
+                brew install python pipx
 
             - name: Install Vulkan SDK
               uses: humbletim/setup-vulkan-sdk@v1.2.1
@@ -35,16 +35,16 @@ jobs:
             - name: Install Rosetta
               run: /usr/sbin/softwareupdate --install-rosetta --agree-to-license
 
-            - name: Setting up Conan profile
-              run: conan config install -sf profiles/armv8/mac/ -tf profiles https://github.com/engine3d-dev/conan-config.git
-
-            - name: Installing Atlas repositories
+            - name: Setting up Conan configuration
               run: |
-                conan remote add engine3d-conan https://libhal.jfrog.io/artifactory/api/conan/engine3d-conan
-                conan remote add libhal-trunk https://libhal.jfrog.io/artifactory/api/conan/trunk-conan
+                conan config install https://github.com/engine3d-dev/conan-config.git
+                conan atlas setup
 
-            - name: Building vulkan-cpp
-              run: |
-                conan create . -b missing -s build_type=Release -pr mac_armv8
-                conan create . -b missing -s build_type=Debug -pr mac_armv8
-                conan create . -b missing -s build_type=MinSizeRel -pr mac_armv8
+            - name: Creating Release build for vulkan-cpp
+              run: conan atlas create . -s build_type=Release
+          
+            - name: Creating Debug build for vulkan-cpp
+              run: conan atlas create . -s build_type=Debug
+
+            - name: Creating MinSizeRel build for vulkan-cpp
+              run: conan atlas create . -s build_type=MinSizeRel
