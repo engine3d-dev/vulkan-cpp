@@ -40,11 +40,6 @@ jobs:
                 conan config install https://github.com/engine3d-dev/conan-config.git
                 conan atlas setup
 
-            # - name: Building vulkan-cpp
-            #   run: |
-            #     conan atlas create . -s build_type=Release
-            #     conan atlas create . -s build_type=Debug
-            #     conan atlas create . -s build_type=MinSizeRel
             - name: Creating Release build for vulkan-cpp
               run: conan atlas create . -s build_type=Release
           
@@ -52,4 +47,4 @@ jobs:
               run: conan atlas create . -s build_type=Debug
 
             - name: Creating MinSizeRel build for vulkan-cpp
-              run: conan atlas create -s build_type=MinSizeRel
+              run: conan atlas create . -s build_type=MinSizeRel

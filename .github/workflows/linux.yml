@@ -9,9 +9,6 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
-            # - name: Install LLVM
-            #   run: wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && sudo ./llvm.sh
-
             - name: Install LLVM's C++ Standard Library
               run: sudo apt-get install libc++-20-dev libc++abi-20-dev
 
@@ -43,14 +40,11 @@ jobs:
                 conan atlas setup
 
             - name: Creating Release build for vulkan-cpp
-              # run: conan create . -b missing -s build_type=Release -pr linux_x86_64 -c tools.system.package_manager:sudo=True -c tools.system.package_manager:mode=install
               run: conan atlas create . -s build_type=Release
             
             - name: Creating Debug build for vulkan-cpp
-              # run: conan create . -b missing -s build_type=Debug -pr linux_x86_64 -c tools.system.package_manager:sudo=True -c tools.system.package_manager:mode=install
               run: conan atlas create . -s build_type=Debug
             
             - name: Creating MinSizeRel build for vulkan-cpp
-              # run: conan create . -b missing -s build_type=MinSizeRel -pr linux_x86_64 -c tools.system.package_manager:sudo=True -c tools.system.package_manager:mode=install
               run: conan atlas create . -s build_type=MinSizeRel
 
