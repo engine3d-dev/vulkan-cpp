@@ -5,7 +5,7 @@ name: Deploy to Linux
 #     types: [closed]
 #     branches:
 #       - main  # Only trigger for PRs merged into main
-on: [workflow_dispatch]
+on: [pull_request, workflow_dispatch]
 
 jobs:
   linux_x86_64:
