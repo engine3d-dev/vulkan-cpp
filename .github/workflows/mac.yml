@@ -40,7 +40,9 @@ jobs:
               run: conan config install https://github.com/engine3d-dev/conan-config.git
 
             - name: Setting up vulkan-cpp Development Environment
-              run: conan atlas setup
+              run: |
+                conan atlas setup
+                conan atlas update
 
             - name: Building vulkan-cpp
               run: |
