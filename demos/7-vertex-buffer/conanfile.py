@@ -22,7 +22,7 @@ class Demo(ConanFile):
         self.requires("glm/1.0.1")
         self.requires("stb/cci.20230920")
         self.requires("tinyobjloader/2.0.0-rc10")
-        self.requires("vulkan-cpp/2.0")
+        self.requires("vulkan-cpp/4.0")
 
     def build(self):
         cmake = CMake(self)
