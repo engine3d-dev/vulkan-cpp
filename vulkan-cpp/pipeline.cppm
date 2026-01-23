@@ -64,7 +64,8 @@ export namespace vk {
             front_face front_face = front_face::counter_clockwise;
             bool depth_bias_enabled=false;
             float depth_bias_constant = 0.f;
-            float depth_bioas_slope = 0.f;
+            float depth_bias_clamp = 0.f;
+            float depth_bias_slope = 0.f;
             float line_width = 1.f;
         };
 
@@ -275,38 +276,59 @@ export namespace vk {
                     .primitiveRestartEnable = p_info.input_assembly.primitive_restart_enable,
                 };
 
+                // VkPipelineViewportStateCreateInfo viewport_state = {
+                //     .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+                //     .viewportCount = 1,
+                //     .scissorCount = 1,
+                // };
+
                 VkPipelineViewportStateCreateInfo viewport_state = {
                     .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
-                    .viewportCount = 1,
-                    .scissorCount = 1,
+                    .viewportCount = p_info.viewport.viewport_count,
+                    .scissorCount = p_info.viewport.scissor_count,
                 };
+
 
                 //! @note Rasterization
                 // Keep in mind: if lineWidth is zero, validation layers will occur
                 // because cant be zero. Must be set to 1.0f
+                // VkPipelineRasterizationStateCreateInfo rasterizer_ci = {
+                //     .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+                //     .depthClampEnable = false,
+                //     .rasterizerDiscardEnable =
+                //     false, // set to true make fragmenta that are beyond near/far
+                //             // planes clamped to them as opposed to discarding them
+                //     .polygonMode =
+                //     VK_POLYGON_MODE_FILL, // if set to true then geometry never passes
+                //                             // through rasterizer stage. This basically
+                //                             // disables output to frame_buffer
+                //     .cullMode = VK_CULL_MODE_NONE, // determines what culling to use.
+                //                                 // Can also be disabled, culls
+                //                                 // front-face, back-face or both
+                //     .frontFace =
+                //     VK_FRONT_FACE_COUNTER_CLOCKWISE, // specifies vertex order of
+                //                                     // fdaces considered front-face
+                //                                     // or clockwise/counter-clockwise
+                //     .depthBiasEnable = false,
+                //     .depthBiasConstantFactor = 0.0f, // Optional
+                //     .depthBiasClamp = 0.0f,          // Optional
+                //     .depthBiasSlopeFactor = 0.0f,    // Optional
+                //     .lineWidth = 1.f
+                // };
                 VkPipelineRasterizationStateCreateInfo rasterizer_ci = {
                     .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-                    .depthClampEnable = false,
-                    .rasterizerDiscardEnable =
-                    false, // set to true make fragmenta that are beyond near/far
-                            // planes clamped to them as opposed to discarding them
-                    .polygonMode =
-                    VK_POLYGON_MODE_FILL, // if set to true then geometry never passes
-                                            // through rasterizer stage. This basically
-                                            // disables output to frame_buffer
-                    .cullMode = VK_CULL_MODE_NONE, // determines what culling to use.
-                                                // Can also be disabled, culls
-                                                // front-face, back-face or both
-                    .frontFace =
-                    VK_FRONT_FACE_COUNTER_CLOCKWISE, // specifies vertex order of
-                                                    // fdaces considered front-face
-                                                    // or clockwise/counter-clockwise
-                    .depthBiasEnable = false,
-                    .depthBiasConstantFactor = 0.0f, // Optional
-                    .depthBiasClamp = 0.0f,          // Optional
-                    .depthBiasSlopeFactor = 0.0f,    // Optional
-                    .lineWidth = 1.f
+                    .depthClampEnable = p_info.rasterization.depth_clamp_enabled,
+                    .rasterizerDiscardEnable = p_info.rasterization.rasterizer_discard_enabled,
+                    .polygonMode = static_cast<VkPolygonMode>(p_info.rasterization.polygon_mode),
+                    .cullMode = static_cast<VkCullModeFlags>(p_info.rasterization.cull_mode),
+                    .frontFace = static_cast<VkFrontFace>(p_info.rasterization.front_face),
+                    .depthBiasEnable = p_info.rasterization.depth_bias_enabled,
+                    .depthBiasConstantFactor = p_info.rasterization.depth_bias_constant,
+                    .depthBiasClamp = p_info.rasterization.depth_bias_clamp,
+                    .depthBiasSlopeFactor = p_info.rasterization.depth_bias_slope,
+                    .lineWidth = p_info.rasterization.line_width
                 };
+
 
                 //! @note Multi-sampling
                 VkPipelineMultisampleStateCreateInfo multisampling_ci = {
