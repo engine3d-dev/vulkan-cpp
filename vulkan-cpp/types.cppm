@@ -412,7 +412,7 @@ export namespace vk {
             max_enum_format = VK_FORMAT_MAX_ENUM
         };
 
-        enum image_aspect_flags : uint32_t {
+        enum class image_aspect_flags : uint32_t {
             color_bit = VK_IMAGE_ASPECT_COLOR_BIT,
             depth_bit = VK_IMAGE_ASPECT_DEPTH_BIT,
             stencil_bit = VK_IMAGE_ASPECT_STENCIL_BIT,
@@ -731,10 +731,227 @@ export namespace vk {
             shader_read_only_optimal = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
         };
 
-        // enum class format : uint64_t {
-        //     rgb32_sfloat, // Represent R32G32B32_SFLOAT
-        //     rg32_sfloat,  // Represent R32G32_SFLOAT
-        // };
+        enum primitive_topology : uint8_t {
+            point_light = VK_PRIMITIVE_TOPOLOGY_POINT_LIST,
+            line_light = VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
+            line_strip = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP,
+            triangle_list = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+            triangle_strip = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,
+            triangle_fan = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN,
+            line_list_with_adjacent = VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY,
+            line_strip_with_adjacent = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY,
+            triangle_list_with_adjacent = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY,
+            triangle_strip_with_adjacent = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY,
+            patch_list = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST
+        };
+
+        enum polygon_mode : uint64_t {
+            fill = VK_POLYGON_MODE_FILL,
+            line = VK_POLYGON_MODE_LINE,
+            point = VK_POLYGON_MODE_POINT,
+            fill_rectangle_nv = VK_POLYGON_MODE_FILL_RECTANGLE_NV,
+        };
+
+        enum class cull_mode : uint32_t {
+            none = VK_CULL_MODE_NONE,
+            front_bit = VK_CULL_MODE_FRONT_BIT,
+            back_bit = VK_CULL_MODE_BACK_BIT,
+            front_and_back = VK_CULL_MODE_FRONT_AND_BACK,
+        };
+
+        enum class front_face : uint8_t {
+            counter_clockwise = VK_FRONT_FACE_COUNTER_CLOCKWISE,
+            clockwise = VK_FRONT_FACE_CLOCKWISE
+        };
+
+        enum class blend_factor : uint8_t {
+            zero=VK_BLEND_FACTOR_ZERO,
+            one=VK_BLEND_FACTOR_ONE,
+            src_color=VK_BLEND_FACTOR_SRC_COLOR,
+            one_minus_src_color=VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR,
+            dst_color = VK_BLEND_FACTOR_DST_COLOR,
+            one_minus_dst_color = VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR,
+            src_alpha = VK_BLEND_FACTOR_SRC_ALPHA,
+            one_minus_src_alpha = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+            dst_alpha = VK_BLEND_FACTOR_DST_ALPHA,
+            one_minus_dst_alpha = VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA,
+            constant_color = VK_BLEND_FACTOR_CONSTANT_COLOR,
+            constant_alpha = VK_BLEND_FACTOR_CONSTANT_ALPHA,
+            one_minus_constant_alpha = VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA,
+            src_alpha_saturate = VK_BLEND_FACTOR_SRC_ALPHA_SATURATE,
+            src1_color = VK_BLEND_FACTOR_SRC1_COLOR,
+            one_minus_src1_color = VK_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR,
+            src1_alpha = VK_BLEND_FACTOR_SRC1_ALPHA,
+            one_minus_src1_alpha = VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA
+        };
+
+        enum class blend_op : uint64_t {
+            add                    = VK_BLEND_OP_ADD,
+            subtract               = VK_BLEND_OP_SUBTRACT,
+            reverse_subtract       = VK_BLEND_OP_REVERSE_SUBTRACT,
+            min                    = VK_BLEND_OP_MIN,
+            max                    = VK_BLEND_OP_MAX,
+            zero_ext               = VK_BLEND_OP_ZERO_EXT,
+            src_ext                = VK_BLEND_OP_SRC_EXT,
+            dst_ext                = VK_BLEND_OP_DST_EXT,
+            src_over_ext           = VK_BLEND_OP_SRC_OVER_EXT,
+            dst_over_ext           = VK_BLEND_OP_DST_OVER_EXT,
+            src_in_ext             = VK_BLEND_OP_SRC_IN_EXT,
+            dst_in_ext             = VK_BLEND_OP_DST_IN_EXT,
+            src_out_ext            = VK_BLEND_OP_SRC_OUT_EXT,
+            dst_out_ext            = VK_BLEND_OP_DST_OUT_EXT,
+            src_atop_ext           = VK_BLEND_OP_SRC_ATOP_EXT,
+            dst_atop_ext           = VK_BLEND_OP_DST_ATOP_EXT,
+            xor_ext                = VK_BLEND_OP_XOR_EXT,
+            multiply_ext           = VK_BLEND_OP_MULTIPLY_EXT,
+            screen_ext             = VK_BLEND_OP_SCREEN_EXT,
+            overlay_ext            = VK_BLEND_OP_OVERLAY_EXT,
+            darken_ext             = VK_BLEND_OP_DARKEN_EXT,
+            lighten_ext            = VK_BLEND_OP_LIGHTEN_EXT,
+            colordodge_ext         = VK_BLEND_OP_COLORDODGE_EXT,
+            colorburn_ext          = VK_BLEND_OP_COLORBURN_EXT,
+            hardlight_ext          = VK_BLEND_OP_HARDLIGHT_EXT,
+            softlight_ext          = VK_BLEND_OP_SOFTLIGHT_EXT,
+            difference_ext         = VK_BLEND_OP_DIFFERENCE_EXT,
+            exclusion_ext          = VK_BLEND_OP_EXCLUSION_EXT,
+            invert_ext             = VK_BLEND_OP_INVERT_EXT,
+            invert_rgb_ext         = VK_BLEND_OP_INVERT_RGB_EXT,
+            lineardodge_ext        = VK_BLEND_OP_LINEARDODGE_EXT,
+            linearburn_ext         = VK_BLEND_OP_LINEARBURN_EXT,
+            vividlight_ext         = VK_BLEND_OP_VIVIDLIGHT_EXT,
+            linearlight_ext        = VK_BLEND_OP_LINEARLIGHT_EXT,
+            pinlight_ext           = VK_BLEND_OP_PINLIGHT_EXT,
+            hardmix_ext            = VK_BLEND_OP_HARDMIX_EXT,
+            hsl_hue_ext            = VK_BLEND_OP_HSL_HUE_EXT,
+            hsl_saturation_ext     = VK_BLEND_OP_HSL_SATURATION_EXT,
+            hsl_color_ext          = VK_BLEND_OP_HSL_COLOR_EXT,
+            hsl_luminosity_ext     = VK_BLEND_OP_HSL_LUMINOSITY_EXT,
+            plus_ext               = VK_BLEND_OP_PLUS_EXT,
+            plus_clamped_ext       = VK_BLEND_OP_PLUS_CLAMPED_EXT,
+            plus_clamped_alpha_ext = VK_BLEND_OP_PLUS_CLAMPED_ALPHA_EXT,
+            plus_darker_ext        = VK_BLEND_OP_PLUS_DARKER_EXT,
+            minus_ext              = VK_BLEND_OP_MINUS_EXT,
+            minus_clamped_ext      = VK_BLEND_OP_MINUS_CLAMPED_EXT,
+            contrast_ext           = VK_BLEND_OP_CONTRAST_EXT,
+            invert_ovg_ext         = VK_BLEND_OP_INVERT_OVG_EXT,
+            red_ext                = VK_BLEND_OP_RED_EXT,
+            green_ext              = VK_BLEND_OP_GREEN_EXT,
+            blue_ext               = VK_BLEND_OP_BLUE_EXT
+        };
+
+        // VkColorComponentFlags
+        enum color_component : uint32_t {
+            red = VK_COLOR_COMPONENT_R_BIT,
+            green = VK_COLOR_COMPONENT_G_BIT,
+            blue = VK_COLOR_COMPONENT_B_BIT,
+            alpha = VK_COLOR_COMPONENT_A_BIT
+        };
+
+        enum class logical_op : uint8_t {
+            clear           = VK_LOGIC_OP_CLEAR,
+            bit_and         = VK_LOGIC_OP_AND,
+            and_reverse     = VK_LOGIC_OP_AND_REVERSE,
+            copy            = VK_LOGIC_OP_COPY,
+            and_inverted    = VK_LOGIC_OP_AND_INVERTED,
+            no_op           = VK_LOGIC_OP_NO_OP,
+            bit_xor         = VK_LOGIC_OP_XOR,
+            bit_or          = VK_LOGIC_OP_OR,
+            nor             = VK_LOGIC_OP_NOR,
+            equivalent      = VK_LOGIC_OP_EQUIVALENT,
+            invert          = VK_LOGIC_OP_INVERT,
+            or_reverse      = VK_LOGIC_OP_OR_REVERSE,
+            copy_inverted   = VK_LOGIC_OP_COPY_INVERTED,
+            or_inverted     = VK_LOGIC_OP_OR_INVERTED,
+            nand            = VK_LOGIC_OP_NAND,
+            set             = VK_LOGIC_OP_SET
+        };
+
+        enum class compare_op : uint8_t {
+            never            = VK_COMPARE_OP_NEVER,
+            less             = VK_COMPARE_OP_LESS,
+            equal            = VK_COMPARE_OP_EQUAL,
+            less_or_equal    = VK_COMPARE_OP_LESS_OR_EQUAL,
+            greater          = VK_COMPARE_OP_GREATER,
+            not_equal        = VK_COMPARE_OP_NOT_EQUAL,
+            greater_or_equal = VK_COMPARE_OP_GREATER_OR_EQUAL,
+            always           = VK_COMPARE_OP_ALWAYS
+        };
+
+        // VkDynamicState 
+        enum class dynamic_state : uint64_t {
+            viewport                         = VK_DYNAMIC_STATE_VIEWPORT,
+            scissor                          = VK_DYNAMIC_STATE_SCISSOR,
+            line_width                       = VK_DYNAMIC_STATE_LINE_WIDTH,
+            depth_bias                       = VK_DYNAMIC_STATE_DEPTH_BIAS,
+            blend_constants                  = VK_DYNAMIC_STATE_BLEND_CONSTANTS,
+            depth_bounds                     = VK_DYNAMIC_STATE_DEPTH_BOUNDS,
+            stencil_compare_mask             = VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK,
+            stencil_write_mask               = VK_DYNAMIC_STATE_STENCIL_WRITE_MASK,
+            stencil_reference                = VK_DYNAMIC_STATE_STENCIL_REFERENCE,
+            cull_mode                        = VK_DYNAMIC_STATE_CULL_MODE,
+            front_face                       = VK_DYNAMIC_STATE_FRONT_FACE,
+            primitive_topology               = VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY,
+            viewport_with_count              = VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT,
+            scissor_with_count               = VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT,
+            vertex_input_binding_stride      = VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE,
+            depth_test_enable                = VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE,
+            depth_write_enable               = VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE,
+            depth_compare_op                 = VK_DYNAMIC_STATE_DEPTH_COMPARE_OP,
+            depth_bounds_test_enable         = VK_DYNAMIC_STATE_DEPTH_BOUNDS_TEST_ENABLE,
+            stencil_test_enable              = VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE,
+            stencil_op                       = VK_DYNAMIC_STATE_STENCIL_OP,
+            rasterizer_discard_enable        = VK_DYNAMIC_STATE_RASTERIZER_DISCARD_ENABLE,
+            depth_bias_enable                = VK_DYNAMIC_STATE_DEPTH_BIAS_ENABLE,
+            primitive_restart_enable         = VK_DYNAMIC_STATE_PRIMITIVE_RESTART_ENABLE,
+            line_stipple                     = VK_DYNAMIC_STATE_LINE_STIPPLE,
+            patch_control_points_ext         = VK_DYNAMIC_STATE_PATCH_CONTROL_POINTS_EXT,
+            logic_op_ext                     = VK_DYNAMIC_STATE_LOGIC_OP_EXT,
+            color_write_enable_ext           = VK_DYNAMIC_STATE_COLOR_WRITE_ENABLE_EXT,
+            depth_clamp_enable_ext           = VK_DYNAMIC_STATE_DEPTH_CLAMP_ENABLE_EXT,
+            polygon_mode_ext                 = VK_DYNAMIC_STATE_POLYGON_MODE_EXT,
+            rasterization_samples_ext        = VK_DYNAMIC_STATE_RASTERIZATION_SAMPLES_EXT,
+            sample_mask_ext                  = VK_DYNAMIC_STATE_SAMPLE_MASK_EXT,
+            alpha_to_coverage_enable_ext     = VK_DYNAMIC_STATE_ALPHA_TO_COVERAGE_ENABLE_EXT,
+            alpha_to_one_enable_ext          = VK_DYNAMIC_STATE_ALPHA_TO_ONE_ENABLE_EXT,
+            logic_op_enable_ext              = VK_DYNAMIC_STATE_LOGIC_OP_ENABLE_EXT,
+            color_blend_enable_ext           = VK_DYNAMIC_STATE_COLOR_BLEND_ENABLE_EXT,
+            color_blend_equation_ext         = VK_DYNAMIC_STATE_COLOR_BLEND_EQUATION_EXT,
+            color_write_mask_ext             = VK_DYNAMIC_STATE_COLOR_WRITE_MASK_EXT,
+            tessellation_domain_origin_ext   = VK_DYNAMIC_STATE_TESSELLATION_DOMAIN_ORIGIN_EXT,
+            rasterization_stream_ext         = VK_DYNAMIC_STATE_RASTERIZATION_STREAM_EXT,
+            conservative_raster_mode_ext     = VK_DYNAMIC_STATE_CONSERVATIVE_RASTERIZATION_MODE_EXT,
+            extra_primitive_overestim_ext    = VK_DYNAMIC_STATE_EXTRA_PRIMITIVE_OVERESTIMATION_SIZE_EXT,
+            depth_clip_enable_ext            = VK_DYNAMIC_STATE_DEPTH_CLIP_ENABLE_EXT,
+            sample_locations_enable_ext      = VK_DYNAMIC_STATE_SAMPLE_LOCATIONS_ENABLE_EXT,
+            color_blend_advanced_ext         = VK_DYNAMIC_STATE_COLOR_BLEND_ADVANCED_EXT,
+            provoking_vertex_mode_ext        = VK_DYNAMIC_STATE_PROVOKING_VERTEX_MODE_EXT,
+            line_rasterization_mode_ext      = VK_DYNAMIC_STATE_LINE_RASTERIZATION_MODE_EXT,
+            line_stipple_enable_ext          = VK_DYNAMIC_STATE_LINE_STIPPLE_ENABLE_EXT,
+            depth_clip_negative_one_ext      = VK_DYNAMIC_STATE_DEPTH_CLIP_NEGATIVE_ONE_TO_ONE_EXT,
+            viewport_w_scaling_nv            = VK_DYNAMIC_STATE_VIEWPORT_W_SCALING_NV,
+            discard_rectangle_ext            = VK_DYNAMIC_STATE_DISCARD_RECTANGLE_EXT,
+            discard_rectangle_enable_ext     = VK_DYNAMIC_STATE_DISCARD_RECTANGLE_ENABLE_EXT,
+            discard_rectangle_mode_ext       = VK_DYNAMIC_STATE_DISCARD_RECTANGLE_MODE_EXT,
+            sample_locations_ext             = VK_DYNAMIC_STATE_SAMPLE_LOCATIONS_EXT,
+            ray_tracing_stack_size_khr       = VK_DYNAMIC_STATE_RAY_TRACING_PIPELINE_STACK_SIZE_KHR,
+            shading_rate_palette_nv          = VK_DYNAMIC_STATE_VIEWPORT_SHADING_RATE_PALETTE_NV,
+            coarse_sample_order_nv           = VK_DYNAMIC_STATE_VIEWPORT_COARSE_SAMPLE_ORDER_NV,
+            exclusive_scissor_enable_nv      = VK_DYNAMIC_STATE_EXCLUSIVE_SCISSOR_ENABLE_NV,
+            exclusive_scissor_nv             = VK_DYNAMIC_STATE_EXCLUSIVE_SCISSOR_NV,
+            fragment_shading_rate_khr        = VK_DYNAMIC_STATE_FRAGMENT_SHADING_RATE_KHR,
+            vertex_input_ext                 = VK_DYNAMIC_STATE_VERTEX_INPUT_EXT,
+            viewport_swizzle_nv              = VK_DYNAMIC_STATE_VIEWPORT_SWIZZLE_NV,
+            coverage_to_color_enable_nv      = VK_DYNAMIC_STATE_COVERAGE_TO_COLOR_ENABLE_NV,
+            coverage_to_color_location_nv    = VK_DYNAMIC_STATE_COVERAGE_TO_COLOR_LOCATION_NV,
+            coverage_modulation_mode_nv      = VK_DYNAMIC_STATE_COVERAGE_MODULATION_MODE_NV,
+            coverage_modulation_table_en_nv  = VK_DYNAMIC_STATE_COVERAGE_MODULATION_TABLE_ENABLE_NV,
+            coverage_modulation_table_nv     = VK_DYNAMIC_STATE_COVERAGE_MODULATION_TABLE_NV,
+            shading_rate_image_enable_nv     = VK_DYNAMIC_STATE_SHADING_RATE_IMAGE_ENABLE_NV,
+            representative_frag_test_nv      = VK_DYNAMIC_STATE_REPRESENTATIVE_FRAGMENT_TEST_ENABLE_NV,
+            coverage_reduction_mode_nv       = VK_DYNAMIC_STATE_COVERAGE_REDUCTION_MODE_NV,
+            attachment_feedback_loop_ext     = VK_DYNAMIC_STATE_ATTACHMENT_FEEDBACK_LOOP_ENABLE_EXT,
+            depth_clamp_range_ext            = VK_DYNAMIC_STATE_DEPTH_CLAMP_RANGE_EXT
+        };
 
         enum buffer : uint8_t {
             uniform =

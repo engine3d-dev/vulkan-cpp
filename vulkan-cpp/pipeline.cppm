@@ -3,6 +3,7 @@ module;
 #include <vulkan/vulkan.h>
 #include <span>
 #include <vector>
+#include <cstdint>
 
 export module vk:pipeline;
 
@@ -11,6 +12,154 @@ export import :utilities;
 
 export namespace vk {
     inline namespace v1 {
+
+        // VkPipelineInputAssemblyStateCreateInfo input_assembly = {
+        //     .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+        //     .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+        //     .primitiveRestartEnable = VK_FALSE,
+        // };
+        struct input_assembly_state {
+            const primitive_topology topology=primitive_topology::triangle_list;
+            bool primitive_restart_enable=false;
+        };
+
+        // VkPipelineViewportStateCreateInfo viewport_state = {
+        //     .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+        //     .viewportCount = 1,
+        //     .scissorCount = 1,
+        // };
+        struct viewport_state {
+            uint8_t viewport_count= 1;
+            uint8_t scissor_count = 1;
+        };
+
+        // VkPipelineRasterizationStateCreateInfo rasterizer_ci = {
+        //     .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+        //     .depthClampEnable = false,
+        //     .rasterizerDiscardEnable =
+        //     false, // set to true make fragmenta that are beyond near/far
+        //             // planes clamped to them as opposed to discarding them
+        //     .polygonMode =
+        //     VK_POLYGON_MODE_FILL, // if set to true then geometry never passes
+        //                             // through rasterizer stage. This basically
+        //                             // disables output to frame_buffer
+        //     .cullMode = VK_CULL_MODE_NONE, // determines what culling to use.
+        //                                 // Can also be disabled, culls
+        //                                 // front-face, back-face or both
+        //     .frontFace =
+        //     VK_FRONT_FACE_COUNTER_CLOCKWISE, // specifies vertex order of
+        //                                     // fdaces considered front-face
+        //                                     // or clockwise/counter-clockwise
+        //     .depthBiasEnable = false,
+        //     .depthBiasConstantFactor = 0.0f, // Optional
+        //     .depthBiasClamp = 0.0f,          // Optional
+        //     .depthBiasSlopeFactor = 0.0f,    // Optional
+        //     .lineWidth = 1.f
+        // };
+        struct rasterization_state {
+            bool depth_clamp_enabled = false;
+            bool rasterizer_discard_enabled = false;
+            polygon_mode polygon_mode = polygon_mode::fill;
+            cull_mode cull_mode = cull_mode::none;
+            front_face front_face = front_face::counter_clockwise;
+            bool depth_bias_enabled=false;
+            float depth_bias_constant = 0.f;
+            float depth_bioas_slope = 0.f;
+            float line_width = 1.f;
+        };
+
+        // VkPipelineMultisampleStateCreateInfo multisampling_ci = {
+        //     .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+        //     .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
+        //     .sampleShadingEnable = false,
+        //     // .minSampleShading = 1.0f,          // Optional
+        //     // .pSampleMask = nullptr,            // Optional
+        //     // .alphaToCoverageEnable = VK_FALSE, // Optional
+        //     // .alphaToOneEnable = VK_FALSE,      // Optional
+        // };
+
+        struct multisample_state {
+            sample_bit rasterization_samples=sample_bit::count_1;
+            bool shading_enabled=false;
+            float min_shading = 1.f;                // optional
+            std::span<uint32_t> p_sample_masks={};   // optional
+            bool alpha_to_coverage_enable=false;    // optional
+            bool alpha_to_one_enable=false;         // optional
+        };
+
+        // VkPipelineColorBlendAttachmentState color_blend_attachment = {
+        //     .blendEnable = true,
+        //     .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA, // Enabled: alpha blending
+        //     .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, // Enabled: alpha blending
+        //     .colorBlendOp = VK_BLEND_OP_ADD,       // Enabled: alpha blending
+        //     .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE, // Enabled: alpha blending
+        //     .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,          // Enabled: alpha blending
+        //     .alphaBlendOp = VK_BLEND_OP_ADD, // Enabled: alpha blending
+        //     .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+        // };
+
+        struct color_blend_attachment_state {
+            bool blend_enabled = true;
+            blend_factor src_color_blend_factor=blend_factor::src_alpha;
+            blend_factor dst_color_blend_factor = blend_factor::one_minus_src_alpha;
+            blend_op color_blend_op = blend_op::add;
+            blend_factor src_alpha_blend_factor = blend_factor::one;
+            blend_factor dst_alpha_blend_factor = blend_factor::zero;
+            blend_op alpha_blend_op = blend_op::add;
+            uint32_t color_write_mask = color_component::red | color_component::green | color_component::blue | color_component::alpha;
+        };
+
+        // VkPipelineColorBlendStateCreateInfo color_blending_ci = {
+        //     .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+        //     .logicOpEnable = VK_FALSE,
+        //     .logicOp = VK_LOGIC_OP_COPY, // Optional
+        //     .attachmentCount = 1,
+        //     .pAttachments = &color_blend_attachment,
+        //     // these are optional
+        //     .blendConstants = { 0.f, 0.f, 0.f, 0.f } // optional
+        // };
+
+        struct color_blend_state {
+            bool logic_op_enable=false;
+            logical_op logical_op = logical_op::copy;
+            std::span<const color_blend_attachment_state> attachments;
+            std::span<float> blend_constants;
+        };
+
+        // VkPipelineDepthStencilStateCreateInfo pipeline_deth_stencil_state_ci = {
+        //     .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
+        //     .depthTestEnable = true,
+        //     .depthWriteEnable = true,
+        //     .depthCompareOp = VK_COMPARE_OP_LESS,
+        //     .depthBoundsTestEnable = false,
+        //     .stencilTestEnable = false,
+        // };
+        struct depth_stencil_state {
+            bool depth_test_enable = true;
+            bool depth_write_enable = true;
+            compare_op depth_compare_op = compare_op::less;
+            bool depth_bounds_test_enable = false;
+            bool stencil_test_enable = false;
+        };
+
+
+        //! @note Dynamic State
+        //! @note -- pipeline states needs to be baked into the pipeline state
+        // std::array<VkDynamicState, 2> dynamic_states = {
+        //     VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR
+        // };
+
+        // VkPipelineDynamicStateCreateInfo dynamic_state_ci = {
+        //     .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+        //     .dynamicStateCount = static_cast<uint32_t>(dynamic_states.size()),
+        //     .pDynamicStates = dynamic_states.data()
+        // };
+
+        // struct dynamic_state_configure {
+        //     std::span<dynamic_state> dynamic_states = {};
+        // };
+
+
         /**
          * @param renderpass is required for a VkPipeline to know up front
          * @param shader_modules is a std::span<VkShaderModule> of the loaded shader
@@ -24,6 +173,14 @@ export namespace vk {
             std::span<const VkVertexInputAttributeDescription> vertex_attributes;
             std::span<const VkVertexInputBindingDescription> vertex_bind_attributes;
             std::span<VkDescriptorSetLayout> descriptor_layouts;
+
+            input_assembly_state input_assembly;
+            viewport_state viewport;
+            rasterization_state rasterization;
+            multisample_state multisample;
+            color_blend_state color_blend;
+            depth_stencil_state depth_stencil;
+            std::span<dynamic_state> dynamic_states = {};
         };
 
         /**
@@ -106,11 +263,16 @@ export namespace vk {
                     .pVertexAttributeDescriptions = attributes.data()
                 };
 
+                // VkPipelineInputAssemblyStateCreateInfo input_assembly = {
+                //     .sType =
+                //     VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+                //     .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+                //     .primitiveRestartEnable = VK_FALSE,
+                // };
                 VkPipelineInputAssemblyStateCreateInfo input_assembly = {
-                    .sType =
-                    VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-                    .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-                    .primitiveRestartEnable = VK_FALSE,
+                    .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+                    .topology = static_cast<VkPrimitiveTopology>(p_info.input_assembly.topology),
+                    .primitiveRestartEnable = p_info.input_assembly.primitive_restart_enable,
                 };
 
                 VkPipelineViewportStateCreateInfo viewport_state = {
