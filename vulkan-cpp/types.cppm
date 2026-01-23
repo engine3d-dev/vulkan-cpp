@@ -492,16 +492,25 @@ export namespace vk {
             std::string description;
         };
 
-        //! @brief vk::physical defines what kinds of physical device
-        //! specification to use that is available based on your current
-        //! physical hardware specifications.
-        enum class physical : uint8_t {
-            integrated,
-            discrete,
-            virtualized,
-            cpu,
-            max_enum,
-            other
+        //! @brief Defines the enum types for a selection of gpu device
+        // types to select according to your hardware specs
+
+        /**
+         * @brief Defines the enum types for a selection of gpu device
+         * types to select according to your hardware specs
+         *
+         * @param other      - device does not match any other available types
+         * @param integrated - the device is typically embedded in or tightly coupled with the host.
+         * @param discrete   - the device is typically a separate processor connected to the host via an interlink.
+         * @param virtual    - the device is typically a virtual node in a virtualization environment.
+         * @param type_cpu   - the device is typically running on the same processor as the host
+         */
+        enum class physical_gpu : uint8_t {
+            other = VK_PHYSICAL_DEVICE_TYPE_OTHER,
+            integrated = VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU,
+            discrete = VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU,
+            virtualized = VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU,
+            type_cpu = VK_PHYSICAL_DEVICE_TYPE_CPU,
         };
 
         /**
@@ -511,7 +520,7 @@ export namespace vk {
          * created with
          */
         struct physical_enumeration {
-            physical device_type;
+            physical_gpu device_type;
         };
 
         struct surface_params {
