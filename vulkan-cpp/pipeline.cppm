@@ -14,49 +14,16 @@ export import :utilities;
 export namespace vk {
     inline namespace v1 {
 
-        // VkPipelineInputAssemblyStateCreateInfo input_assembly = {
-        //     .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-        //     .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-        //     .primitiveRestartEnable = VK_FALSE,
-        // };
         struct input_assembly_state {
             const enum primitive_topology topology = primitive_topology::triangle_list;
             bool primitive_restart_enable = false;
         };
 
-        // VkPipelineViewportStateCreateInfo viewport_state = {
-        //     .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
-        //     .viewportCount = 1,
-        //     .scissorCount = 1,
-        // };
         struct viewport_state {
             uint8_t viewport_count= 1;
             uint8_t scissor_count = 1;
         };
 
-        // VkPipelineRasterizationStateCreateInfo rasterizer_ci = {
-        //     .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-        //     .depthClampEnable = false,
-        //     .rasterizerDiscardEnable =
-        //     false, // set to true make fragmenta that are beyond near/far
-        //             // planes clamped to them as opposed to discarding them
-        //     .polygonMode =
-        //     VK_POLYGON_MODE_FILL, // if set to true then geometry never passes
-        //                             // through rasterizer stage. This basically
-        //                             // disables output to frame_buffer
-        //     .cullMode = VK_CULL_MODE_NONE, // determines what culling to use.
-        //                                 // Can also be disabled, culls
-        //                                 // front-face, back-face or both
-        //     .frontFace =
-        //     VK_FRONT_FACE_COUNTER_CLOCKWISE, // specifies vertex order of
-        //                                     // fdaces considered front-face
-        //                                     // or clockwise/counter-clockwise
-        //     .depthBiasEnable = false,
-        //     .depthBiasConstantFactor = 0.0f, // Optional
-        //     .depthBiasClamp = 0.0f,          // Optional
-        //     .depthBiasSlopeFactor = 0.0f,    // Optional
-        //     .lineWidth = 1.f
-        // };
         struct rasterization_state {
             bool depth_clamp_enabled = false;
             bool rasterizer_discard_enabled = false;
@@ -70,16 +37,6 @@ export namespace vk {
             float line_width = 1.f;
         };
 
-        // VkPipelineMultisampleStateCreateInfo multisampling_ci = {
-        //     .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-        //     .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
-        //     .sampleShadingEnable = false,
-        //     // .minSampleShading = 1.0f,          // Optional
-        //     // .pSampleMask = nullptr,            // Optional
-        //     // .alphaToCoverageEnable = VK_FALSE, // Optional
-        //     // .alphaToOneEnable = VK_FALSE,      // Optional
-        // };
-
         struct multisample_state {
             sample_bit rasterization_samples=sample_bit::count_1;
             bool shading_enabled=false;
@@ -88,17 +45,6 @@ export namespace vk {
             bool alpha_to_coverage_enable=false;    // optional
             bool alpha_to_one_enable=false;         // optional
         };
-
-        // VkPipelineColorBlendAttachmentState color_blend_attachment = {
-        //     .blendEnable = true,
-        //     .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA, // Enabled: alpha blending
-        //     .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, // Enabled: alpha blending
-        //     .colorBlendOp = VK_BLEND_OP_ADD,       // Enabled: alpha blending
-        //     .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE, // Enabled: alpha blending
-        //     .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,          // Enabled: alpha blending
-        //     .alphaBlendOp = VK_BLEND_OP_ADD, // Enabled: alpha blending
-        //     .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
-        // };
 
         struct color_blend_attachment_state {
             bool blend_enabled = true;
@@ -111,16 +57,6 @@ export namespace vk {
             uint32_t color_write_mask = color_component::red | color_component::green | color_component::blue | color_component::alpha;
         };
 
-        // VkPipelineColorBlendStateCreateInfo color_blending_ci = {
-        //     .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-        //     .logicOpEnable = VK_FALSE,
-        //     .logicOp = VK_LOGIC_OP_COPY, // Optional
-        //     .attachmentCount = 1,
-        //     .pAttachments = &color_blend_attachment,
-        //     // these are optional
-        //     .blendConstants = { 0.f, 0.f, 0.f, 0.f } // optional
-        // };
-
         struct color_blend_state {
             bool logic_op_enable=false;
             logical_op logical_op = logical_op::copy;
@@ -128,14 +64,6 @@ export namespace vk {
             std::span<float> blend_constants;
         };
 
-        // VkPipelineDepthStencilStateCreateInfo pipeline_deth_stencil_state_ci = {
-        //     .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-        //     .depthTestEnable = true,
-        //     .depthWriteEnable = true,
-        //     .depthCompareOp = VK_COMPARE_OP_LESS,
-        //     .depthBoundsTestEnable = false,
-        //     .stencilTestEnable = false,
-        // };
         struct depth_stencil_state {
             bool depth_test_enable = true;
             bool depth_write_enable = true;
@@ -143,23 +71,6 @@ export namespace vk {
             bool depth_bounds_test_enable = false;
             bool stencil_test_enable = false;
         };
-
-
-        //! @note Dynamic State
-        //! @note -- pipeline states needs to be baked into the pipeline state
-        // std::array<VkDynamicState, 2> dynamic_states = {
-        //     VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR
-        // };
-
-        // VkPipelineDynamicStateCreateInfo dynamic_state_ci = {
-        //     .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
-        //     .dynamicStateCount = static_cast<uint32_t>(dynamic_states.size()),
-        //     .pDynamicStates = dynamic_states.data()
-        // };
-
-        // struct dynamic_state_configure {
-        //     std::span<dynamic_state> dynamic_states = {};
-        // };
 
 
         /**
@@ -265,23 +176,11 @@ export namespace vk {
                     .pVertexAttributeDescriptions = attributes.data()
                 };
 
-                // VkPipelineInputAssemblyStateCreateInfo input_assembly = {
-                //     .sType =
-                //     VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-                //     .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-                //     .primitiveRestartEnable = VK_FALSE,
-                // };
                 VkPipelineInputAssemblyStateCreateInfo input_assembly = {
                     .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
                     .topology = static_cast<VkPrimitiveTopology>(p_info.input_assembly.topology),
                     .primitiveRestartEnable = p_info.input_assembly.primitive_restart_enable,
                 };
-
-                // VkPipelineViewportStateCreateInfo viewport_state = {
-                //     .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
-                //     .viewportCount = 1,
-                //     .scissorCount = 1,
-                // };
 
                 VkPipelineViewportStateCreateInfo viewport_state = {
                     .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
@@ -289,33 +188,8 @@ export namespace vk {
                     .scissorCount = p_info.viewport.scissor_count,
                 };
 
-
-                //! @note Rasterization
-                // Keep in mind: if lineWidth is zero, validation layers will occur
+                // if lineWidth is zero, validation layers will occur
                 // because cant be zero. Must be set to 1.0f
-                // VkPipelineRasterizationStateCreateInfo rasterizer_ci = {
-                //     .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-                //     .depthClampEnable = false,
-                //     .rasterizerDiscardEnable =
-                //     false, // set to true make fragmenta that are beyond near/far
-                //             // planes clamped to them as opposed to discarding them
-                //     .polygonMode =
-                //     VK_POLYGON_MODE_FILL, // if set to true then geometry never passes
-                //                             // through rasterizer stage. This basically
-                //                             // disables output to frame_buffer
-                //     .cullMode = VK_CULL_MODE_NONE, // determines what culling to use.
-                //                                 // Can also be disabled, culls
-                //                                 // front-face, back-face or both
-                //     .frontFace =
-                //     VK_FRONT_FACE_COUNTER_CLOCKWISE, // specifies vertex order of
-                //                                     // fdaces considered front-face
-                //                                     // or clockwise/counter-clockwise
-                //     .depthBiasEnable = false,
-                //     .depthBiasConstantFactor = 0.0f, // Optional
-                //     .depthBiasClamp = 0.0f,          // Optional
-                //     .depthBiasSlopeFactor = 0.0f,    // Optional
-                //     .lineWidth = 1.f
-                // };
                 VkPipelineRasterizationStateCreateInfo rasterizer_ci = {
                     .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
                     .depthClampEnable = p_info.rasterization.depth_clamp_enabled,
@@ -330,19 +204,6 @@ export namespace vk {
                     .lineWidth = p_info.rasterization.line_width
                 };
 
-
-                //! @note Multi-sampling
-                // p_info.rasterization
-                // VkPipelineMultisampleStateCreateInfo multisampling_ci = {
-                //     .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-                //     .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
-                //     .sampleShadingEnable = false,
-                //     // .minSampleShading = 1.0f,          // Optional
-                //     // .pSampleMask = nullptr,            // Optional
-                //     // .alphaToCoverageEnable = VK_FALSE, // Optional
-                //     // .alphaToOneEnable = VK_FALSE,      // Optional
-                // };
-
                 VkPipelineMultisampleStateCreateInfo multisampling_ci = {
                     .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
                     .rasterizationSamples = static_cast<VkSampleCountFlagBits>(p_info.multisample.rasterization_samples),
@@ -353,26 +214,6 @@ export namespace vk {
                     .alphaToOneEnable = p_info.multisample.alpha_to_one_enable,
                 };
 
-                // Color blending Attachment -- blending color when the fragment returns
-                // the color
-                // VkPipelineColorBlendAttachmentState color_blend_attachment = {
-                //     .blendEnable = true,
-                //     .srcColorBlendFactor =
-                //     VK_BLEND_FACTOR_SRC_ALPHA, // Enabled: alpha blending
-                //     .dstColorBlendFactor =
-                //     VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, // Enabled: alpha blending
-                //     .colorBlendOp = VK_BLEND_OP_ADD,       // Enabled: alpha blending
-                //     .srcAlphaBlendFactor =
-                //     VK_BLEND_FACTOR_ONE, // Enabled: alpha blending
-                //     .dstAlphaBlendFactor =
-                //     VK_BLEND_FACTOR_ZERO,          // Enabled: alpha blending
-                //     .alphaBlendOp = VK_BLEND_OP_ADD, // Enabled: alpha blending
-                //     .colorWriteMask =
-                //     VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                //     VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
-                // };
-
-                // std::array<VkPipelineColorBlendAttachmentState, p_info.color_blend.attachments.size()> color_blend_attachments{};
                 std::vector<VkPipelineColorBlendAttachmentState> color_blend_attachments(p_info.color_blend.attachments.size());
 
                 for(size_t i = 0; i < color_blend_attachments.size(); i++) {
@@ -388,20 +229,6 @@ export namespace vk {
                     };
                 }
 
-                // VkPipelineColorBlendStateCreateInfo color_blending_ci = {
-                //     .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-                //     .logicOpEnable = VK_FALSE,
-                //     .logicOp = VK_LOGIC_OP_COPY, // Optional
-                //     .attachmentCount = static_cast<uint32_t>(color_blend_attachments.size()),
-                //     .pAttachments = color_blend_attachments.data(),
-                //     // these are optional
-                //     .blendConstants = { 0.f, 0.f, 0.f, 0.f } // optional
-                // };
-
-                // Get the first 4 elements in the span as those are
-                // the data we are to set the .blendConstants to.
-
-                // As .blendConstants only take up to 4 elements in the array.
 
                 VkPipelineColorBlendStateCreateInfo color_blending_ci = {
                     .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
@@ -415,19 +242,13 @@ export namespace vk {
 
                 // Using ranges to load in the floats from an arbitrary array into this. Though it should only be valid to accept only 4 floats rather then N arbitrary floats in this buffer.
                 if(!p_info.color_blend.blend_constants.empty()) {
+                    // Get the first 4 elements in the span as those are
+                    // the data we are to set the .blendConstants to.
+                    // As .blendConstants only take up to 4 elements in the array.
                     std::span<float, 4> color_blend_constants = p_info.color_blend.blend_constants.first<4>();
                     std::ranges::copy(color_blend_constants.begin(), color_blend_constants.end(), color_blending_ci.blendConstants);
                 }
 
-                // Enable depth-stencil state
-                // VkPipelineDepthStencilStateCreateInfo pipeline_deth_stencil_state_ci = {
-                //     .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-                //     .depthTestEnable = true,
-                //     .depthWriteEnable = true,
-                //     .depthCompareOp = VK_COMPARE_OP_LESS,
-                //     .depthBoundsTestEnable = false,
-                //     .stencilTestEnable = false,
-                // };
                 VkPipelineDepthStencilStateCreateInfo pipeline_deth_stencil_state_ci = {
                     .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
                     .depthTestEnable = p_info.depth_stencil.depth_test_enable,
@@ -437,18 +258,14 @@ export namespace vk {
                     .stencilTestEnable = p_info.depth_stencil.stencil_test_enable,
                 };
 
-                //! @note Dynamic State
                 //! @note -- pipeline states needs to be baked into the pipeline state
-                // std::array<VkDynamicState, 2> dynamic_states = {
-                //     VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR
-                // };
-
                 VkPipelineDynamicStateCreateInfo dynamic_state_ci = {
                     .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
                     .dynamicStateCount = static_cast<uint32_t>(p_info.dynamic_states.size()),
                     .pDynamicStates = reinterpret_cast<const VkDynamicState*>(p_info.dynamic_states.data())
                 };
 
+                // Specifies layout of the uniforms (data resources) to be used by this specified graphics pipeline
                 VkPipelineLayoutCreateInfo pipeline_layout_ci = {
                     .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
                     .setLayoutCount = static_cast<uint32_t>(p_info.descriptor_layouts.size()),
@@ -470,7 +287,6 @@ export namespace vk {
                     .pViewportState = &viewport_state,
                     .pRasterizationState = &rasterizer_ci,
                     .pMultisampleState = &multisampling_ci,
-                    // .pDepthStencilState = nullptr, // Optional
                     .pDepthStencilState = &pipeline_deth_stencil_state_ci,
                     .pColorBlendState = &color_blending_ci,
                     .pDynamicState = &dynamic_state_ci,
