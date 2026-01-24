@@ -388,29 +388,29 @@ export namespace vk {
                     };
                 }
 
-                VkPipelineColorBlendAttachmentState color_blend_attachment = {
-                    .blendEnable = true,
-                    .srcColorBlendFactor =
-                    VK_BLEND_FACTOR_SRC_ALPHA, // Enabled: alpha blending
-                    .dstColorBlendFactor =
-                    VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, // Enabled: alpha blending
-                    .colorBlendOp = VK_BLEND_OP_ADD,       // Enabled: alpha blending
-                    .srcAlphaBlendFactor =
-                    VK_BLEND_FACTOR_ONE, // Enabled: alpha blending
-                    .dstAlphaBlendFactor =
-                    VK_BLEND_FACTOR_ZERO,          // Enabled: alpha blending
-                    .alphaBlendOp = VK_BLEND_OP_ADD, // Enabled: alpha blending
-                    .colorWriteMask =
-                    VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                    VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
-                };
+                // VkPipelineColorBlendAttachmentState color_blend_attachment = {
+                //     .blendEnable = true,
+                //     .srcColorBlendFactor =
+                //     VK_BLEND_FACTOR_SRC_ALPHA, // Enabled: alpha blending
+                //     .dstColorBlendFactor =
+                //     VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, // Enabled: alpha blending
+                //     .colorBlendOp = VK_BLEND_OP_ADD,       // Enabled: alpha blending
+                //     .srcAlphaBlendFactor =
+                //     VK_BLEND_FACTOR_ONE, // Enabled: alpha blending
+                //     .dstAlphaBlendFactor =
+                //     VK_BLEND_FACTOR_ZERO,          // Enabled: alpha blending
+                //     .alphaBlendOp = VK_BLEND_OP_ADD, // Enabled: alpha blending
+                //     .colorWriteMask =
+                //     VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                //     VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+                // };
 
                 VkPipelineColorBlendStateCreateInfo color_blending_ci = {
                     .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
                     .logicOpEnable = VK_FALSE,
                     .logicOp = VK_LOGIC_OP_COPY, // Optional
-                    .attachmentCount = 1,
-                    .pAttachments = &color_blend_attachment,
+                    .attachmentCount = static_cast<uint32_t>(color_blend_attachments.size()),
+                    .pAttachments = color_blend_attachments.data(),
                     // these are optional
                     .blendConstants = { 0.f, 0.f, 0.f, 0.f } // optional
                 };
