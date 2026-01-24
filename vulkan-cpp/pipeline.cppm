@@ -388,32 +388,36 @@ export namespace vk {
                     };
                 }
 
-                // VkPipelineColorBlendAttachmentState color_blend_attachment = {
-                //     .blendEnable = true,
-                //     .srcColorBlendFactor =
-                //     VK_BLEND_FACTOR_SRC_ALPHA, // Enabled: alpha blending
-                //     .dstColorBlendFactor =
-                //     VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, // Enabled: alpha blending
-                //     .colorBlendOp = VK_BLEND_OP_ADD,       // Enabled: alpha blending
-                //     .srcAlphaBlendFactor =
-                //     VK_BLEND_FACTOR_ONE, // Enabled: alpha blending
-                //     .dstAlphaBlendFactor =
-                //     VK_BLEND_FACTOR_ZERO,          // Enabled: alpha blending
-                //     .alphaBlendOp = VK_BLEND_OP_ADD, // Enabled: alpha blending
-                //     .colorWriteMask =
-                //     VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                //     VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+                // VkPipelineColorBlendStateCreateInfo color_blending_ci = {
+                //     .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+                //     .logicOpEnable = VK_FALSE,
+                //     .logicOp = VK_LOGIC_OP_COPY, // Optional
+                //     .attachmentCount = static_cast<uint32_t>(color_blend_attachments.size()),
+                //     .pAttachments = color_blend_attachments.data(),
+                //     // these are optional
+                //     .blendConstants = { 0.f, 0.f, 0.f, 0.f } // optional
                 // };
+
+                // Get the first 4 elements in the span as those are
+                // the data we are to set the .blendConstants to.
+
+                // As .blendConstants only take up to 4 elements in the array.
 
                 VkPipelineColorBlendStateCreateInfo color_blending_ci = {
                     .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-                    .logicOpEnable = VK_FALSE,
-                    .logicOp = VK_LOGIC_OP_COPY, // Optional
+                    .logicOpEnable = p_info.color_blend.logic_op_enable,
+                    .logicOp = static_cast<VkLogicOp>(p_info.color_blend.logical_op), // Optional
                     .attachmentCount = static_cast<uint32_t>(color_blend_attachments.size()),
                     .pAttachments = color_blend_attachments.data(),
                     // these are optional
-                    .blendConstants = { 0.f, 0.f, 0.f, 0.f } // optional
+                    .blendConstants =  {0.f, 0.f, 0.f, 0.f} // optional -- set to default in being 0.0f's
                 };
+
+                // Using ranges to load in the floats from an arbitrary array into this. Though it should only be valid to accept only 4 floats rather then N arbitrary floats in this buffer.
+                if(!p_info.color_blend.blend_constants.empty()) {
+                    std::span<float, 4> color_blend_constants = p_info.color_blend.blend_constants.first<4>();
+                    std::ranges::copy(color_blend_constants.begin(), color_blend_constants.end(), color_blending_ci.blendConstants);
+                }
 
                 // Enable depth-stencil state
                 VkPipelineDepthStencilStateCreateInfo pipeline_deth_stencil_state_ci = {
