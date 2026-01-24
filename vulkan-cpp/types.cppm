@@ -878,7 +878,7 @@ export namespace vk {
         };
 
         // VkDynamicState 
-        enum class dynamic_state : uint64_t {
+        enum class dynamic_state : uint32_t {
             viewport                         = VK_DYNAMIC_STATE_VIEWPORT,
             scissor                          = VK_DYNAMIC_STATE_SCISSOR,
             line_width                       = VK_DYNAMIC_STATE_LINE_WIDTH,

@@ -20,8 +20,8 @@ export namespace vk {
         //     .primitiveRestartEnable = VK_FALSE,
         // };
         struct input_assembly_state {
-            const primitive_topology topology=primitive_topology::triangle_list;
-            bool primitive_restart_enable=false;
+            const enum primitive_topology topology = primitive_topology::triangle_list;
+            bool primitive_restart_enable = false;
         };
 
         // VkPipelineViewportStateCreateInfo viewport_state = {
@@ -61,8 +61,8 @@ export namespace vk {
             bool depth_clamp_enabled = false;
             bool rasterizer_discard_enabled = false;
             polygon_mode polygon_mode = polygon_mode::fill;
-            cull_mode cull_mode = cull_mode::none;
-            front_face front_face = front_face::counter_clockwise;
+            enum cull_mode cull_mode = cull_mode::none;
+            enum front_face front_face = front_face::counter_clockwise;
             bool depth_bias_enabled=false;
             float depth_bias_constant = 0.f;
             float depth_bias_clamp = 0.f;
@@ -420,50 +420,41 @@ export namespace vk {
                 }
 
                 // Enable depth-stencil state
+                // VkPipelineDepthStencilStateCreateInfo pipeline_deth_stencil_state_ci = {
+                //     .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
+                //     .depthTestEnable = true,
+                //     .depthWriteEnable = true,
+                //     .depthCompareOp = VK_COMPARE_OP_LESS,
+                //     .depthBoundsTestEnable = false,
+                //     .stencilTestEnable = false,
+                // };
                 VkPipelineDepthStencilStateCreateInfo pipeline_deth_stencil_state_ci = {
                     .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-                    .depthTestEnable = true,
-                    .depthWriteEnable = true,
-                    .depthCompareOp = VK_COMPARE_OP_LESS,
-                    .depthBoundsTestEnable = false,
-                    .stencilTestEnable = false,
+                    .depthTestEnable = p_info.depth_stencil.depth_test_enable,
+                    .depthWriteEnable = p_info.depth_stencil.depth_write_enable,
+                    .depthCompareOp = static_cast<VkCompareOp>(p_info.depth_stencil.depth_compare_op),
+                    .depthBoundsTestEnable = p_info.depth_stencil.depth_bounds_test_enable,
+                    .stencilTestEnable = p_info.depth_stencil.stencil_test_enable,
                 };
 
                 //! @note Dynamic State
                 //! @note -- pipeline states needs to be baked into the pipeline state
-                std::array<VkDynamicState, 2> dynamic_states = {
-                    VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR
-                };
+                // std::array<VkDynamicState, 2> dynamic_states = {
+                //     VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR
+                // };
 
                 VkPipelineDynamicStateCreateInfo dynamic_state_ci = {
                     .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
-                    .dynamicStateCount = static_cast<uint32_t>(dynamic_states.size()),
-                    .pDynamicStates = dynamic_states.data()
+                    .dynamicStateCount = static_cast<uint32_t>(p_info.dynamic_states.size()),
+                    .pDynamicStates = reinterpret_cast<const VkDynamicState*>(p_info.dynamic_states.data())
                 };
 
                 VkPipelineLayoutCreateInfo pipeline_layout_ci = {
                     .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+                    .setLayoutCount = static_cast<uint32_t>(p_info.descriptor_layouts.size()),
+                    .pSetLayouts = p_info.descriptor_layouts.data(),
                 };
 
-                //! This is just to double-check that the descriptor set layout is
-                //! valid. If the descriptor set layout is invalid, then proceed but not
-                //! use the descriptor set layout
-                // if (m_descriptor_set_layout != nullptr) {
-                // if (!m_descriptor_layouts.empty()) {
-                //     pipeline_layout_ci.setLayoutCount =
-                //       static_cast<uint32_t>(m_descriptor_layouts.size());
-                //     pipeline_layout_ci.pSetLayouts = m_descriptor_layouts.data();
-                // }
-                // else {
-                //     // TODO: Uncomment this when adding back in descriptor sets
-                //     // For now I will disable it to get the base working and add
-                //     // descriptor sets back in afterwards
-                //     pipeline_layout_ci.setLayoutCount = 0;
-                //     pipeline_layout_ci.pSetLayouts = nullptr;
-                // }
-                pipeline_layout_ci.setLayoutCount =
-                static_cast<uint32_t>(p_info.descriptor_layouts.size());
-                pipeline_layout_ci.pSetLayouts = p_info.descriptor_layouts.data();
                 vk_check(vkCreatePipelineLayout(
                         m_device, &pipeline_layout_ci, nullptr, &m_pipeline_layout),
                         "vkCreatePipelineLayout");
