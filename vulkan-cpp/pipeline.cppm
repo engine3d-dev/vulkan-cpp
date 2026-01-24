@@ -331,14 +331,25 @@ export namespace vk {
 
 
                 //! @note Multi-sampling
+                // p_info.rasterization
+                // VkPipelineMultisampleStateCreateInfo multisampling_ci = {
+                //     .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+                //     .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
+                //     .sampleShadingEnable = false,
+                //     // .minSampleShading = 1.0f,          // Optional
+                //     // .pSampleMask = nullptr,            // Optional
+                //     // .alphaToCoverageEnable = VK_FALSE, // Optional
+                //     // .alphaToOneEnable = VK_FALSE,      // Optional
+                // };
+
                 VkPipelineMultisampleStateCreateInfo multisampling_ci = {
                     .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-                    .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
-                    .sampleShadingEnable = false,
-                    // .minSampleShading = 1.0f,          // Optional
-                    // .pSampleMask = nullptr,            // Optional
-                    // .alphaToCoverageEnable = VK_FALSE, // Optional
-                    // .alphaToOneEnable = VK_FALSE,      // Optional
+                    .rasterizationSamples = static_cast<VkSampleCountFlagBits>(p_info.multisample.rasterization_samples),
+                    .sampleShadingEnable = p_info.multisample.shading_enabled,
+                    .minSampleShading = p_info.multisample.min_shading,
+                    .pSampleMask = p_info.multisample.p_sample_masks.data(),
+                    .alphaToCoverageEnable = p_info.multisample.alpha_to_coverage_enable,
+                    .alphaToOneEnable = p_info.multisample.alpha_to_one_enable,
                 };
 
                 // Color blending Attachment -- blending color when the fragment returns
