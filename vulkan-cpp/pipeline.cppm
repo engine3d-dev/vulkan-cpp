@@ -169,7 +169,7 @@ export namespace vk {
          * @param descriptor_layouts are the VkDescriptorSetLayout that you pass up
          * front to the graphics pipeline if there are any provided
          */
-        struct pipeline_settings {
+        struct pipeline_params {
             VkRenderPass renderpass = nullptr;
             std::span<const shader_handle> shader_modules{};
             std::span<const VkVertexInputAttributeDescription> vertex_attributes;
@@ -198,7 +198,7 @@ export namespace vk {
              * @param p_device is logical device to create the graphics pipeline handles
              * @param p_info are the parameters for creating the pipelines with
             */
-            pipeline(const VkDevice& p_device, const pipeline_settings& p_info) : m_device(p_device) {
+            pipeline(const VkDevice& p_device, const pipeline_params& p_info) : m_device(p_device) {
                 create(p_info);
             }
 
@@ -210,7 +210,7 @@ export namespace vk {
              * 
              * ```C++
              * 
-             * vk::pipeline_settings pipeline_params = {
+             * vk::pipeline_params pipeline_params = {
              *      .renderpass = main_renderpass // pass in VkRenderPass handle
              *      .shader_modules = shader_resource.handles() // sets the std::span<const shader_module>
              *      .vertex_attributes = shader_resource.vertex_attributes(),
@@ -230,7 +230,7 @@ export namespace vk {
              * More info on vulkan's official 
              * [docs](https://docs.vulkan.org/refpages/latest/refpages/source/vkCreateGraphicsPipelines.html)
              */
-            void create(const pipeline_settings& p_info) {
+            void create(const pipeline_params& p_info) {
                 std::vector<VkPipelineShaderStageCreateInfo> pipeline_shader_stages(p_info.shader_modules.size());
 
                 uint32_t shader_src_index = 0;
@@ -497,7 +497,7 @@ export namespace vk {
              *
              * ```C++
              *
-             * vk::pipeline graphics_pipeline(logical_device, *assume pipeline_settings is specified*);
+             * vk::pipeline graphics_pipeline(logical_device, *assume pipeline_params is specified*);
              *
              * // bound to current command buffer
              * // in this example we set binding point to VK_PIPELINE_BIND_POINT_GRAPHICS
@@ -539,7 +539,7 @@ export namespace vk {
              *
              * ```C++
              * 
-             * vk::pipeline graphics_pipeline(logical_device, *assume pipeline_settings is specified*);
+             * vk::pipeline graphics_pipeline(logical_device, *assume pipeline_params is specified*);
              * 
              * m_pipeline.push_constants(current, shader_stage::vertex, 0, 1,
              * &global_data);
