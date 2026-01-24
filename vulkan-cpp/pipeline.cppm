@@ -4,6 +4,7 @@ module;
 #include <span>
 #include <vector>
 #include <cstdint>
+#include <array>
 
 export module vk:pipeline;
 
@@ -354,6 +355,39 @@ export namespace vk {
 
                 // Color blending Attachment -- blending color when the fragment returns
                 // the color
+                // VkPipelineColorBlendAttachmentState color_blend_attachment = {
+                //     .blendEnable = true,
+                //     .srcColorBlendFactor =
+                //     VK_BLEND_FACTOR_SRC_ALPHA, // Enabled: alpha blending
+                //     .dstColorBlendFactor =
+                //     VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, // Enabled: alpha blending
+                //     .colorBlendOp = VK_BLEND_OP_ADD,       // Enabled: alpha blending
+                //     .srcAlphaBlendFactor =
+                //     VK_BLEND_FACTOR_ONE, // Enabled: alpha blending
+                //     .dstAlphaBlendFactor =
+                //     VK_BLEND_FACTOR_ZERO,          // Enabled: alpha blending
+                //     .alphaBlendOp = VK_BLEND_OP_ADD, // Enabled: alpha blending
+                //     .colorWriteMask =
+                //     VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                //     VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+                // };
+
+                // std::array<VkPipelineColorBlendAttachmentState, p_info.color_blend.attachments.size()> color_blend_attachments{};
+                std::vector<VkPipelineColorBlendAttachmentState> color_blend_attachments(p_info.color_blend.attachments.size());
+
+                for(size_t i = 0; i < color_blend_attachments.size(); i++) {
+                    color_blend_attachments[i] = {
+                        .blendEnable = p_info.color_blend.attachments[i].blend_enabled,
+                        .srcColorBlendFactor = static_cast<VkBlendFactor>(p_info.color_blend.attachments[i].src_color_blend_factor),     // Enabled: alpha blending
+                        .dstColorBlendFactor = static_cast<VkBlendFactor>(p_info.color_blend.attachments[i].dst_color_blend_factor),     // Enabled: alpha blending
+                        .colorBlendOp = static_cast<VkBlendOp>(p_info.color_blend.attachments[i].color_blend_op),                        // Enabled: alpha blending
+                        .srcAlphaBlendFactor = static_cast<VkBlendFactor>(p_info.color_blend.attachments[i].src_alpha_blend_factor),     // Enabled: alpha blending
+                        .dstAlphaBlendFactor = static_cast<VkBlendFactor>(p_info.color_blend.attachments[i].dst_alpha_blend_factor),     // Enabled: alpha blending
+                        .alphaBlendOp = static_cast<VkBlendOp>(p_info.color_blend.attachments[i].alpha_blend_op),                        // Enabled: alpha blending
+                        .colorWriteMask = static_cast<VkColorComponentFlags>(p_info.color_blend.attachments[i].color_write_mask),
+                    };
+                }
+
                 VkPipelineColorBlendAttachmentState color_blend_attachment = {
                     .blendEnable = true,
                     .srcColorBlendFactor =
