@@ -92,6 +92,7 @@ export namespace vk {
             rasterization_state rasterization;
             multisample_state multisample;
             color_blend_state color_blend;
+            bool depth_stencil_enabled = false;
             depth_stencil_state depth_stencil;
             std::span<dynamic_state> dynamic_states = {};
         };
@@ -289,7 +290,7 @@ export namespace vk {
                     .pMultisampleState = &multisampling_ci,
                     .pDepthStencilState = &pipeline_deth_stencil_state_ci,
                     .pColorBlendState = &color_blending_ci,
-                    .pDynamicState = &dynamic_state_ci,
+                    .pDynamicState = (p_info.depth_stencil_enabled) ? &dynamic_state_ci : nullptr,
                     .layout = m_pipeline_layout,
                     .renderPass = p_info.renderpass,
                     .subpass = 0,
