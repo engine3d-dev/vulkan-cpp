@@ -15,7 +15,7 @@ export namespace vk {
     inline namespace v1 {
 
         struct input_assembly_state {
-            const enum primitive_topology topology = primitive_topology::triangle_list;
+            primitive_topology topology = primitive_topology::triangle_list;
             bool primitive_restart_enable = false;
         };
 
@@ -28,8 +28,8 @@ export namespace vk {
             bool depth_clamp_enabled = false;
             bool rasterizer_discard_enabled = false;
             polygon_mode polygon_mode = polygon_mode::fill;
-            enum cull_mode cull_mode = cull_mode::none;
-            enum front_face front_face = front_face::counter_clockwise;
+            cull_mode cull_mode = cull_mode::none;
+            front_face front_face = front_face::counter_clockwise;
             bool depth_bias_enabled=false;
             float depth_bias_constant = 0.f;
             float depth_bias_clamp = 0.f;
@@ -79,6 +79,14 @@ export namespace vk {
          * sources for the pipeline to correspond to
          * @param descriptor_layouts are the VkDescriptorSetLayout that you pass up
          * front to the graphics pipeline if there are any provided
+         * @param input_assembly is for configuring the state of the input assembly for the graphics pipeline
+         * @param viewport_state is for configuring state of the viewport for this graphics pipeline
+         * @param rasterization_state is to configure how the topology and rasterization with this graphics pipeline is configured.
+         * @param multisample is to configure the graphics pipeline's multisample state
+         * @param color_blend is configuring the graphics pipeline state for specifying color blending
+         * @param depth_stencil_enable is used to toggle to use this graphics pipeline with an additional of depth stencil or just the color blend.
+         * @param depth_stencil is for specifying to this graphics pipeline configuring the depth stencil configurations.
+         * @param dynamic_states is specifying the dynamic state of the viewport and scissor to configure for this graphics pipeline
          */
         struct pipeline_params {
             VkRenderPass renderpass = nullptr;
@@ -111,7 +119,7 @@ export namespace vk {
              * @param p_info are the parameters for creating the pipelines with
             */
             pipeline(const VkDevice& p_device, const pipeline_params& p_info) : m_device(p_device) {
-                create(p_info);
+                invalidate(p_info);
             }
 
             /**
@@ -142,7 +150,7 @@ export namespace vk {
              * More info on vulkan's official 
              * [docs](https://docs.vulkan.org/refpages/latest/refpages/source/vkCreateGraphicsPipelines.html)
              */
-            void create(const pipeline_params& p_info) {
+            void invalidate(const pipeline_params& p_info) {
                 std::vector<VkPipelineShaderStageCreateInfo> pipeline_shader_stages(p_info.shader_modules.size());
 
                 uint32_t shader_src_index = 0;
