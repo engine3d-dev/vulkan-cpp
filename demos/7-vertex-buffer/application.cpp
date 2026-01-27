@@ -129,7 +129,7 @@ main() {
     // TODO: Probably enforce the use of
     // vk::enumerate_physical_device({.device_type = vk::physical::discrete})
     vk::physical_enumeration enumerate_devices{
-        .device_type = vk::physical::discrete,
+        .device_type = vk::physical_gpu::discrete,
     };
     vk::physical_device physical_device(api_instance, enumerate_devices);
 
@@ -212,7 +212,7 @@ main() {
     uint32_t mip_levels = 1;
     for (uint32_t i = 0; i < swapchain_images.size(); i++) {
         vk::image_params swapchain_image_config = {
-            .extent = { swapchain_extent.width, swapchain_extent.width },
+            .extent = { .width=swapchain_extent.width, .height=swapchain_extent.width },
             .format = surface_properties.format.format,
             .aspect = vk::image_aspect_flags::color_bit,
             .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
@@ -225,7 +225,7 @@ main() {
           vk::sample_image(logical_device, images[i], swapchain_image_config);
 
         vk::image_params image_config = {
-            .extent = { swapchain_extent.width, swapchain_extent.width },
+            .extent = { .width=swapchain_extent.width, .height=swapchain_extent.width },
             .format = depth_format,
             .aspect = vk::image_aspect_flags::depth_bit,
             .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
@@ -344,11 +344,22 @@ main() {
         std::println("geometry resource is valid!");
     }
 
-    vk::pipeline_settings pipeline_configuration = {
+    std::array<vk::color_blend_attachment_state, 1> color_blend_attachments = {
+        vk::color_blend_attachment_state{},
+    };
+
+    std::array<vk::dynamic_state, 2> dynamic_states = { vk::dynamic_state::viewport, vk::dynamic_state::scissor };
+
+    vk::pipeline_params pipeline_configuration = {
         .renderpass = main_renderpass,
         .shader_modules = geometry_resource.handles(),
         .vertex_attributes = geometry_resource.vertex_attributes(),
-        .vertex_bind_attributes = geometry_resource.vertex_bind_attributes()
+        .vertex_bind_attributes = geometry_resource.vertex_bind_attributes(),
+        .color_blend = {
+            .attachments = color_blend_attachments,
+        },
+        .depth_stencil_enabled = true,
+        .dynamic_states = dynamic_states,
     };
     vk::pipeline main_graphics_pipeline(logical_device, pipeline_configuration);
 
@@ -359,16 +370,16 @@ main() {
 
     // Setting up vertex buffer
     std::array<vk::vertex_input, 2> vertices = { vk::vertex_input{
-                                                   { 1.f, 1.f, 0.f },
-                                                   { 1.f, 1.f, 1.f },
-                                                   { 1.f, 1.f, 1.f },
-                                                   { 1.f, 1.f },
+                                                   .position={ 1.f, 1.f, 0.f },
+                                                   .color={ 1.f, 1.f, 1.f },
+                                                   .normals={ 1.f, 1.f, 1.f },
+                                                   .uv={ 1.f, 1.f },
                                                  },
                                                  vk::vertex_input{
-                                                   { 1.f, 1.f, 0.f },
-                                                   { 1.f, 1.f, 1.f },
-                                                   { 1.f, 1.f, 1.f },
-                                                   { 1.f, 1.f },
+                                                   .position={ 1.f, 1.f, 0.f },
+                                                   .color={ 1.f, 1.f, 1.f },
+                                                   .normals={ 1.f, 1.f, 1.f },
+                                                   .uv={ 1.f, 1.f },
                                                  } };
     vk::vertex_params vertex_info = {
         .phsyical_memory_properties = physical_device.memory_properties(),
