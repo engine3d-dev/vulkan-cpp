@@ -1437,12 +1437,12 @@ export namespace vk {
                 .min = VK_FILTER_LINEAR,
                 .max = VK_FILTER_LINEAR,
             };
-            // VkSamplerAddressMode addrses_mode_u =
+            // VkSamplerAddressMode address_mode_u =
             // VK_SAMPLER_ADDRESS_MODE_REPEAT; VkSamplerAddressMode
             // addrses_mode_v = VK_SAMPLER_ADDRESS_MODE_REPEAT;
             // VkSamplerAddressMode addrses_mode_w =
             // VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            uint32_t addrses_mode_u = sampler_address_mode::repeat;
+            uint32_t address_mode_u = sampler_address_mode::repeat;
             uint32_t addrses_mode_v = sampler_address_mode::repeat;
             uint32_t addrses_mode_w = sampler_address_mode::repeat;
         };
