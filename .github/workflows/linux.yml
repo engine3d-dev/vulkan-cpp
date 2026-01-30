@@ -1,6 +1,11 @@
 name: Linux Platform Build
 
-on: [pull_request]
+# on: [pull_request]
+on:
+  pull_request:
+    paths-ignore:
+        - 'README.md'
+        - '.github'
 
 jobs:
     linux-build:
