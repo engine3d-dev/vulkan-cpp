@@ -143,7 +143,8 @@ main() {
 
     // setting up physical device
     // TODO: Probably enforce the use of
-    // vk::enumerate_physical_device({.device_type = vk::physical_gpu::discrete})
+    // vk::enumerate_physical_device({.device_type =
+    // vk::physical_gpu::discrete})
     vk::physical_enumeration enumerate_devices{
         .device_type = vk::physical_gpu::discrete,
     };
@@ -228,7 +229,7 @@ main() {
     uint32_t mip_levels = 1;
     for (uint32_t i = 0; i < swapchain_images.size(); i++) {
         vk::image_params swapchain_image_config = {
-            .extent = { swapchain_extent.width, swapchain_extent.width },
+            .extent = { .width=swapchain_extent.width, .height=swapchain_extent.height },
             .format = surface_properties.format.format,
             .aspect = vk::image_aspect_flags::color_bit,
             .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
@@ -242,7 +243,7 @@ main() {
 
         // Creating Depth Images for depth buffering
         vk::image_params image_config = {
-            .extent = { swapchain_extent.width, swapchain_extent.width },
+            .extent = { .width=swapchain_extent.width, .height=swapchain_extent.height },
             .format = depth_format,
             .aspect = vk::image_aspect_flags::depth_bit,
             .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
@@ -418,15 +419,19 @@ main() {
     std::array<VkDescriptorSetLayout, 1> layouts = { set0_resource.layout() };
 
     /*
-        This get_pipeline_configuration can work as an easy way for specfying the vulkan configurations as an ease of setting things up
+        This get_pipeline_configuration can work as an easy way for specfying
+       the vulkan configurations as an ease of setting things up
         // TODO: Probably provide a shorthand - which could work as this:
-        vk::pipeline_settings pipeline_configuration = vk::get_pipeline_configuration(main_renderpass, geometry_resource);
+        vk::pipeline_settings pipeline_configuration =
+       vk::get_pipeline_configuration(main_renderpass, geometry_resource);
     */
     std::array<vk::color_blend_attachment_state, 1> color_blend_attachments = {
         vk::color_blend_attachment_state{},
     };
 
-    std::array<vk::dynamic_state, 2> dynamic_states = { vk::dynamic_state::viewport, vk::dynamic_state::scissor };
+    std::array<vk::dynamic_state, 2> dynamic_states = {
+        vk::dynamic_state::viewport, vk::dynamic_state::scissor
+    };
     vk::pipeline_params pipeline_configuration = {
         .renderpass = main_renderpass,
         .shader_modules = geometry_resource.handles(),
@@ -448,22 +453,22 @@ main() {
 
     // Setting up vertex buffer
     std::array<vk::vertex_input, 4> vertices = {
-        vk::vertex_input{ .position={ -0.5f, -0.5f, 0.f },
-                          .color={ 1.0f, 0.0f, 0.0f },
-                          .normals={ 0.f, 0.f, 0.f },
-                          .uv={ 1.0f, 0.0f } },
-        vk::vertex_input{ .position={ 0.5f, -0.5f, 0.f },
-                          .color={ 0.0f, 1.0f, 0.0f },
-                          .normals={ 0.f, 0.f, 0.f },
-                          .uv={ 0.0f, 0.0f } },
-        vk::vertex_input{ .position={ 0.5f, 0.5f, 0.f },
-                          .color={ 0.0f, 0.0f, 1.0f },
-                          .normals={ 0.f, 0.f, 0.f },
-                          .uv={ 0.0f, 1.0f } },
-        vk::vertex_input{ .position={ -0.5f, 0.5f, 0.f },
-                          .color={ 1.0f, 1.0f, 1.0f },
-                          .normals={ 0.f, 0.f, 0.f },
-                          .uv={ 1.0f, 1.0f } }
+        vk::vertex_input{ .position = { -0.5f, -0.5f, 0.f },
+                          .color = { 1.0f, 0.0f, 0.0f },
+                          .normals = { 0.f, 0.f, 0.f },
+                          .uv = { 1.0f, 0.0f } },
+        vk::vertex_input{ .position = { 0.5f, -0.5f, 0.f },
+                          .color = { 0.0f, 1.0f, 0.0f },
+                          .normals = { 0.f, 0.f, 0.f },
+                          .uv = { 0.0f, 0.0f } },
+        vk::vertex_input{ .position = { 0.5f, 0.5f, 0.f },
+                          .color = { 0.0f, 0.0f, 1.0f },
+                          .normals = { 0.f, 0.f, 0.f },
+                          .uv = { 0.0f, 1.0f } },
+        vk::vertex_input{ .position = { -0.5f, 0.5f, 0.f },
+                          .color = { 1.0f, 1.0f, 1.0f },
+                          .normals = { 0.f, 0.f, 0.f },
+                          .uv = { 1.0f, 1.0f } }
     };
     vk::vertex_params vertex_info = {
         .phsyical_memory_properties = physical_device.memory_properties(),

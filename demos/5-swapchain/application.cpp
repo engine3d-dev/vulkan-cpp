@@ -195,7 +195,7 @@ main() {
     uint32_t mip_levels = 1;
     for (uint32_t i = 0; i < swapchain_images.size(); i++) {
         vk::image_params swapchain_image_config = {
-            .extent = { swapchain_extent.width, swapchain_extent.width },
+            .extent = { .width=swapchain_extent.width, .height=swapchain_extent.height },
             .format = surface_properties.format.format,
             .aspect = vk::image_aspect_flags::color_bit,
             .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
@@ -209,7 +209,7 @@ main() {
 
         // Creating Depth Images for depth buffering
         // vk::image_params depth_image_config = {
-        //     .extent = { swapchain_extent.width, swapchain_extent.width },
+        //     .extent = { .width=swapchain_extent.width, .height=swapchain_extent.height },
         //     .format = depth_format,
         //     .aspect = vk::image_aspect_flags::depth_bit,
         //     .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,

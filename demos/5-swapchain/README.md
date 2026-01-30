@@ -115,7 +115,7 @@ Iterate over the array of images and configure their parameters
 ```C++
 for(uint32_t i = 0; i < swapchain_images.size(); i++) {
     vk::image_params swapchain_image_params = {
-        .extent = { swapchain_extent.width, swapchain_extent.width },
+        .extent = { .width=swapchain_extent.width, .height=swapchain_extent.height },
         .format = surface_properties.format.format,
         .aspect = vk::image_aspect_flags::color_bit,
         .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
