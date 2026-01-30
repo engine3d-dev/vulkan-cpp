@@ -63,4 +63,4 @@ jobs:
       
       - name: Uploading vulkan-cpp to engine3d-conan remote repositories
         shell: pwsh
-        run: conan upload vulkan-cpp/4.0 --r=engine3d-conan --confirm
+        run: conan upload vulkan-cpp/5.0 --r=engine3d-conan --confirm
