@@ -99,7 +99,7 @@ export namespace vk {
         private:
             VkPhysicalDevice enumerate_physical_devices(
                 const VkInstance& p_instance,
-                const physical& p_physical_device_type) {
+                const physical_gpu& p_physical_device_type) {
                 uint32_t device_count = 0;
                 vkEnumeratePhysicalDevices(p_instance, &device_count, nullptr);
 

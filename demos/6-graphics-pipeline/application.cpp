@@ -126,10 +126,8 @@ main() {
     // std::span<vk::physical_device>
 
     // setting up physical device
-    // TODO: Probably enforce the use of
-    // vk::enumerate_physical_device({.device_type = vk::physical::discrete})
     vk::physical_enumeration enumerate_devices{
-        .device_type = vk::physical::discrete,
+        .device_type = vk::physical_gpu::discrete,
     };
     vk::physical_device physical_device(api_instance, enumerate_devices);
 
@@ -210,7 +208,8 @@ main() {
     // Setting up the images
     for (uint32_t i = 0; i < swapchain_images.size(); i++) {
         vk::image_params swapchain_image_config = {
-            .extent = { swapchain_extent.width, swapchain_extent.width },
+            .extent = { .width = swapchain_extent.width,
+                        .height = swapchain_extent.height },
             .format = surface_properties.format.format,
             .aspect = vk::image_aspect_flags::color_bit,
             .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
@@ -224,7 +223,8 @@ main() {
 
         // Creating Depth Images for depth buffering
         vk::image_params image_config = {
-            .extent = { swapchain_extent.width, swapchain_extent.width },
+            .extent = { .width = swapchain_extent.width,
+                        .height = swapchain_extent.height },
             .format = depth_format,
             .aspect = vk::image_aspect_flags::depth_bit,
             .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
@@ -340,17 +340,29 @@ main() {
     }
 
     /*
-            // This get_pipeline_configuration can work as an easy way for
-       specfying the vulkan configurations as an ease of setting things up
-            // TODO: Probably provide a shorthand - which could work as this:
-            vk::pipeline_settings pipeline_configuration =
+        This get_pipeline_configuration can work as an easy way for specfying
+       the vulkan configurations as an ease of setting things up
+        // TODO: Probably provide a shorthand - which could work as this:
+        vk::pipeline_settings pipeline_configuration =
        vk::get_pipeline_configuration(main_renderpass, geometry_resource);
     */
-    vk::pipeline_settings pipeline_configuration = {
+    std::array<vk::color_blend_attachment_state, 1> color_blend_attachments = {
+        vk::color_blend_attachment_state{},
+    };
+
+    std::array<vk::dynamic_state, 2> dynamic_states = {
+        vk::dynamic_state::viewport, vk::dynamic_state::scissor
+    };
+    vk::pipeline_params pipeline_configuration = {
         .renderpass = main_renderpass,
         .shader_modules = geometry_resource.handles(),
         .vertex_attributes = geometry_resource.vertex_attributes(),
-        .vertex_bind_attributes = geometry_resource.vertex_bind_attributes()
+        .vertex_bind_attributes = geometry_resource.vertex_bind_attributes(),
+        .color_blend = {
+            .attachments = color_blend_attachments,
+        },
+        .depth_stencil_enabled = true,
+        .dynamic_states = dynamic_states,
     };
     vk::pipeline main_graphics_pipeline(logical_device, pipeline_configuration);
 
