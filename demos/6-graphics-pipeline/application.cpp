@@ -126,8 +126,6 @@ main() {
     // std::span<vk::physical_device>
 
     // setting up physical device
-    // TODO: Probably enforce the use of
-    // vk::enumerate_physical_device({.device_type = vk::physical::discrete})
     vk::physical_enumeration enumerate_devices{
         .device_type = vk::physical_gpu::discrete,
     };

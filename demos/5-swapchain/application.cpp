@@ -127,7 +127,7 @@ main() {
 
     // setting up physical device
     vk::physical_enumeration enumerate_devices{
-        .device_type = vk::physical::discrete,
+        .device_type = vk::physical_gpu::discrete,
     };
     vk::physical_device physical_device(api_instance, enumerate_devices);
 

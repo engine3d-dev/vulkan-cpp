@@ -19,7 +19,7 @@ It is required before you select a vulkan physical device, that you must HAVE a 
 There are different types of physical devices:
 
 * `vk::physical::integrated`    - the device is one embedded or tightly coupled with the host.
-* `vk::physical::discrete`      - the device is typically a separated processor connected to the host via hyperlink
+* `vk::physical_gpu::discrete`      - the device is typically a separated processor connected to the host via hyperlink
 * `vk::physical::virtualized`   - the device typically is a virtual node in a virtualization environment
 * `vk::physical::cpu`           - device is typically running on the same processor as the host
 * `vk::physical::other`         - device is typically running on same procesors as the host
@@ -35,7 +35,7 @@ vk::instance api_instance(/* set params */);
 
 // select a physical device type
 vk::physical_params params = {
-    .device_type = vk::physical::discrete
+    .device_type = vk::physical_gpu::discrete
 };
 
 vk::physical_device selected_device(api_instance, params);
