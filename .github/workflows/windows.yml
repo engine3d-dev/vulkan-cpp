@@ -1,11 +1,6 @@
 name: Windows Platform Build
 
-# on: [pull_request, workflow_dispatch]
-on:
-  pull_request:
-    paths-ignore:
-        - 'README.md'
-        - '.github/workflows/**'
+on: [pull_request, workflow_dispatch]
 
 jobs:
   windows-build:
