@@ -299,7 +299,8 @@ main() {
 
     // setting up physical device
     // TODO: Probably enforce the use of
-    // vk::enumerate_physical_device({.device_type = vk::physical_gpu::discrete})
+    // vk::enumerate_physical_device({.device_type =
+    // vk::physical_gpu::discrete})
     vk::physical_enumeration enumerate_devices{
         .device_type = vk::physical_gpu::discrete,
     };
@@ -384,7 +385,8 @@ main() {
     uint32_t mip_levels = 1;
     for (uint32_t i = 0; i < swapchain_images.size(); i++) {
         vk::image_params swapchain_image_config = {
-            .extent = { .width=swapchain_extent.width, .height=swapchain_extent.height },
+            .extent = { .width = swapchain_extent.width,
+                        .height = swapchain_extent.height },
             .format = surface_properties.format.format,
             .aspect = vk::image_aspect_flags::color_bit,
             .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
@@ -398,7 +400,8 @@ main() {
 
         // Creating Images for depth buffering
         vk::image_params image_config = {
-            .extent = { .width=swapchain_extent.width, .height=swapchain_extent.height },
+            .extent = { .width = swapchain_extent.width,
+                        .height = swapchain_extent.height },
             .format = depth_format,
             .aspect = vk::image_aspect_flags::depth_bit,
             .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
@@ -588,7 +591,9 @@ main() {
         vk::color_blend_attachment_state{},
     };
 
-    std::array<vk::dynamic_state, 2> dynamic_states = { vk::dynamic_state::viewport, vk::dynamic_state::scissor };
+    std::array<vk::dynamic_state, 2> dynamic_states = {
+        vk::dynamic_state::viewport, vk::dynamic_state::scissor
+    };
     vk::pipeline_params pipeline_configuration = {
         .renderpass = main_renderpass,
         .shader_modules = geometry_resource.handles(),

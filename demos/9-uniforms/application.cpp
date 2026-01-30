@@ -233,7 +233,8 @@ main() {
         // swapchain_images[i] =
         //   create_image2d_view(logical_device, enumerate_image_properties);
         vk::image_params swapchain_image_config = {
-            .extent = { .width=swapchain_extent.width, .height=swapchain_extent.height },
+            .extent = { .width = swapchain_extent.width,
+                        .height = swapchain_extent.height },
             .format = surface_properties.format.format,
             .aspect = vk::image_aspect_flags::color_bit,
             .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
@@ -266,7 +267,8 @@ main() {
         // swapchain_depth_images[i] = create_depth_image2d(
         //   logical_device, depth_image_enumeration, memory_type_index);
         vk::image_params image_config = {
-            .extent = { .width=swapchain_extent.width, .height=swapchain_extent.height },
+            .extent = { .width = swapchain_extent.width,
+                        .height = swapchain_extent.height },
             .format = depth_format,
             .aspect = vk::image_aspect_flags::depth_bit,
             .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
