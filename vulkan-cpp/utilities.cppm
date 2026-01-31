@@ -222,7 +222,9 @@ export namespace vk {
             }
         }
 
-        enumerate_surface_properties.format = formats[0];
+        if(enumerate_surface_properties.format.format == VK_FORMAT_UNDEFINED) {
+            enumerate_surface_properties.format = formats[0];
+        }
 
         return enumerate_surface_properties;
     }
