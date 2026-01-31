@@ -697,7 +697,6 @@ export namespace vk {
          * restricted to authorized operations
          */
         struct command_params {
-
             command_levels levels;
             uint32_t queue_index = -1;
             // VkCommandPoolCreateFlagBits pool_flag;
@@ -756,14 +755,14 @@ export namespace vk {
             patch_list = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST
         };
 
-        enum polygon_mode : uint64_t {
+        enum polygon_mode : uint32_t {
             fill = VK_POLYGON_MODE_FILL,
             line = VK_POLYGON_MODE_LINE,
             point = VK_POLYGON_MODE_POINT,
             fill_rectangle_nv = VK_POLYGON_MODE_FILL_RECTANGLE_NV,
         };
 
-        enum class cull_mode : uint32_t {
+        enum class cull_mode : uint8_t {
             none = VK_CULL_MODE_NONE,
             front_bit = VK_CULL_MODE_FRONT_BIT,
             back_bit = VK_CULL_MODE_BACK_BIT,
@@ -796,7 +795,7 @@ export namespace vk {
             one_minus_src1_alpha = VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA
         };
 
-        enum class blend_op : uint64_t {
+        enum class blend_op : uint32_t {
             add                    = VK_BLEND_OP_ADD,
             subtract               = VK_BLEND_OP_SUBTRACT,
             reverse_subtract       = VK_BLEND_OP_REVERSE_SUBTRACT,
@@ -851,7 +850,7 @@ export namespace vk {
         };
 
         // VkColorComponentFlags
-        enum color_component : uint32_t {
+        enum color_component : uint8_t {
             red = VK_COLOR_COMPONENT_R_BIT,
             green = VK_COLOR_COMPONENT_G_BIT,
             blue = VK_COLOR_COMPONENT_B_BIT,
@@ -1129,7 +1128,7 @@ export namespace vk {
         };
 
         //! @brief Equivalent to VkPipelineBindPoint
-        enum class pipeline_bind_point : uint64_t {
+        enum class pipeline_bind_point : uint32_t {
             graphics =
               VK_PIPELINE_BIND_POINT_GRAPHICS, // VK_PIPELINE_BIND_POINT_GRAPHICS
             compute =
