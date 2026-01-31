@@ -64,6 +64,10 @@ export namespace vk {
                 static_cast<uint32_t>(p_config.extensions.size());
                 instance_ci.ppEnabledExtensionNames = p_config.extensions.data();
 
+#if defined(__APPLE__)
+                instance_ci.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+#endif
+
                 // Only run validation layers if we are running vulkan-cpp in debug mode
         #if _DEBUG
                 // Setting up validation layers

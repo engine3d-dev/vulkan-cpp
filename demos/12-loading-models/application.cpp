@@ -248,6 +248,8 @@ std::vector<const char*> get_instance_extensions() {
         extension_names.emplace_back(required_extensions[i]);
     }
 
+    extension_names.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+
 #if defined(__APPLE__)
     extension_names.emplace_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
     extension_names.emplace_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
@@ -285,8 +287,7 @@ main() {
     };
 
     // setting up extensions
-    std::vector<const char*> global_extensions =
-      initialize_instance_extensions();
+    std::vector<const char*> global_extensions = get_instance_extensions();
 
     vk::debug_message_utility debug_callback_info = {
         // .severity essentially takes in vk::message::verbose,
@@ -323,6 +324,12 @@ main() {
     vk::physical_enumeration enumerate_devices{
         .device_type = vk::physical_gpu::discrete,
     };
+
+    // Specifically set for the mac m1 series platform
+#if defined(__APPLE__)
+    enumerate_devices = vk::physical_gpu::integrated;
+#endif
+
     vk::physical_device physical_device(api_instance, enumerate_devices);
 
     // selecting depth format
