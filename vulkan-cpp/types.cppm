@@ -472,14 +472,6 @@ export namespace vk {
             std::span<const char*> extensions;
         };
 
-        struct swapchain_params {
-            uint32_t width;
-            uint32_t height;
-            uint32_t present_index = -1;
-
-            VkFormat depth; // depth format
-        };
-
         struct filter_range {
             VkFilter min;
             VkFilter max;
@@ -659,6 +651,24 @@ export namespace vk {
             max_enum_bit =
               VK_COMMAND_POOL_CREATE_FLAG_BITS_MAX_ENUM, // represents
                                                          // VK_COMMAND_POOL_CREATE_FLAG_BITS_MAX_ENUM
+        };
+
+        enum present_mode : uint32_t {
+            immediate = VK_PRESENT_MODE_IMMEDIATE_KHR,
+            mailbox_khr = VK_PRESENT_MODE_MAILBOX_KHR,
+            fifo_khr = VK_PRESENT_MODE_FIFO_KHR,
+            fifo_relaxed_khr = VK_PRESENT_MODE_FIFO_RELAXED_KHR,
+            shared_demand_refresh_khr = VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR,
+            shared_continuous_refresh_khr = VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR
+        };
+
+        struct swapchain_params {
+            uint32_t width;
+            uint32_t height;
+            uint32_t present_index = -1;
+
+            uint64_t depth; // depth format
+            uint32_t present_mode = present_mode::fifo_khr;
         };
 
         /**

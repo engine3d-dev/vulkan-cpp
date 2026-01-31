@@ -43,7 +43,7 @@ export namespace vk {
                     .pQueueFamilyIndices = &p_settings.present_index,
                     .preTransform = m_surface_params.capabilities.currentTransform,
                     .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
-                    .presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR,
+                    .presentMode = static_cast<VkPresentModeKHR>(p_settings.present_mode),
                     .clipped = true
                 };
 
