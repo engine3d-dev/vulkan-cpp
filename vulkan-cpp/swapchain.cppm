@@ -44,7 +44,7 @@ export namespace vk {
                     .preTransform = m_surface_params.capabilities.currentTransform,
                     .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
                     .presentMode = static_cast<VkPresentModeKHR>(p_settings.present_mode),
-                    .clipped = true
+                    .clipped = p_settings.clipped,
                 };
 
                 vk_check(vkCreateSwapchainKHR(

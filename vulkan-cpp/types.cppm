@@ -669,6 +669,7 @@ export namespace vk {
 
             uint64_t depth; // depth format
             uint32_t present_mode = present_mode::fifo_khr;
+            bool clipped = true;
         };
 
         /**
