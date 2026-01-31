@@ -327,7 +327,7 @@ main() {
 
     // Specifically set for the mac m1 series platform
 #if defined(__APPLE__)
-    enumerate_devices = vk::physical_gpu::integrated;
+    enumerate_devices.device_type = vk::physical_gpu::integrated;
 #endif
 
     vk::physical_device physical_device(api_instance, enumerate_devices);
