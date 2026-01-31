@@ -69,7 +69,7 @@ export namespace vk {
 #endif
 
                 // Only run validation layers if we are running vulkan-cpp in debug mode
-        #if _DEBUG
+#if !defined(NDEBUG) || defined(_DEBUG) || defined(DEBUG)
                 // Setting up validation layers
                 instance_ci.enabledLayerCount =
                 static_cast<uint32_t>(p_config.validations.size());
@@ -85,17 +85,17 @@ export namespace vk {
                 // This is to invoke the vulkan debug utils if it is a valid callback
                 // To ensure that we are not using an invalid debug callback
                 if (p_debug_message_utils.callback != nullptr) {
-                    instance_ci.pNext =
-                    (VkDebugUtilsMessengerCreateInfoEXT*)&debug_create_info;
+                    // instance_ci.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debug_create_info;
+                    instance_ci.pNext = reinterpret_cast<VkDebugUtilsMessengerCreateInfoEXT*>(&debug_create_info);
                 }
                 else {
                     instance_ci.pNext = nullptr;
                 }
-        #else
+#else
                 instance_ci.enabledLayerCount = 0;
                 instance_ci.ppEnabledLayerNames = nullptr;
                 instance_ci.pNext = nullptr;
-        #endif
+#endif
                 vk_check(vkCreateInstance(&instance_ci, nullptr, &m_instance),
                         "vkCreateInstance");
                 
