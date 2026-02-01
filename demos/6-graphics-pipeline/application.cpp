@@ -78,12 +78,8 @@ main() {
       get_instance_extensions();
 
     vk::debug_message_utility debug_callback_info = {
-        // .severity essentially takes in vk::message::verbose,
-        // vk::message::warning, vk::message::error
         .severity =
           vk::message::verbose | vk::message::warning | vk::message::error,
-        // .message_type essentially takes in vk::debug. Like:
-        // vk::debug::general, vk::debug::validation, vk::debug::performance
         .message_type =
           vk::debug::general | vk::debug::validation | vk::debug::performance,
         .callback = debug_callback
@@ -105,10 +101,6 @@ main() {
         std::println("\napi_instance alive and initiated!!!");
     }
 
-    // TODO: Implement this as a way to setup physical devices
-    // vk::enumerate_physical_devices(vk::instance) -> returns
-    // std::span<vk::physical_device>
-
     // setting up physical device
     vk::physical_enumeration enumerate_devices{
         .device_type = vk::physical_gpu::integrated,
@@ -117,9 +109,6 @@ main() {
 
     // selecting depth format
     std::array<vk::format, 3> format_support = {
-        // VK_FORMAT_D32_SFLOAT,
-        // VK_FORMAT_D32_SFLOAT_S8_UINT,
-        // VK_FORMAT_D24_UNORM_S8_UINT,
         vk::format::d32_sfloat,
         vk::format::d32_sfloat_s8_uint,
         vk::format::d24_unorm_s8_uint
@@ -175,9 +164,6 @@ main() {
                                  surface_properties);
 
     // querying swapchain images
-    // TODO: Make the images and framebuffers contained within the vk::swapchain
-    // Considering if you have two display they will prob have their own set of
-    // images to display to the two separate screens
     uint32_t image_count = 0;
     vkGetSwapchainImagesKHR(logical_device,
                             main_swapchain,
@@ -329,13 +315,7 @@ main() {
         std::println("geometry resource is valid!");
     }
 
-    /*
-        This get_pipeline_configuration can work as an easy way for specfying
-       the vulkan configurations as an ease of setting things up
-        // TODO: Probably provide a shorthand - which could work as this:
-        vk::pipeline_settings pipeline_configuration =
-       vk::get_pipeline_configuration(main_renderpass, geometry_resource);
-    */
+    // Setting up descriptor sets for graphics pipeline
     std::array<vk::color_blend_attachment_state, 1> color_blend_attachments = {
         vk::color_blend_attachment_state{},
     };
@@ -396,9 +376,6 @@ main() {
         presentation_queue.present_frame(current_frame);
     }
 
-    // TODO: Make the cleanup much saner. For now we are cleaning it up like
-    // Potentially bring back submit_resource_free([this](){ .. free stuff ..
-    // }); (???)
     // this to ensure they are cleaned up in the proper order
     logical_device.wait();
     main_swapchain.destroy();
@@ -430,13 +407,3 @@ main() {
     api_instance.destroy();
     return 0;
 }
-
-// template<typename T>
-// static size_t destroy_function(const void* p_child_object) {
-//     if(p_child_object != nullptr) {
-//         const auto* obj = static_cast<const T*>(p_child_object);
-//         obj->~T();
-//     }
-
-//     return sizeof(T);
-// }

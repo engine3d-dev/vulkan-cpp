@@ -23,7 +23,6 @@ import vk;
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 
-// loading tinyobjloader library here
 #include <tiny_obj_loader.h>
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
@@ -62,9 +61,7 @@ namespace std {
     };
 }
 
-// This is how we are going to load a .obj model for this demo
-// Example of how you might want to have your own classes for loading
-// geometry-meshes
+// Part of this demo for loading a 3D .obj model
 class obj_model {
 public:
     obj_model() = default;
@@ -192,51 +189,6 @@ private:
     vk::vertex_buffer m_vertex_buffer{};
     vk::index_buffer m_index_buffer{};
 };
-
-VkDeviceSize
-get_alignment(VkDeviceSize p_original_size, VkDeviceSize p_min_ubo_alignment) {
-    // Round up originalSize to the nearest multiple of min_ubo_alignment
-    VkDeviceSize aligned_size =
-      (p_original_size + p_min_ubo_alignment - 1) & ~(p_min_ubo_alignment - 1);
-    return aligned_size;
-}
-
-
-// std::vector<const char*>
-// initialize_instance_extensions() {
-//     std::vector<const char*> extension_names;
-
-//     extension_names.emplace_back(VK_KHR_SURFACE_EXTENSION_NAME);
-
-//     extension_names.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-
-//     // An additional surface extension needs to be loaded. This extension is
-//     // platform-specific so needs to be selected based on the platform the
-//     // example is going to be deployed to. Preprocessor directives are used
-//     // here to select the correct platform.
-// #ifdef VK_USE_PLATFORM_WIN32_KHR
-//     extension_names.emplace_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-// #endif
-// #ifdef VK_USE_PLATFORM_XLIB_KHR
-//     extensionNames.emplace_back(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
-// #endif
-// #ifdef VK_USE_PLATFORM_XCB_KHR
-//     extensionNames.emplace_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
-// #endif
-// #ifdef VK_USE_PLATFORM_ANDROID_KHR
-//     extensionNames.emplace_back(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME);
-// #endif
-// #ifdef VK_USE_PLATFORM_WAYLAND_KHR
-//     extensionNames.emplace_back(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
-// #endif
-// #ifdef VK_USE_PLATFORM_MACOS_MVK
-//     extensionNames.emplace_back(VK_MVK_MACOS_SURFACE_EXTENSION_NAME);
-// #endif
-// #ifdef USE_PLATFORM_NULLWS
-//     extensionNames.emplace_back(VK_KHR_DISPLAY_EXTENSION_NAME);
-// #endif
-//     return extension_names;
-// }
 
 std::vector<const char*> get_instance_extensions() {
     std::vector<const char*> extension_names;
@@ -529,7 +481,7 @@ main() {
     // gets set with the renderpass
     std::array<float, 4> color = { 0.f, 0.5f, 0.5f, 1.f };
 
-    std::println("Start implementing graphics pipeline!!!");
+    // std::println("Start implementing graphics pipeline!!!");
 
     // Now creating a vulkan graphics pipeline for the shader loading
     std::array<vk::shader_source, 2> shader_sources = {
@@ -583,9 +535,9 @@ main() {
     vk::shader_resource geometry_resource(logical_device, shader_info);
     geometry_resource.vertex_attributes(attributes);
 
-    if (geometry_resource.is_valid()) {
-        std::println("geometry resource is valid!");
-    }
+    // if (geometry_resource.is_valid()) {
+    //     std::println("geometry resource is valid!");
+    // }
 
     // Setting up descriptor sets for graphics pipeline
     std::vector<vk::descriptor_entry> entries = {
@@ -651,7 +603,7 @@ main() {
                                          .size_bytes = sizeof(global_uniform) };
     vk::uniform_buffer test_ubo =
       vk::uniform_buffer(logical_device, test_ubo_info);
-    std::println("uniform_buffer.alive() = {}", test_ubo.alive());
+    // std::println("uniform_buffer.alive() = {}", test_ubo.alive());
 
     std::array<vk::write_buffer, 1> uniforms0 = { vk::write_buffer{
       .buffer = test_ubo, .offset = 0, .range = test_ubo.size_bytes() } };
@@ -755,9 +707,6 @@ main() {
         presentation_queue.present_frame(current_frame);
     }
 
-    // TODO: Make the cleanup much saner. For now we are cleaning it up like
-    // Potentially bring back submit_resource_free([this](){ .. free stuff ..
-    // }); (???)
     // this to ensure they are cleaned up in the proper order
     logical_device.wait();
     main_swapchain.destroy();
