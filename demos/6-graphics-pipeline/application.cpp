@@ -103,8 +103,13 @@ main() {
 
     // setting up physical device
     vk::physical_enumeration enumerate_devices{
-        .device_type = vk::physical_gpu::integrated,
+        .device_type = vk::physical_gpu::discrete,
     };
+
+#if defined(__APPLE__)
+    enumerate_devices.device_type = vk::physical_gpu::integrated;
+#endif
+
     vk::physical_device physical_device(api_instance, enumerate_devices);
 
     // selecting depth format
