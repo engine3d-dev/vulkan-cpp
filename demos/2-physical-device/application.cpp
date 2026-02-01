@@ -25,39 +25,23 @@ debug_callback(
     return false;
 }
 
-std::vector<const char*>
-initialize_instance_extensions() {
+std::vector<const char*> get_instance_extensions() {
     std::vector<const char*> extension_names;
+    uint32_t extension_count = 0;
+    const char** required_extensions = glfwGetRequiredInstanceExtensions(&extension_count);
 
-    extension_names.emplace_back(VK_KHR_SURFACE_EXTENSION_NAME);
+    for(uint32_t i = 0; i < extension_count; i++) {
+        std::println("Required Extension = {}", required_extensions[i]);
+        extension_names.emplace_back(required_extensions[i]);
+    }
 
     extension_names.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
-    // An additional surface extension needs to be loaded. This extension is
-    // platform-specific so needs to be selected based on the platform the
-    // example is going to be deployed to. Preprocessor directives are used
-    // here to select the correct platform.
-#ifdef VK_USE_PLATFORM_WIN32_KHR
-    extension_names.emplace_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+#if defined(__APPLE__)
+    extension_names.emplace_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+    extension_names.emplace_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 #endif
-#ifdef VK_USE_PLATFORM_XLIB_KHR
-    extensionNames.emplace_back(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
-#endif
-#ifdef VK_USE_PLATFORM_XCB_KHR
-    extensionNames.emplace_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
-#endif
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
-    extensionNames.emplace_back(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME);
-#endif
-#ifdef VK_USE_PLATFORM_WAYLAND_KHR
-    extensionNames.emplace_back(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
-#endif
-#ifdef VK_USE_PLATFORM_MACOS_MVK
-    extensionNames.emplace_back(VK_MVK_MACOS_SURFACE_EXTENSION_NAME);
-#endif
-#ifdef USE_PLATFORM_NULLWS
-    extensionNames.emplace_back(VK_KHR_DISPLAY_EXTENSION_NAME);
-#endif
+
     return extension_names;
 }
 
@@ -91,7 +75,7 @@ main() {
 
     // setting up extensions
     std::vector<const char*> global_extensions =
-      initialize_instance_extensions();
+      get_instance_extensions();
 
     vk::debug_message_utility debug_callback_info = {
         .severity =
@@ -119,7 +103,7 @@ main() {
 
     // setting up physical device
     vk::physical_enumeration enumerate_devices{ .device_type =
-                                                  vk::physical_gpu::discrete };
+                                                  vk::physical_gpu::integrated };
 
     vk::physical_device device(api_instance, enumerate_devices);
 
