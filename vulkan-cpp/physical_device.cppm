@@ -20,7 +20,7 @@ export namespace vk {
                 m_physical_device = enumerate_physical_devices(p_instance, p_physical_enumeration.device_type);
 
                 if (m_physical_device == nullptr) {
-                    throw std::runtime_error("m_physical_device was nullptr!!!");
+                    return;
                 }
 
                 m_queue_family_properties =
@@ -104,7 +104,7 @@ export namespace vk {
                 vkEnumeratePhysicalDevices(p_instance, &device_count, nullptr);
 
                 if (device_count == 0) {
-                    throw std::runtime_error("device_count is zero!");
+                    return nullptr;
                 }
 
 
