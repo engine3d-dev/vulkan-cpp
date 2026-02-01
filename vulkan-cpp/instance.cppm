@@ -64,12 +64,12 @@ export namespace vk {
                 static_cast<uint32_t>(p_config.extensions.size());
                 instance_ci.ppEnabledExtensionNames = p_config.extensions.data();
 
-#if defined(__APPLE__)
+        #if defined(__APPLE__)
                 instance_ci.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
-#endif
+        #endif
 
-                // Only run validation layers if we are running vulkan-cpp in debug mode
-#if !defined(NDEBUG) || defined(_DEBUG) || defined(DEBUG)
+            // Only execute this if we are in the debug build
+        #if !defined(NDEBUG) || defined(_DEBUG) || defined(DEBUG)
                 // Setting up validation layers
                 instance_ci.enabledLayerCount =
                 static_cast<uint32_t>(p_config.validations.size());
@@ -91,15 +91,16 @@ export namespace vk {
                 else {
                     instance_ci.pNext = nullptr;
                 }
-#else
+        #else
                 instance_ci.enabledLayerCount = 0;
                 instance_ci.ppEnabledLayerNames = nullptr;
                 instance_ci.pNext = nullptr;
-#endif
+        #endif
                 vk_check(vkCreateInstance(&instance_ci, nullptr, &m_instance),
                         "vkCreateInstance");
-                
-        #if _DEBUG
+        
+        // Set the debug utility function pointer if we are in the debug build.
+        #if !defined(NDEBUG) || defined(_DEBUG) || defined(DEBUG)
                 // This needs to be created after the VkInstance is or else it wont be applied the debug information during validation layer error message execution
                 m_vk_set_debug_utils_object_name_ext = reinterpret_cast<PFN_vkSetDebugUtilsObjectNameEXT>(vkGetInstanceProcAddr(m_instance, "vkSetDebugUtilsObjectNameEXT"));
         #endif
