@@ -169,16 +169,8 @@ main() {
                                  surface_properties);
 
     // querying swapchain images
-    uint32_t image_count = 0;
-    vkGetSwapchainImagesKHR(logical_device,
-                            main_swapchain,
-                            &image_count,
-                            nullptr); // used to get the amount of images
-    std::vector<VkImage> images(image_count);
-    vkGetSwapchainImagesKHR(logical_device,
-                            main_swapchain,
-                            &image_count,
-                            images.data()); // used to store in the images
+    std::span<const VkImage> images = main_swapchain.presentable_images();
+    uint32_t image_count = static_cast<uint32_t>(images.size());
 
     // Creating Images
     std::vector<vk::sample_image> swapchain_images(image_count);

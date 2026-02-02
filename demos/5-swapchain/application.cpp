@@ -156,7 +156,7 @@ main() {
 
     // querying presentable images
     std::span<const VkImage> images = main_swapchain.presentable_images();
-    uint32_t image_count = images.size();
+    uint32_t image_count = static_cast<uint32_t>(images.size());
 
     // Creating Images
     std::vector<vk::sample_image> swapchain_images(image_count);

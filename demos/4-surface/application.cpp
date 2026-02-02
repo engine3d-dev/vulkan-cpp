@@ -101,10 +101,6 @@ main() {
         std::println("\napi_instance alive and initiated!!!");
     }
 
-    // TODO: Implement this as a way to setup physical devices
-    // vk::enumerate_physical_devices(vk::instance) -> returns
-    // std::span<vk::physical_device>
-
     // setting up physical device
     vk::physical_enumeration enumerate_devices{
         .device_type = vk::physical_gpu::integrated,
