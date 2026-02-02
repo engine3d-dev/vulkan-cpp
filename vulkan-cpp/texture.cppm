@@ -134,6 +134,8 @@ export namespace vk {
             // for getting image memory requirements for the texture
             VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
             std::filesystem::path filepath;
+            uint32_t mip_levels = 1;
+            uint32_t layer_count = 1;
         };
 
         struct texture_extent {
@@ -214,12 +216,10 @@ export namespace vk {
                     .format = VK_FORMAT_R8G8B8A8_UNORM,
                     .property = (memory_property)property_flag,
                     .aspect = image_aspect_flags::color_bit,
-                    // .usage = (VkImageUsageFlags)(VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-                    //                              VK_IMAGE_USAGE_SAMPLED_BIT),
                     .usage = image_usage::transfer_dst_bit | image_usage::sampled_bit,
-                    // .physical_device = p_texture_info.physical
-                    .phsyical_memory_properties =
-                    p_texture_info.phsyical_memory_properties
+                    .phsyical_memory_properties = p_texture_info.phsyical_memory_properties,
+                    .mip_levels = p_texture_info.mip_levels,
+                    .layer_count = p_texture_info.layer_count,
                 };
 
                 m_image = create_texture_with_data(p_device, config_image, image_pixel_data);
