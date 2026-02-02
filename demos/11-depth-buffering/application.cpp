@@ -31,12 +31,14 @@ debug_callback(
     return false;
 }
 
-std::vector<const char*> get_instance_extensions() {
+std::vector<const char*>
+get_instance_extensions() {
     std::vector<const char*> extension_names;
     uint32_t extension_count = 0;
-    const char** required_extensions = glfwGetRequiredInstanceExtensions(&extension_count);
+    const char** required_extensions =
+      glfwGetRequiredInstanceExtensions(&extension_count);
 
-    for(uint32_t i = 0; i < extension_count; i++) {
+    for (uint32_t i = 0; i < extension_count; i++) {
         std::println("Required Extension = {}", required_extensions[i]);
         extension_names.emplace_back(required_extensions[i]);
     }
@@ -45,7 +47,8 @@ std::vector<const char*> get_instance_extensions() {
 
 #if defined(__APPLE__)
     extension_names.emplace_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
-    extension_names.emplace_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+    extension_names.emplace_back(
+      VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 #endif
 
     return extension_names;
@@ -86,8 +89,7 @@ main() {
     };
 
     // setting up extensions
-    std::vector<const char*> global_extensions =
-      get_instance_extensions();
+    std::vector<const char*> global_extensions = get_instance_extensions();
 
     vk::debug_message_utility debug_callback_info = {
         .severity =
@@ -144,7 +146,8 @@ main() {
     std::array<float, 1> priorities = { 0.f };
 
 #if defined(__APPLE__)
-    std::array<const char*, 2> extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME, "VK_KHR_portability_subset" };
+    std::array<const char*, 2> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+                                              "VK_KHR_portability_subset" };
 #else
     std::array<const char*, 1> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 #endif
