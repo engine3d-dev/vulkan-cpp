@@ -217,9 +217,9 @@ export namespace vk {
                     .property = (memory_property)property_flag,
                     .aspect = image_aspect_flags::color_bit,
                     .usage = image_usage::transfer_dst_bit | image_usage::sampled_bit,
-                    .phsyical_memory_properties = p_texture_info.phsyical_memory_properties,
                     .mip_levels = p_texture_info.mip_levels,
                     .layer_count = p_texture_info.layer_count,
+                    .phsyical_memory_properties = p_texture_info.phsyical_memory_properties,
                 };
 
                 m_image = create_texture_with_data(p_device, config_image, image_pixel_data);
