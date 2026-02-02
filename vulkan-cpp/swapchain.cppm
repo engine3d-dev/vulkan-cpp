@@ -62,12 +62,12 @@ export namespace vk {
              * 
              * vk::swapchain main_swapchain(logical_device, ...);
              * 
-             * std::span<const VkImage> images = main_swapchain.enumerate_images();
+             * std::span<const VkImage> images = main_swapchain.get_images();
              * 
              * ```
              * 
             */
-            std::span<const VkImage> presentable_images() {
+            std::span<const VkImage> get_images() {
                 uint32_t image_count=0;
                 vkGetSwapchainImagesKHR(m_device, m_swapchain_handler, &image_count, nullptr);
 
