@@ -242,12 +242,8 @@ main() {
     std::vector<const char*> global_extensions = get_instance_extensions();
 
     vk::debug_message_utility debug_callback_info = {
-        // .severity essentially takes in vk::message::verbose,
-        // vk::message::warning, vk::message::error
         .severity =
           vk::message::verbose | vk::message::warning | vk::message::error,
-        // .message_type essentially takes in vk::debug. Like:
-        // vk::debug::general, vk::debug::validation, vk::debug::performance
         .message_type =
           vk::debug::general | vk::debug::validation | vk::debug::performance,
         .callback = debug_callback
@@ -262,17 +258,13 @@ main() {
           global_extensions // .extensions also takes in std::span<const char*>
     };
 
-    // 1. Setting up vk instance
+    // Setting up vk instance
     vk::instance api_instance(config, debug_callback_info);
 
     if (api_instance.alive()) {
         std::println("\napi_instance alive and initiated!!!");
     }
 
-    // setting up physical device
-    // TODO: Probably enforce the use of
-    // vk::enumerate_physical_device({.device_type =
-    // vk::physical_gpu::discrete})
     vk::physical_enumeration enumerate_devices{
         .device_type = vk::physical_gpu::discrete,
     };
@@ -286,9 +278,6 @@ main() {
 
     // selecting depth format
     std::array<vk::format, 3> format_support = {
-        // VK_FORMAT_D32_SFLOAT,
-        // VK_FORMAT_D32_SFLOAT_S8_UINT,
-        // VK_FORMAT_D24_UNORM_S8_UINT,
         vk::format::d32_sfloat,
         vk::format::d32_sfloat_s8_uint,
         vk::format::d24_unorm_s8_uint
@@ -399,10 +388,9 @@ main() {
           vk::command_buffer(logical_device, settings);
     }
 
-    // setting up renderpass
-
     // setting up attachments for the renderpass
     std::array<vk::attachment, 2> renderpass_attachments = {
+        // color attachment
         vk::attachment{
           .format = surface_properties.format.format,
           .layout = vk::image_layout::color_optimal,
@@ -414,6 +402,7 @@ main() {
           .initial_layout = vk::image_layout::undefined,
           .final_layout = vk::image_layout::present_src_khr,
         },
+        // depth attachment
         vk::attachment{
           .format = depth_format,
           .layout = vk::image_layout::depth_stencil_optimal,
@@ -435,8 +424,6 @@ main() {
 
     std::vector<vk::framebuffer> swapchain_framebuffers(image_count);
     for (uint32_t i = 0; i < swapchain_framebuffers.size(); i++) {
-        // image_view_attachments.push_back(swapchain_images[i].view);
-        // image_view_attachments.push_back(swapchain_depth_images[i].view);
 
         // NOTE: This must match the amount of attachments the renderpass also
         // has to match the image_view attachment for per-framebuffers as well
@@ -518,15 +505,10 @@ main() {
     vk::shader_resource_info shader_info = {
         .sources = shader_sources,
         .vertex_attributes =
-          attributes // this is to explicitly set to none, but also dont need to
-                     // set this at all regardless
+          attributes // NOT NEEDED: Specifying vertex attributes
     };
     vk::shader_resource geometry_resource(logical_device, shader_info);
     geometry_resource.vertex_attributes(attributes);
-
-    // if (geometry_resource.is_valid()) {
-    //     std::println("geometry resource is valid!");
-    // }
 
     // Setting up descriptor sets for graphics pipeline
     std::vector<vk::descriptor_entry> entries = {
@@ -550,11 +532,9 @@ main() {
         }
     };
     vk::descriptor_layout set0_layout = {
-        .slot = 0,               // indicate that this is descriptor set 0
-                                 // set layout able to be allocated
-        .max_sets = image_count, // max of descriptor sets able to allocate
-                                 // this descriptor sets
-        .entries = entries,      // specifies pool sizes and descriptor layout
+        .slot = 0,               // indicate specific descriptor slot 0
+        .max_sets = image_count, // max descriptors to allocate
+        .entries = entries,      // descriptor layout entries description
     };
     vk::descriptor_resource set0_resource(logical_device, set0_layout);
 
@@ -600,7 +580,7 @@ main() {
         vk::write_buffer_descriptor{ .dst_binding = 0, .uniforms = uniforms0 }
     };
 
-    // Loading a texture -- for testing
+    // Loading a texture
     vk::texture_info config_texture = {
         .phsyical_memory_properties = physical_device.memory_properties(),
         .filepath = std::filesystem::path("asset_samples/viking_room.png")
@@ -615,7 +595,7 @@ main() {
         },
     };
 
-    // Moving update call here because now we add textures to set0
+    // Specify image descriptor images/samplers to the descriptor
     std::array<vk::write_image_descriptor, 1> sample_images = {
         vk::write_image_descriptor{
           .dst_binding = 1,
