@@ -451,9 +451,9 @@ export namespace vk {
         };
 
         enum class api_version : uint32_t {
-            vk_1_2 = VK_API_VERSION_1_2,
-            vk_1_3 = VK_API_VERSION_1_3, // vulkan version 1.3
-            // vk_1_2, // vulkan version 1.4
+            vk_1_2 = VK_MAKE_API_VERSION(0, 1, 2, 0), // vulkan version 1.2
+            vk_1_3 = VK_MAKE_API_VERSION(0, 1, 3, 0), // vulkan version 1.3
+            vk_1_4 = VK_MAKE_API_VERSION(0, 1, 4, 0), // vulkan version 1.4
         };
 
         struct debug_message_utility {
