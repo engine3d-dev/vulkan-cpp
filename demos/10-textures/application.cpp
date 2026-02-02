@@ -20,6 +20,8 @@ import vk;
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <algorithm>
+#include <cmath>
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 debug_callback(
@@ -475,8 +477,7 @@ main() {
     // Loading a texture -- for testing
     vk::texture_info config_texture = {
         .phsyical_memory_properties = physical_device.memory_properties(),
-        .filepath =
-          std::filesystem::path("asset_samples/container_diffuse.png")
+        .filepath = std::filesystem::path("asset_samples/container_diffuse.png"),
     };
     vk::texture texture1(logical_device, config_texture);
 
