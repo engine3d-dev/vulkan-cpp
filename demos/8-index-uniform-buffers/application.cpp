@@ -180,7 +180,7 @@ main() {
                                  surface_properties);
 
     // querying swapchain images
-    std::span<const VkImage> images = main_swapchain.presentable_images();
+    std::span<const VkImage> images = main_swapchain.get_images();
     uint32_t image_count = static_cast<uint32_t>(images.size());
 
     // Creating Images

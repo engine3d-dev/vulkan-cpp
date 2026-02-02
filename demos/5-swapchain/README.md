@@ -81,7 +81,7 @@ By doing the following:
 
 ```C++
 
-std::span<const VkImage> images = main_swapchain.presentable_images();
+std::span<const VkImage> images = main_swapchain.get_images();
 
 // image_count will be referenced throughout the demos
 uint32_t image_count = images.size();
@@ -93,7 +93,7 @@ As soon the images have been queried, you can now create the swapchain images.
 ```C++
 
 // pasted from previous section to here
-std::span<const VkImage> images = main_swapchain.presentable_images();
+std::span<const VkImage> images = main_swapchain.get_images();
 uint32_t image_count = images.size();
 
 std::vector<vk::sample_image> swapchain_images(image_count);
