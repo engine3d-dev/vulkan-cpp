@@ -26,38 +26,25 @@ debug_callback(
 }
 
 std::vector<const char*>
-initialize_instance_extensions() {
+get_instance_extensions() {
     std::vector<const char*> extension_names;
+    uint32_t extension_count = 0;
+    const char** required_extensions =
+      glfwGetRequiredInstanceExtensions(&extension_count);
 
-    extension_names.emplace_back(VK_KHR_SURFACE_EXTENSION_NAME);
+    for (uint32_t i = 0; i < extension_count; i++) {
+        std::println("Required Extension = {}", required_extensions[i]);
+        extension_names.emplace_back(required_extensions[i]);
+    }
 
     extension_names.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
-    // An additional surface extension needs to be loaded. This extension is
-    // platform-specific so needs to be selected based on the platform the
-    // example is going to be deployed to. Preprocessor directives are used
-    // here to select the correct platform.
-#ifdef VK_USE_PLATFORM_WIN32_KHR
-    extension_names.emplace_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+#if defined(__APPLE__)
+    extension_names.emplace_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+    extension_names.emplace_back(
+      VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 #endif
-#ifdef VK_USE_PLATFORM_XLIB_KHR
-    extensionNames.emplace_back(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
-#endif
-#ifdef VK_USE_PLATFORM_XCB_KHR
-    extensionNames.emplace_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
-#endif
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
-    extensionNames.emplace_back(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME);
-#endif
-#ifdef VK_USE_PLATFORM_WAYLAND_KHR
-    extensionNames.emplace_back(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
-#endif
-#ifdef VK_USE_PLATFORM_MACOS_MVK
-    extensionNames.emplace_back(VK_MVK_MACOS_SURFACE_EXTENSION_NAME);
-#endif
-#ifdef USE_PLATFORM_NULLWS
-    extensionNames.emplace_back(VK_KHR_DISPLAY_EXTENSION_NAME);
-#endif
+
     return extension_names;
 }
 
@@ -90,8 +77,7 @@ main() {
     };
 
     // setting up extensions
-    std::vector<const char*> global_extensions =
-      initialize_instance_extensions();
+    std::vector<const char*> global_extensions = get_instance_extensions();
 
     vk::debug_message_utility debug_callback_info = {
         // .severity essentially takes in vk::message::verbose,
@@ -132,13 +118,15 @@ main() {
     vk::physical_enumeration enumerate_devices{
         .device_type = vk::physical_gpu::discrete,
     };
+
+#if defined(__APPLE__)
+    enumerate_devices.device_type = vk::physical_gpu::integrated;
+#endif
+
     vk::physical_device physical_device(api_instance, enumerate_devices);
 
     // selecting depth format
     std::array<vk::format, 3> format_support = {
-        // VK_FORMAT_D32_SFLOAT,
-        // VK_FORMAT_D32_SFLOAT_S8_UINT,
-        // VK_FORMAT_D24_UNORM_S8_UINT,
         vk::format::d32_sfloat,
         vk::format::d32_sfloat_s8_uint,
         vk::format::d24_unorm_s8_uint
@@ -156,7 +144,14 @@ main() {
 
     // setting up logical device
     std::array<float, 1> priorities = { 0.f };
+
+#if defined(__APPLE__)
+    std::array<const char*, 2> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+                                              "VK_KHR_portability_subset" };
+#else
     std::array<const char*, 1> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+#endif
+
     vk::device_params logical_device_params = {
         .queue_priorities = priorities,
         .extensions = extensions,
@@ -187,16 +182,9 @@ main() {
                                  enumerate_swapchain_settings,
                                  surface_properties);
 
-    uint32_t image_count = 0;
-    vkGetSwapchainImagesKHR(logical_device,
-                            main_swapchain,
-                            &image_count,
-                            nullptr); // used to get the amount of images
-    std::vector<VkImage> images(image_count);
-    vkGetSwapchainImagesKHR(logical_device,
-                            main_swapchain,
-                            &image_count,
-                            images.data()); // used to store in the images
+    // querying swapchain images
+    std::span<const VkImage> images = main_swapchain.get_images();
+    uint32_t image_count = static_cast<uint32_t>(images.size());
 
     // Creating Images
     std::vector<vk::sample_image> swapchain_images(image_count);
@@ -260,7 +248,7 @@ main() {
           .layout = vk::image_layout::color_optimal,
           .samples = vk::sample_bit::count_1,
           .load = vk::attachment_load::clear,
-          .store = vk::attachment_store::dont_care,
+          .store = vk::attachment_store::store,
           .stencil_load = vk::attachment_load::clear,
           .stencil_store = vk::attachment_store::dont_care,
           .initial_layout = vk::image_layout::undefined,
@@ -275,7 +263,7 @@ main() {
           .stencil_load = vk::attachment_load::clear,
           .stencil_store = vk::attachment_store::dont_care,
           .initial_layout = vk::image_layout::undefined,
-          .final_layout = vk::image_layout::present_src_khr,
+          .final_layout = vk::image_layout::depth_stencil_read_only_optimal,
         },
     };
 

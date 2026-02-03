@@ -451,9 +451,9 @@ export namespace vk {
         };
 
         enum class api_version : uint32_t {
-            vk_1_2 = VK_API_VERSION_1_2,
-            vk_1_3 = VK_API_VERSION_1_3, // vulkan version 1.3
-            // vk_1_2, // vulkan version 1.4
+            vk_1_2 = VK_MAKE_API_VERSION(0, 1, 2, 0), // vulkan version 1.2
+            vk_1_3 = VK_MAKE_API_VERSION(0, 1, 3, 0), // vulkan version 1.3
+            vk_1_4 = VK_MAKE_API_VERSION(0, 1, 4, 0), // vulkan version 1.4
         };
 
         struct debug_message_utility {
@@ -470,14 +470,6 @@ export namespace vk {
             api_version version;
             std::span<const char*> validations;
             std::span<const char*> extensions;
-        };
-
-        struct swapchain_params {
-            uint32_t width;
-            uint32_t height;
-            uint32_t present_index = -1;
-
-            VkFormat depth; // depth format
         };
 
         struct filter_range {
@@ -661,6 +653,25 @@ export namespace vk {
                                                          // VK_COMMAND_POOL_CREATE_FLAG_BITS_MAX_ENUM
         };
 
+        enum present_mode : uint32_t {
+            immediate = VK_PRESENT_MODE_IMMEDIATE_KHR,
+            mailbox_khr = VK_PRESENT_MODE_MAILBOX_KHR,
+            fifo_khr = VK_PRESENT_MODE_FIFO_KHR,
+            fifo_relaxed_khr = VK_PRESENT_MODE_FIFO_RELAXED_KHR,
+            shared_demand_refresh_khr = VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR,
+            shared_continuous_refresh_khr = VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR
+        };
+
+        struct swapchain_params {
+            uint32_t width;
+            uint32_t height;
+            uint32_t present_index = -1;
+
+            uint64_t depth; // depth format
+            uint32_t present_mode = present_mode::fifo_khr;
+            bool clipped = true;
+        };
+
         /**
          * @brief settings for specifying command buffers to construct
          *
@@ -686,7 +697,6 @@ export namespace vk {
          * restricted to authorized operations
          */
         struct command_params {
-
             command_levels levels;
             uint32_t queue_index = -1;
             // VkCommandPoolCreateFlagBits pool_flag;
@@ -745,14 +755,14 @@ export namespace vk {
             patch_list = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST
         };
 
-        enum polygon_mode : uint64_t {
+        enum polygon_mode : uint32_t {
             fill = VK_POLYGON_MODE_FILL,
             line = VK_POLYGON_MODE_LINE,
             point = VK_POLYGON_MODE_POINT,
             fill_rectangle_nv = VK_POLYGON_MODE_FILL_RECTANGLE_NV,
         };
 
-        enum class cull_mode : uint32_t {
+        enum class cull_mode : uint8_t {
             none = VK_CULL_MODE_NONE,
             front_bit = VK_CULL_MODE_FRONT_BIT,
             back_bit = VK_CULL_MODE_BACK_BIT,
@@ -785,7 +795,7 @@ export namespace vk {
             one_minus_src1_alpha = VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA
         };
 
-        enum class blend_op : uint64_t {
+        enum class blend_op : uint32_t {
             add                    = VK_BLEND_OP_ADD,
             subtract               = VK_BLEND_OP_SUBTRACT,
             reverse_subtract       = VK_BLEND_OP_REVERSE_SUBTRACT,
@@ -840,7 +850,7 @@ export namespace vk {
         };
 
         // VkColorComponentFlags
-        enum color_component : uint32_t {
+        enum color_component : uint8_t {
             red = VK_COLOR_COMPONENT_R_BIT,
             green = VK_COLOR_COMPONENT_G_BIT,
             blue = VK_COLOR_COMPONENT_B_BIT,
@@ -1118,7 +1128,7 @@ export namespace vk {
         };
 
         //! @brief Equivalent to VkPipelineBindPoint
-        enum class pipeline_bind_point : uint64_t {
+        enum class pipeline_bind_point : uint32_t {
             graphics =
               VK_PIPELINE_BIND_POINT_GRAPHICS, // VK_PIPELINE_BIND_POINT_GRAPHICS
             compute =

@@ -64,8 +64,12 @@ export namespace vk {
                 static_cast<uint32_t>(p_config.extensions.size());
                 instance_ci.ppEnabledExtensionNames = p_config.extensions.data();
 
-                // Only run validation layers if we are running vulkan-cpp in debug mode
-        #if _DEBUG
+        #if defined(__APPLE__)
+                instance_ci.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+        #endif
+
+            // Only execute this if we are in the debug build
+        #if !defined(NDEBUG) || defined(_DEBUG) || defined(DEBUG)
                 // Setting up validation layers
                 instance_ci.enabledLayerCount =
                 static_cast<uint32_t>(p_config.validations.size());
@@ -81,8 +85,8 @@ export namespace vk {
                 // This is to invoke the vulkan debug utils if it is a valid callback
                 // To ensure that we are not using an invalid debug callback
                 if (p_debug_message_utils.callback != nullptr) {
-                    instance_ci.pNext =
-                    (VkDebugUtilsMessengerCreateInfoEXT*)&debug_create_info;
+                    // instance_ci.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debug_create_info;
+                    instance_ci.pNext = reinterpret_cast<VkDebugUtilsMessengerCreateInfoEXT*>(&debug_create_info);
                 }
                 else {
                     instance_ci.pNext = nullptr;
@@ -94,8 +98,9 @@ export namespace vk {
         #endif
                 vk_check(vkCreateInstance(&instance_ci, nullptr, &m_instance),
                         "vkCreateInstance");
-                
-        #if _DEBUG
+        
+        // Set the debug utility function pointer if we are in the debug build.
+        #if !defined(NDEBUG) || defined(_DEBUG) || defined(DEBUG)
                 // This needs to be created after the VkInstance is or else it wont be applied the debug information during validation layer error message execution
                 m_vk_set_debug_utils_object_name_ext = reinterpret_cast<PFN_vkSetDebugUtilsObjectNameEXT>(vkGetInstanceProcAddr(m_instance, "vkSetDebugUtilsObjectNameEXT"));
         #endif
