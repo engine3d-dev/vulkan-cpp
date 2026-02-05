@@ -39,9 +39,9 @@ export namespace vk {
 
             [[nodiscard]] uint32_t size() const { return m_indices_count; }
 
-            void bind(const VkCommandBuffer& p_current) {
+            void bind(const VkCommandBuffer& p_current, uint64_t p_offset = 0) {
                 vkCmdBindIndexBuffer(
-                    p_current, m_index_buffer, 0, VK_INDEX_TYPE_UINT32);
+                    p_current, m_index_buffer, p_offset, VK_INDEX_TYPE_UINT32);
             }
 
             operator VkBuffer() const { return m_index_buffer; }
