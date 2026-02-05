@@ -21,12 +21,10 @@ export namespace vk {
                         const index_params& p_info) : m_device(p_device) {
                 m_indices_count = p_info.indices.size();
 
-                uint32_t property_flags =
-                memory_property::host_visible_bit | memory_property::host_cached_bit;
                 buffer_parameters index_params = {
                     .device_size = p_info.indices.size_bytes(),
                     .physical_memory_properties = p_info.phsyical_memory_properties,
-                    .property_flags = (memory_property)property_flags,
+                    .property_flags = static_cast<memory_property>(memory_property::host_visible_bit | memory_property::host_cached_bit),
                     .usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
                     .debug_name = p_info.debug_name.c_str(),
                     .vkSetDebugUtilsObjectNameEXT = p_info.vkSetDebugUtilsObjectNameEXT
