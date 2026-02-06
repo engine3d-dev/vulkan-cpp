@@ -2,7 +2,6 @@ module;
 
 #include <vulkan/vulkan.h>
 #include <span>
-#include <array>
 
 export module vk:index_buffer;
 
@@ -25,7 +24,7 @@ export namespace vk {
                     .device_size = p_info.indices.size_bytes(),
                     .physical_memory_properties = p_info.phsyical_memory_properties,
                     .property_flags = static_cast<memory_property>(memory_property::host_visible_bit | memory_property::host_cached_bit),
-                    .usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                    .usage = static_cast<VkBufferUsageFlags>(buffer_usage::index_buffer_bit),
                     .debug_name = p_info.debug_name.c_str(),
                     .vkSetDebugUtilsObjectNameEXT = p_info.vkSetDebugUtilsObjectNameEXT
                 };
