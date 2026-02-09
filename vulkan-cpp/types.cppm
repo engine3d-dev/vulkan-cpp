@@ -1499,7 +1499,7 @@ export namespace vk {
             memory_property property_flags;
             VkBufferUsageFlags usage;
             VkSharingMode share_mode = VK_SHARING_MODE_EXCLUSIVE;
-            const char* debug_name = "NA";
+            const char* debug_name = nullptr;
             PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT =
               nullptr;
         };
