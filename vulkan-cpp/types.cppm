@@ -824,7 +824,7 @@ export namespace vk {
             descriptors_descriptor_buffer_bit_ext = VK_BUFFER_USAGE_PUSH_DESCRIPTORS_DESCRIPTOR_BUFFER_BIT_EXT,
             micromap_build_input_read_only_bit_ext = VK_BUFFER_USAGE_MICROMAP_BUILD_INPUT_READ_ONLY_BIT_EXT,
             micromap_storage_bit_ext = VK_BUFFER_USAGE_MICROMAP_STORAGE_BIT_EXT,
-            tile_memory_bit_qcom = VK_BUFFER_USAGE_TILE_MEMORY_BIT_QCOM,
+            // tile_memory_bit_qcom = VK_BUFFER_USAGE_TILE_MEMORY_BIT_QCOM,
             ray_tracing_bit_nv = VK_BUFFER_USAGE_RAY_TRACING_BIT_NV,
             shader_device_address_bit_ext = VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_EXT,
             shader_device_address_bit_khr = VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_KHR,
