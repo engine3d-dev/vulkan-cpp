@@ -106,11 +106,6 @@ export namespace vk {
             
             // TODO: Replace these current parameters to using vk::image_params to make the API's consistent.
             texture(const VkDevice& p_device, const image_extent& p_extent, VkPhysicalDeviceMemoryProperties p_property) : m_device(p_device) {
-                command_params settings = {
-                    .levels = command_levels::primary,
-                    .queue_index = 0,
-                    .flags = command_pool_flags::reset,
-                };
 
                 // 1.) Load in extent dimensions
                 // White pixels for storing texture.
@@ -120,12 +115,9 @@ export namespace vk {
                 m_height = p_extent.height;
 
                 image_params config_image = {
-                    .extent = { .width = p_extent.width, .height = p_extent.height },
-                    .format = VK_FORMAT_R8G8B8A8_UNORM,
-                    .property = memory_property::device_local_bit,
-                    .aspect = image_aspect_flags::color_bit,
-                    // .usage = (VkImageUsageFlags)(VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-                    //                              VK_IMAGE_USAGE_SAMPLED_BIT),
+                    .extent = p_extent,
+                    // .format = VK_FORMAT_R8G8B8A8_UNORM,
+                    .format = static_cast<VkFormat>(format::r8g8b8a8_unorm),
                     .usage = image_usage::transfer_dst_bit | image_usage::sampled_bit,
                     .phsyical_memory_properties = p_property
                 };
@@ -141,6 +133,7 @@ export namespace vk {
                 m_texture_loaded = true;
             }
 
+            // TODO: Replace these current parameters to using vk::image_params to make the API's consistent.
             texture(const VkDevice& p_device, const texture_info& p_texture_info) : m_device(p_device) {
                 // 1. load from file
                 int w, h;
@@ -165,10 +158,9 @@ export namespace vk {
                 uint32_t property_flag = memory_property::device_local_bit;
 
                 image_params config_image = {
-                    .extent = { .width = (uint32_t)w, .height = (uint32_t)h },
-                    .format = VK_FORMAT_R8G8B8A8_UNORM,
-                    .property = (memory_property)property_flag,
-                    .aspect = image_aspect_flags::color_bit,
+                    .extent = {.width=static_cast<uint32_t>(w), .height=static_cast<uint32_t>(h)},
+                    // .format = VK_FORMAT_R8G8B8A8_UNORM,
+                    .format = static_cast<VkFormat>(format::r8g8b8a8_unorm),
                     .usage = image_usage::transfer_dst_bit | image_usage::sampled_bit,
                     .mip_levels = p_texture_info.mip_levels,
                     .layer_count = p_texture_info.layer_count,

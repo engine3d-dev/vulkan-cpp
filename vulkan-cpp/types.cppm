@@ -1465,11 +1465,10 @@ export namespace vk {
         };
 
         struct image_params {
-            image_extent extent;
-            VkFormat format;
+            image_extent extent{};
+            VkFormat format=VK_FORMAT_UNDEFINED;
             memory_property property = memory_property::device_local_bit;
             image_aspect_flags aspect = image_aspect_flags::color_bit;
-            // VkImageUsageFlags usage;
             uint32_t usage;
             VkImageCreateFlags image_flags = 0;
             VkImageViewType view_type = VK_IMAGE_VIEW_TYPE_2D;
