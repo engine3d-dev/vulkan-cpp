@@ -144,15 +144,22 @@ public:
                 indices.push_back(unique_vertices[vertex]);
             }
         }
+
+        m_has_indices = (indices.size() > 0) ? true : false;
+
+        if(m_has_indices) {
+            m_indices_size = indices.size();
+        }
+        m_indices_size = vertices.size();
+        m_indices_size = indices.size();
         vk::vertex_params vertex_info = { .phsyical_memory_properties =
-                                            p_physical.memory_properties(),
-                                          .vertices = vertices };
+                                            p_physical.memory_properties(), };
 
         vk::index_params index_info = { .phsyical_memory_properties =
-                                          p_physical.memory_properties(),
-                                        .indices = indices };
-        m_vertex_buffer = vk::vertex_buffer(p_device, vertex_info);
-        m_index_buffer = vk::index_buffer(p_device, index_info);
+                                          p_physical.memory_properties() };
+
+        m_vertex_buffer = vk::vertex_buffer(p_device, vertices, vertex_info);
+        m_index_buffer = vk::index_buffer(p_device, indices, index_info);
         m_is_loaded = true;
     }
 
@@ -160,22 +167,24 @@ public:
 
     void bind(const VkCommandBuffer& p_command) {
         m_vertex_buffer.bind(p_command);
-        if (m_index_buffer.size() > 0) {
+        
+        if (m_has_indices) {
             m_index_buffer.bind(p_command);
         }
+
     }
 
     void draw(const VkCommandBuffer& p_command) {
-        if (m_index_buffer.size() > 0) {
+        if (m_has_indices) {
             vkCmdDrawIndexed(p_command,
-                             static_cast<uint32_t>(m_index_buffer.size()),
+                             m_indices_size,
                              1,
                              0,
                              0,
                              0);
         }
         else {
-            vkCmdDraw(p_command, m_vertex_buffer.size(), 1, 0, 0);
+            vkCmdDraw(p_command, m_indices_size, 1, 0, 0);
         }
     }
 
@@ -186,6 +195,8 @@ public:
 
 private:
     bool m_is_loaded = false;
+    bool m_has_indices=false;
+    uint32_t m_indices_size=0;
     vk::vertex_buffer m_vertex_buffer{};
     vk::index_buffer m_index_buffer{};
 };
@@ -572,14 +583,13 @@ main() {
 
     // Setting up descriptor sets for handling uniforms
     vk::uniform_params test_ubo_info = { .phsyical_memory_properties =
-                                           physical_device.memory_properties(),
-                                         .size_bytes = sizeof(global_uniform) };
+                                           physical_device.memory_properties() };
     vk::uniform_buffer test_ubo =
-      vk::uniform_buffer(logical_device, test_ubo_info);
+      vk::uniform_buffer(logical_device, sizeof(global_uniform), test_ubo_info);
     // std::println("uniform_buffer.alive() = {}", test_ubo.alive());
 
     std::array<vk::write_buffer, 1> uniforms0 = { vk::write_buffer{
-      .buffer = test_ubo, .offset = 0, .range = test_ubo.size_bytes() } };
+      .buffer = test_ubo, .offset = 0, .range = static_cast<uint32_t>(test_ubo.size_bytes()) } };
     std::array<vk::write_buffer_descriptor, 1> uniforms = {
         vk::write_buffer_descriptor{ .dst_binding = 0, .uniforms = uniforms0 }
     };
@@ -656,7 +666,9 @@ main() {
                                      10.0f)
         };
         ubo.proj[1][1] *= -1;
-        test_ubo.update(&ubo);
+
+        std::array<global_uniform, 1> uniform_arr = {ubo};
+        test_ubo.update<global_uniform>(uniform_arr);
 
         // Before we can send stuff to the GPU, since we already updated the
         // descriptor set 0 beforehand, we must bind that descriptor resource

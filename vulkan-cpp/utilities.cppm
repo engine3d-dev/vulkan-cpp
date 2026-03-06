@@ -97,39 +97,6 @@ export namespace vk {
         return -1;
     }
 
-    // VkMemoryPropertyFlags to_memory_property_flags(memory_property p_flag) {
-    //     VkMemoryPropertyFlags flags = 0;
-    //     if (p_flag & memory_property::device_local_bit) {
-    //         flags |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-    //     }
-    //     if (p_flag & memory_property::host_visible_bit) {
-    //         flags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-    //     }
-    //     if (p_flag & memory_property::host_coherent_bit) {
-    //         flags |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-    //     }
-    //     if (p_flag & memory_property::host_cached_bit) {
-    //         flags |= VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
-    //     }
-    //     if (p_flag & memory_property::lazily_allocated_bit) {
-    //         flags |= VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
-    //     }
-    //     if (p_flag & memory_property::device_protected_bit) {
-    //         flags |= VK_MEMORY_PROPERTY_PROTECTED_BIT;
-    //     }
-    //     if (p_flag & memory_property::device_coherent_bit_amd) {
-    //         flags |= VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD;
-    //     }
-    //     if (p_flag & memory_property::device_uncached_bit_amd) {
-    //         flags |= VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD;
-    //     }
-    //     if (p_flag & memory_property::rdma_capable_bit_nv) {
-    //         flags |= VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV;
-    //     }
-
-    //     return flags;
-    // }
-
     surface_params enumerate_surface(const VkPhysicalDevice& p_physical,
                                           const VkSurfaceKHR& p_surface) {
         surface_params enumerate_surface_properties{};
@@ -273,6 +240,25 @@ export namespace vk {
         return false;
     }
 
+    uint32_t select_memory_requirements(
+      VkPhysicalDeviceMemoryProperties p_physical_memory_props,
+      VkMemoryRequirements p_memory_requirements,
+      memory_property p_property) {
+        uint32_t memory_bits = p_memory_requirements.memoryTypeBits;
+        VkMemoryPropertyFlags property_flag =
+          static_cast<VkMemoryPropertyFlags>(p_property);
+
+        for (uint32_t i = 0; i < p_physical_memory_props.memoryTypeCount; i++) {
+            if ((memory_bits & (1 << i)) and
+                (p_physical_memory_props.memoryTypes[i].propertyFlags &
+                 property_flag) == property_flag) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
     int bytes_per_texture_format(VkFormat p_format) {
         switch (p_format) {
             case VK_FORMAT_R8_SINT:
@@ -302,23 +288,15 @@ export namespace vk {
                 (p_format == VK_FORMAT_D24_UNORM_S8_UINT));
     }
 
-    uint32_t select_memory_requirements(
-      VkPhysicalDeviceMemoryProperties p_physical_memory_props,
-      VkMemoryRequirements p_memory_requirements,
-      memory_property p_property) {
-        uint32_t memory_bits = p_memory_requirements.memoryTypeBits;
-        VkMemoryPropertyFlags property_flag =
-          static_cast<VkMemoryPropertyFlags>(p_property);
+    template<typename T>
+    std::span<uint8_t> to_bytes(T p_data) {
+        return std::span<uint8_t>(reinterpret_cast<uint8_t*>(&p_data),
+                                sizeof(p_data));
+    }
 
-        for (uint32_t i = 0; i < p_physical_memory_props.memoryTypeCount; i++) {
-            if ((memory_bits & (1 << i)) and
-                (p_physical_memory_props.memoryTypes[i].propertyFlags &
-                 property_flag) == property_flag) {
-                return i;
-            }
-        }
-
-        return -1;
+    std::span<const uint8_t> as_bytes(const void* p_data, uint32_t p_size) {
+        const auto* bytes = reinterpret_cast<const uint8_t*>(p_data);
+        return std::span<const uint8_t>(bytes, p_size);
     }
 
 }; // end of v1 namespace

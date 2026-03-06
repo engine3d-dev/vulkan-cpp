@@ -43,9 +43,7 @@ export namespace vk {
 
             template<typename T>
             void update(std::span<T> p_uniform_data) {
-                // static_assert(p_uniform_data.size_bytes() == p_size_bytes, "Cannot write as uniforms are invalid amount of bytes");
-                // assert(p_uniform_data.size_bytes() == p_size_bytes);
-                m_uniform_handle.write<T>(p_uniform_data);
+                m_uniform_handle.write(p_uniform_data);
             }
 
 
