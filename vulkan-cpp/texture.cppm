@@ -46,8 +46,7 @@ export namespace vk {
             buffer_stream staging(p_device, p_data.size(), staging_buffer_config);
 
             // 4. write data to the staging buffer with specific size specified
-            std::span<const uint8_t> bytes(p_data.data(), p_data.size());
-            staging.write(bytes);
+            staging.write(p_data);
 
             // 5. start recording to this command buffer
             VkImageLayout old_layout = VK_IMAGE_LAYOUT_UNDEFINED;
