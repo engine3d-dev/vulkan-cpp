@@ -20,15 +20,21 @@ export namespace vk {
         class buffer_stream {
         public:
             buffer_stream() = default;
-            buffer_stream(const VkDevice& p_device,
-                        const buffer_parameters& p_settings) : m_device(p_device) {
-                 m_allocation_size = p_settings.device_size;
+
+            /**
+             * @brief constructs a buffer_stream to write streams of data to GPU memory
+             * 
+             * @param p_device is the logical device to construct the buffer handles
+             * @param p_device_size is size in bytes of the buffer to be created
+             * @param p_settings are additional parameters for the buffer handles
+            */
+            buffer_stream(const VkDevice& p_device, uint64_t p_device_size, const buffer_parameters& p_settings) : m_device(p_device) {
 
                 VkBufferCreateInfo buffer_ci = {
                     .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
                     .pNext = nullptr,
                     .flags = 0,
-                    .size = m_allocation_size, // size in bytes
+                    .size = p_device_size, // size in bytes
                     .usage = p_settings.usage,
                     .sharingMode = p_settings.share_mode,
                 };
@@ -84,7 +90,7 @@ export namespace vk {
              * vkMapMemory/vkUnmapMemory
              */
             template<typename T>
-            void write(std::span<const T> p_in_data) {
+            void write(std::span<T> p_in_data) {
                 VkDeviceSize buffer_size = p_in_data.size_bytes();
                 void* mapped = nullptr;
                 vk_check(vkMapMemory(
@@ -94,14 +100,14 @@ export namespace vk {
                 vkUnmapMemory(m_device, m_device_memory);
             }
 
-            void write(const void* p_in_data, uint32_t p_size_bytes) {
-                void* mapped = nullptr;
-                vk_check(vkMapMemory(
-                        m_device, m_device_memory, 0, p_size_bytes, 0, &mapped),
-                        "vkMapMemory");
-                memcpy(mapped, p_in_data, p_size_bytes);
-                vkUnmapMemory(m_device, m_device_memory);
-            }
+            // void write(const void* p_in_data, uint32_t p_size_bytes) {
+            //     void* mapped = nullptr;
+            //     vk_check(vkMapMemory(
+            //             m_device, m_device_memory, 0, p_size_bytes, 0, &mapped),
+            //             "vkMapMemory");
+            //     memcpy(mapped, p_in_data, p_size_bytes);
+            //     vkUnmapMemory(m_device, m_device_memory);
+            // }
 
             /**
              *
@@ -157,15 +163,15 @@ export namespace vk {
              * ```
              * 
              */
-            void write(std::span<const uint8_t> p_data) {
-                void* mapped = nullptr;
-                vk_check(
-                    vkMapMemory(
-                    m_device, m_device_memory, 0, p_data.size_bytes(), 0, &mapped),
-                    "vkMapMemory");
-                memcpy(mapped, p_data.data(), p_data.size_bytes());
-                vkUnmapMemory(m_device, m_device_memory);
-            }
+            // void write(std::span<const uint8_t> p_data) {
+            //     void* mapped = nullptr;
+            //     vk_check(
+            //         vkMapMemory(
+            //         m_device, m_device_memory, 0, p_data.size_bytes(), 0, &mapped),
+            //         "vkMapMemory");
+            //     memcpy(mapped, p_data.data(), p_data.size_bytes());
+            //     vkUnmapMemory(m_device, m_device_memory);
+            // }
 
             void destroy() {
                 if (m_handle != nullptr) {
@@ -185,7 +191,6 @@ export namespace vk {
             VkDevice m_device = nullptr;
             VkBuffer m_handle;
             VkDeviceMemory m_device_memory;
-            uint32_t m_allocation_size = 0;
         };
     };
 };

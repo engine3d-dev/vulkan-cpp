@@ -1404,7 +1404,6 @@ export namespace vk {
 
         struct vertex_params {
             VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
-            std::span<vertex_input> vertices;
             std::string debug_name;
             PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT =
               nullptr;
@@ -1412,7 +1411,6 @@ export namespace vk {
 
         struct index_params {
             VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
-            std::span<uint32_t> indices;
             std::string debug_name;
             PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT =
               nullptr;
@@ -1483,18 +1481,12 @@ export namespace vk {
                 .min = VK_FILTER_LINEAR,
                 .max = VK_FILTER_LINEAR,
             };
-            // VkSamplerAddressMode address_mode_u =
-            // VK_SAMPLER_ADDRESS_MODE_REPEAT; VkSamplerAddressMode
-            // addrses_mode_v = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            // VkSamplerAddressMode addrses_mode_w =
-            // VK_SAMPLER_ADDRESS_MODE_REPEAT;
             uint32_t address_mode_u = sampler_address_mode::repeat;
             uint32_t addrses_mode_v = sampler_address_mode::repeat;
             uint32_t addrses_mode_w = sampler_address_mode::repeat;
         };
 
         struct buffer_parameters {
-            VkDeviceSize device_size = 0;
             VkPhysicalDeviceMemoryProperties physical_memory_properties;
             memory_property property_flags;
             VkBufferUsageFlags usage;

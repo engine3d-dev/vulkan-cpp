@@ -20,16 +20,16 @@ export namespace vk {
         class buffer_stream16 {
         public:
             buffer_stream16() = default;
-            buffer_stream16(const VkDevice& p_device, const buffer_parameters& p_params);
+            buffer_stream16(const VkDevice&, uint64_t, const buffer_parameters&) {}
 
             /**
              * @brief write arbitrary buffer of 32-bytes to GPU-memory
             */
-            void write(std::span<const uint16_t> p_data);
+            void write(std::span<const uint16_t>) {}
 
-            void copy_to_image(const VkCommandBuffer& p_command, const VkImage& p_image, image_extent p_extent);
+            void copy_to_image(const VkCommandBuffer& p_command, const VkImage& p_image, image_extent p_extent) {}
 
-            void destroy();
+            void destroy() {}
 
             operator VkBuffer() { return m_handle; }
 

@@ -17,11 +17,10 @@ export namespace vk {
         public:
             index_buffer() = default;
             index_buffer(const VkDevice& p_device,
+                        std::span<const uint32_t> p_indices,
                         const index_params& p_info) : m_device(p_device) {
-                m_indices_count = p_info.indices.size();
 
                 buffer_parameters index_params = {
-                    .device_size = p_info.indices.size_bytes(),
                     .physical_memory_properties = p_info.phsyical_memory_properties,
                     .property_flags = static_cast<memory_property>(memory_property::host_visible_bit | memory_property::host_cached_bit),
                     .usage = static_cast<VkBufferUsageFlags>(buffer_usage::index_buffer_bit),
@@ -29,14 +28,12 @@ export namespace vk {
                     .vkSetDebugUtilsObjectNameEXT = p_info.vkSetDebugUtilsObjectNameEXT
                 };
 
-                m_index_buffer = buffer_stream32(m_device, index_params);
+                m_index_buffer = buffer_stream32(m_device, p_indices.size_bytes(), index_params);
 
-                m_index_buffer.write(p_info.indices);
+                m_index_buffer.write(p_indices);
             }
 
             [[nodiscard]] bool alive() const { return m_index_buffer; }
-
-            [[nodiscard]] uint32_t size() const { return m_indices_count; }
 
             void bind(const VkCommandBuffer& p_current, uint64_t p_offset = 0) {
                 vkCmdBindIndexBuffer(
@@ -53,7 +50,6 @@ export namespace vk {
 
         private:
             VkDevice m_device = nullptr;
-            uint32_t m_indices_count = 0;
             buffer_stream32 m_index_buffer{};
         };
     };

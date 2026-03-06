@@ -21,7 +21,18 @@ export import :command_buffer;
 
 export namespace vk {
     inline namespace v1 {
-        sample_image create_texture_with_data(const VkDevice& p_device, const image_params& p_config, const void* p_data) {
+        template<typename T>
+        std::span<uint8_t> to_bytes(T p_data) {
+            return std::span<uint8_t>(reinterpret_cast<uint8_t*>(&p_data),
+                                    sizeof(p_data));
+        }
+
+        std::span<const uint8_t> as_bytes(const void* p_data, uint32_t p_size) {
+            const auto* bytes = reinterpret_cast<const uint8_t*>(p_data);
+            return std::span<const uint8_t>(bytes, p_size);
+        }
+
+        sample_image create_texture_with_data(const VkDevice& p_device, const image_params& p_config, std::span<const uint8_t> p_data) {
             // 1. Creating temporary command buffer for texture
             command_params copy_command_params = {
                 .levels = command_levels::primary,
@@ -43,30 +54,19 @@ export namespace vk {
             uint32_t image_size = layer_size_with_bytes * layer_count;
 
             // 4. transfer data from staging buffer
-            uint32_t property_flag =
-            memory_property::host_visible_bit | memory_property::host_cached_bit;
-            // buffer_configuration staging_buffer_config = {
-            //     .device_size = (uint32_t)image_size,
-            //     .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            //     .property_flags = (memory_property)property_flag,
-            //     .physical = p_config.physical_device
-            // };
+            uint32_t property_flag = memory_property::host_visible_bit | memory_property::host_cached_bit;
 
             buffer_parameters staging_buffer_config = {
-                .device_size = (uint32_t)image_size,
                 .physical_memory_properties = p_config.phsyical_memory_properties,
-                .property_flags = (memory_property)property_flag,
+                .property_flags = static_cast<memory_property>(property_flag),
                 .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                // .physical = p_config.physical_device
             };
-
-            // buffer_handle staging_buffer = create_buffer(p_device,
-            // staging_buffer_config);
-            buffer_stream staging(p_device, staging_buffer_config);
+            buffer_stream staging(p_device, image_size, staging_buffer_config);
 
             // 5. write data to the staging buffer with specific size specified
             // write(p_device, staging, p_data, image_size);
-            staging.write(p_data, image_size);
+            // std::span<const uint8_t> bytes(p_data.data(), image_size);
+            staging.write(p_data);
 
             // 6. start recording to this command buffer
             VkImageLayout old_layout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -76,29 +76,14 @@ export namespace vk {
             temp_command_buffer.begin(command_usage::one_time_submit);
 
             // 6.1 -- transition image layout
-            // image_memory_barrier(temp_command_buffer,
-            //                      texture_image,
-            //                      texture_format,
-            //                      old_layout,
-            //                      new_layout);
             texture_image.memory_barrier(temp_command_buffer, texture_format, old_layout, new_layout);
 
             // 6.2 -- copy buffer to image handles
-            // copy(temp_command_buffer,
-            //      texture_image,
-            //      staging,
-            //      p_config.extent.width,
-            //      p_config.extent.height);
             staging.copy_to_image(temp_command_buffer, texture_image, p_config.extent);
 
             // 6.3 -- transition image layout back to the layout specification
             old_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
             new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            // image_memory_barrier(temp_command_buffer,
-            //                      texture_image,
-            //                      texture_format,
-            //                      old_layout,
-            //                      new_layout);
             texture_image.memory_barrier(temp_command_buffer, texture_format, old_layout, new_layout);
 
             temp_command_buffer.end();
@@ -185,7 +170,7 @@ export namespace vk {
                     .phsyical_memory_properties = p_property
                 };
                 m_image =
-                create_texture_with_data(m_device, config_image, white_color.data());
+                create_texture_with_data(m_device, config_image, white_color);
                 m_texture_loaded = true;
             }
 
@@ -222,7 +207,9 @@ export namespace vk {
                     .phsyical_memory_properties = p_texture_info.phsyical_memory_properties,
                 };
 
-                m_image = create_texture_with_data(p_device, config_image, image_pixel_data);
+                // std::span<const uint8_t> bytes(reinterpret_cast<uint8_t*>(image_pixel_data), static_cast<size_t>(m_width*m_height));
+                std::span<const uint8_t> bytes(as_bytes(image_pixel_data, m_width * m_height));
+                m_image = create_texture_with_data(p_device, config_image, bytes);
 
                 m_texture_loaded = true;
             }

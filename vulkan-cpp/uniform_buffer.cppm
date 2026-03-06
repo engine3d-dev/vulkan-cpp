@@ -23,12 +23,12 @@ export namespace vk {
         public:
             uniform_buffer() = default;
             uniform_buffer(const VkDevice& p_device,
-                        const uniform_params& p_uniform_info) : m_device(p_device), m_size_bytes(p_uniform_info.size_bytes) {
+                        uint64_t p_size_bytes,
+                        const uniform_params& p_uniform_info) : m_device(p_device), m_size_bytes(p_size_bytes) {
                 
                 uint32_t property_flags = memory_property::host_visible_bit |
                                   memory_property::host_coherent_bit;
                 buffer_parameters uniform_info = {
-                    .device_size = m_size_bytes,
                     .physical_memory_properties =
                     p_uniform_info.phsyical_memory_properties,
                     .property_flags = (memory_property)property_flags,
@@ -36,27 +36,33 @@ export namespace vk {
                     .debug_name = p_uniform_info.debug_name.c_str(),
                     .vkSetDebugUtilsObjectNameEXT = p_uniform_info.vkSetDebugUtilsObjectNameEXT
                 };
-                m_uniform_handle = buffer_stream(m_device, uniform_info);
+                m_uniform_handle = buffer_stream(m_device, p_size_bytes, uniform_info);
             }
 
             [[nodiscard]] bool alive() const { return m_uniform_handle; }
 
-            void update(const void* p_data) {
-                m_uniform_handle.write(p_data, m_size_bytes);
+            template<typename T>
+            void update(std::span<T> p_uniform_data) {
+                // static_assert(p_uniform_data.size_bytes() == p_size_bytes, "Cannot write as uniforms are invalid amount of bytes");
+                // assert(p_uniform_data.size_bytes() == p_size_bytes);
+                m_uniform_handle.write<T>(p_uniform_data);
+            }
+
+
+            [[nodiscard]] uint64_t size_bytes() const {
+                return m_size_bytes;
             }
 
             operator VkBuffer() const { return m_uniform_handle; }
 
             operator VkBuffer() { return m_uniform_handle; }
 
-            [[nodiscard]] uint32_t size_bytes() const { return m_size_bytes; }
-
             void destroy() {
                 m_uniform_handle.destroy();
             }
 
         private:
-            uint32_t m_size_bytes = 0;
+            uint64_t m_size_bytes;
             VkDevice m_device = nullptr;
             buffer_stream m_uniform_handle{};
         };

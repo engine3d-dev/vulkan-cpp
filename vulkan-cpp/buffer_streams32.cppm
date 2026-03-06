@@ -21,12 +21,12 @@ export namespace vk {
         class buffer_stream32 {
         public:
             buffer_stream32() = default;
-            buffer_stream32(const VkDevice& p_device, const buffer_parameters& p_params) : m_device(p_device) {
+            buffer_stream32(const VkDevice& p_device, uint64_t p_device_size, const buffer_parameters& p_params) : m_device(p_device) {
                 VkBufferCreateInfo buffer_ci = {
                     .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
                     .pNext = nullptr,
                     .flags = 0,
-                    .size = p_params.device_size, // size in bytes
+                    .size = p_device_size, // size in bytes
                     .usage = p_params.usage,
                     .sharingMode = p_params.share_mode,
                 };
