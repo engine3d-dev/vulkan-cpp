@@ -618,6 +618,9 @@ main() {
     };
     set0_resource.update(uniforms, sample_images);
 
+    uint64_t test_size_bytes = sizeof(global_uniform);
+    uint64_t test_size_bytes2 = sizeof(global_uniform);
+
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
@@ -667,8 +670,8 @@ main() {
         };
         ubo.proj[1][1] *= -1;
 
-        std::array<global_uniform, 1> uniform_arr = {ubo};
-        test_ubo.update<global_uniform>(uniform_arr);
+        std::array<global_uniform, 1> ubo_arr = {ubo};
+        test_ubo.update<global_uniform>(ubo_arr);
 
         // Before we can send stuff to the GPU, since we already updated the
         // descriptor set 0 beforehand, we must bind that descriptor resource
