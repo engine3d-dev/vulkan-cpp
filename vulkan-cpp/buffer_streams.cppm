@@ -86,28 +86,52 @@ export namespace vk {
             }
 
             /**
-             * @param span<T> writes some buffer data in the GPU's memory using
-             * vkMapMemory/vkUnmapMemory
+             * @brief writes an arbitrary amount of uniforms of type T
+             * 
+             * Performs runtime assertion checks if the bytes of type T are valid before mapping the uniforms for GPU to access
+             * 
+             * Example Usage:
+             * 
+             * ```C++
+             * vk::uniform_buffer test_ubo(...);
+             * std::array<global_ubo, 2> ubo = { ... };
+             * 
+             * test_ubo.write<global_ubo>(ubo);
+             * ```
              */
             template<typename T>
-            void write(std::span<T> p_in_data) {
-                VkDeviceSize buffer_size = p_in_data.size_bytes();
+            void write(std::span<const T> p_in_data) {
                 void* mapped = nullptr;
                 vk_check(vkMapMemory(
-                        m_device, m_device_memory, 0, buffer_size, 0, &mapped),
+                        m_device, m_device_memory, 0, p_in_data.size_bytes(), 0, &mapped),
                         "vkMapMemory");
-                memcpy(mapped, p_in_data.data(), buffer_size);
+                memcpy(mapped, p_in_data.data(), p_in_data.size_bytes());
                 vkUnmapMemory(m_device, m_device_memory);
             }
 
-            // void write(const void* p_in_data, uint32_t p_size_bytes) {
-            //     void* mapped = nullptr;
-            //     vk_check(vkMapMemory(
-            //             m_device, m_device_memory, 0, p_size_bytes, 0, &mapped),
-            //             "vkMapMemory");
-            //     memcpy(mapped, p_in_data, p_size_bytes);
-            //     vkUnmapMemory(m_device, m_device_memory);
-            // }
+            /**
+             * @brief writing uniforms that are represented into bytes
+             * 
+             * Example Usage:
+             * 
+             * ```C++
+             * vk::uniform_buffer test_ubo(....);
+             * global_ubo test = {
+             *  .proj = ...,
+             * };
+             * std::span<const uint8_t> bytes(vk::as_bytes(test))
+             * test_ubo.write(bytes);
+             * ```
+             * 
+            */
+            void write(std::span<const uint8_t> p_data) {
+                void* mapped = nullptr;
+                vk_check(vkMapMemory(
+                        m_device, m_device_memory, 0, p_data.size_bytes(), 0, &mapped),
+                        "vkMapMemory");
+                memcpy(mapped, p_data.data(), p_data.size_bytes());
+                vkUnmapMemory(m_device, m_device_memory);
+            }
 
             /**
              *
