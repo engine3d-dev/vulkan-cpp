@@ -616,8 +616,6 @@ main() {
     };
     set0_resource.update(uniforms, sample_images);
 
-    uint64_t test_size_bytes = sizeof(global_uniform);
-    uint64_t test_size_bytes2 = sizeof(global_uniform);
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
