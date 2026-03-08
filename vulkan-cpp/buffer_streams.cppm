@@ -3,6 +3,7 @@ module;
 #include <vulkan/vulkan.h>
 #include <span>
 #include <cstring>
+#include <mdspan>
 
 export module vk:buffer_streams;
 
@@ -100,10 +101,10 @@ export namespace vk {
              * ```
              */
             template<typename T>
-            void write(std::span<const T> p_in_data) {
+            void write(std::span<const T> p_in_data, uint32_t p_offset=0) {
                 void* mapped = nullptr;
                 vk_check(vkMapMemory(
-                        m_device, m_device_memory, 0, p_in_data.size_bytes(), 0, &mapped),
+                        m_device, m_device_memory, p_offset, p_in_data.size_bytes(), 0, &mapped),
                         "vkMapMemory");
                 memcpy(mapped, p_in_data.data(), p_in_data.size_bytes());
                 vkUnmapMemory(m_device, m_device_memory);
@@ -111,23 +112,21 @@ export namespace vk {
 
             /**
              * @brief writing uniforms that are represented into bytes
-             * 
+             * @param p_data are the bytes to allow GPU to access
              * Example Usage:
              * 
              * ```C++
-             * vk::uniform_buffer test_ubo(....);
-             * global_ubo test = {
-             *  .proj = ...,
-             * };
-             * std::span<const uint8_t> bytes(vk::as_bytes(test))
-             * test_ubo.write(bytes);
+             * buffer_streams staging_buffer(logical_device, ...);
+             * 
+             * std::array<uint8_t, 4> white_color = { 0xFF, 0xFF, 0xFF, 0xFF };
+             * staging_buffer.write(white_color);
              * ```
              * 
             */
-            void write(std::span<const uint8_t> p_data) {
+            void write(std::span<const uint8_t> p_data, uint32_t p_offset=0) {
                 void* mapped = nullptr;
                 vk_check(vkMapMemory(
-                        m_device, m_device_memory, 0, p_data.size_bytes(), 0, &mapped),
+                        m_device, m_device_memory, p_offset, p_data.size_bytes(), 0, &mapped),
                         "vkMapMemory");
                 memcpy(mapped, p_data.data(), p_data.size_bytes());
                 vkUnmapMemory(m_device, m_device_memory);
@@ -173,29 +172,6 @@ export namespace vk {
                                     1,
                                     &buffer_image_copy);
             }
-
-            /**
-             * @param p_data is the bytes to write into the GPU's memory through the
-             * Vulkan vkMapMemory/vkUnmapMemory API's.
-             * 
-             * ```C++
-             * 
-             * buffer_streams staging_buffer(logical_device, ...);
-             * 
-             * std::array<uint8_t, 4> white_color = { 0xFF, 0xFF, 0xFF, 0xFF };
-             * staging_buffer.write(white_color);
-             * ```
-             * 
-             */
-            // void write(std::span<const uint8_t> p_data) {
-            //     void* mapped = nullptr;
-            //     vk_check(
-            //         vkMapMemory(
-            //         m_device, m_device_memory, 0, p_data.size_bytes(), 0, &mapped),
-            //         "vkMapMemory");
-            //     memcpy(mapped, p_data.data(), p_data.size_bytes());
-            //     vkUnmapMemory(m_device, m_device_memory);
-            // }
 
             void destroy() {
                 if (m_handle != nullptr) {

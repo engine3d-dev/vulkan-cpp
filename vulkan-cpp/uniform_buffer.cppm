@@ -42,8 +42,6 @@ export namespace vk {
 
             template<typename T>
             void update(std::span<const T> p_uniform_data) {
-                // Should fail this assert at runtime because of an invalid uniform data
-                assert(sizeof(T) == m_size_bytes);
                 m_uniform_handle.write<T>(p_uniform_data);
             }
 
