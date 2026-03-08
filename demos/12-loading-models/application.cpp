@@ -454,8 +454,7 @@ main() {
             .views = image_view_attachments,
             .extent = swapchain_extent
         };
-        swapchain_framebuffers[i] =
-          vk::framebuffer(logical_device, framebuffer_info);
+        swapchain_framebuffers[i] = vk::framebuffer(logical_device, framebuffer_info);
     }
 
     std::println("Created VkFramebuffer's with size = {}",
@@ -597,9 +596,8 @@ main() {
     // Loading a texture
     vk::texture_info config_texture = {
         .phsyical_memory_properties = physical_device.memory_properties(),
-        .filepath = std::filesystem::path("asset_samples/viking_room.png")
     };
-    vk::texture texture1(logical_device, config_texture);
+    vk::texture texture1(logical_device, std::filesystem::path("asset_samples/viking_room.png"), config_texture);
 
     std::array<vk::write_image, 1> samplers = {
         vk::write_image{
@@ -671,7 +669,7 @@ main() {
         ubo.proj[1][1] *= -1;
 
         std::array<global_uniform, 1> ubo_arr = {ubo};
-        test_ubo.update<global_uniform>(ubo_arr);
+        test_ubo.transfer<global_uniform>(ubo_arr);
 
         // Before we can send stuff to the GPU, since we already updated the
         // descriptor set 0 beforehand, we must bind that descriptor resource
