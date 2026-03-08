@@ -40,7 +40,7 @@ export namespace vk {
                     .vkSetDebugUtilsObjectNameEXT = p_vertex_info.vkSetDebugUtilsObjectNameEXT
                 };
                 buffer_stream staging_buffer(m_device, p_vertices.size_bytes(), staging_buffer_params);
-                staging_buffer.write(p_vertices);
+                staging_buffer.transfer(p_vertices);
 
                 // 3.) Now creating our actual vertex buffer handler
                 buffer_parameters vertex_params = {
