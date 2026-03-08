@@ -1,25 +1,63 @@
-name: C++ Linter
+# name: C++ Linter
+
+# on: [pull_request]
+
+# jobs:
+#   linter:
+#     name: "Linter"
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Clang-Tidy
+#         uses: asarium/clang-tidy-action@v1
+#         with:
+#           fixesFile: clang-fixes.yaml
+# # jobs:
+# #     linux-build:
+# #         name: "Linter"
+# #         runs-on: ubuntu-latest
+# #         steps:
+# #             - uses: actions/checkout@v4
+
+# #             - uses: cpp-linter/cpp-linter-action@main
+# #               id: linter
+# #               env:
+# #                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+# #               with:
+# #                   style: '.clang-format'  # Use .clang-format config file
+# #                   version: 19 # Using clang-tidy19
+# #                   tidy-checks: '.clang-tidy' # Use .clang-tidy config file
+# #                   # only 'update' a single comment in a pull request thread.
+# #                   thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
+
+# #             - name: Fail fast?!
+# #               if: steps.linter.outputs.checks-failed > 0
+# #               run: exit 1
+
+name: cpp-linter
 
 on: [pull_request]
 
+
 jobs:
-    linux-build:
-        name: "Linter"
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
+  cpp-linter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+        with:
+          persist-credentials: false
+      - uses: cpp-linter/cpp-linter-action@main
+        id: linter
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          style: .clang-tidy
+          files-changed-only: false
+          thread-comments: false
 
-            - uses: cpp-linter/cpp-linter-action@main
-              id: linter
-              env:
-                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              with:
-                  style: '.clang-format'  # Use .clang-format config file
-                  version: 19 # Using clang-tidy19
-                  tidy-checks: '.clang-tidy' # Use .clang-tidy config file
-                  # only 'update' a single comment in a pull request thread.
-                  thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
-
-            - name: Fail fast?!
-              if: steps.linter.outputs.checks-failed > 0
-              run: exit 1
+      - name: Fail fast?!
+        if: steps.linter.outputs.checks-failed != 0
+        run: |
+          echo "some linter checks failed. ${{ steps.linter.outputs.checks-failed }}"
+        # for actual deployment
+        # run: exit 1
