@@ -11,5 +11,5 @@ jobs:
       with:
         clang-format-version: 20
         check-path: '.'
-        include-files: '.*\.(cpp|cppm)$'
+        include-regex: '.*\.(cpp|cppm)$'
         fallback-style: 'LLVM' # optional
