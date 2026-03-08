@@ -53,6 +53,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           style: .clang-tidy
+          extensions: 'cpp, cppm'
           files-changed-only: false
           thread-comments: false
 
