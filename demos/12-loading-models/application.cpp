@@ -147,13 +147,14 @@ public:
 
         m_has_indices = (indices.size() > 0) ? true : false;
 
-        if(m_has_indices) {
+        if (m_has_indices) {
             m_indices_size = indices.size();
         }
         m_indices_size = vertices.size();
         m_indices_size = indices.size();
-        vk::vertex_params vertex_info = { .phsyical_memory_properties =
-                                            p_physical.memory_properties(), };
+        vk::vertex_params vertex_info = {
+            .phsyical_memory_properties = p_physical.memory_properties(),
+        };
 
         vk::index_params index_info = { .phsyical_memory_properties =
                                           p_physical.memory_properties() };
@@ -167,21 +168,15 @@ public:
 
     void bind(const VkCommandBuffer& p_command) {
         m_vertex_buffer.bind(p_command);
-        
+
         if (m_has_indices) {
             m_index_buffer.bind(p_command);
         }
-
     }
 
     void draw(const VkCommandBuffer& p_command) {
         if (m_has_indices) {
-            vkCmdDrawIndexed(p_command,
-                             m_indices_size,
-                             1,
-                             0,
-                             0,
-                             0);
+            vkCmdDrawIndexed(p_command, m_indices_size, 1, 0, 0, 0);
         }
         else {
             vkCmdDraw(p_command, m_indices_size, 1, 0, 0);
@@ -195,8 +190,8 @@ public:
 
 private:
     bool m_is_loaded = false;
-    bool m_has_indices=false;
-    uint32_t m_indices_size=0;
+    bool m_has_indices = false;
+    uint32_t m_indices_size = 0;
     vk::vertex_buffer m_vertex_buffer{};
     vk::index_buffer m_index_buffer{};
 };
@@ -454,7 +449,8 @@ main() {
             .views = image_view_attachments,
             .extent = swapchain_extent
         };
-        swapchain_framebuffers[i] = vk::framebuffer(logical_device, framebuffer_info);
+        swapchain_framebuffers[i] =
+          vk::framebuffer(logical_device, framebuffer_info);
     }
 
     std::println("Created VkFramebuffer's with size = {}",
@@ -475,10 +471,14 @@ main() {
 
     // Now creating a vulkan graphics pipeline for the shader loading
     std::array<vk::shader_source, 2> shader_sources = {
-        vk::shader_source{ .filename = "shader_samples/sample5/test.vert.spv",
-                           .stage = vk::shader_stage::vertex },
-        vk::shader_source{ .filename = "shader_samples/sample5/test.frag.spv",
-                           .stage = vk::shader_stage::fragment },
+        vk::shader_source{
+          .filename = "shader_samples/sample5/test.vert.spv",
+          .stage = vk::shader_stage::vertex,
+        },
+        vk::shader_source{
+          .filename = "shader_samples/sample5/test.frag.spv",
+          .stage = vk::shader_stage::fragment,
+        },
     };
 
     // Setting up vertex attributes in the test shaders
@@ -581,23 +581,34 @@ main() {
                          physical_device);
 
     // Setting up descriptor sets for handling uniforms
-    vk::uniform_params test_ubo_info = { .phsyical_memory_properties =
-                                           physical_device.memory_properties() };
+    vk::uniform_params test_ubo_info = {
+        .phsyical_memory_properties = physical_device.memory_properties()
+    };
     vk::uniform_buffer test_ubo =
       vk::uniform_buffer(logical_device, sizeof(global_uniform), test_ubo_info);
     // std::println("uniform_buffer.alive() = {}", test_ubo.alive());
 
-    std::array<vk::write_buffer, 1> uniforms0 = { vk::write_buffer{
-      .buffer = test_ubo, .offset = 0, .range = static_cast<uint32_t>(test_ubo.size_bytes()) } };
+    std::array<vk::write_buffer, 1> uniforms0 = {
+        vk::write_buffer{
+          .buffer = test_ubo,
+          .offset = 0,
+          .range = static_cast<uint32_t>(test_ubo.size_bytes()),
+        },
+    };
     std::array<vk::write_buffer_descriptor, 1> uniforms = {
-        vk::write_buffer_descriptor{ .dst_binding = 0, .uniforms = uniforms0 }
+        vk::write_buffer_descriptor{
+          .dst_binding = 0,
+          .uniforms = uniforms0,
+        },
     };
 
     // Loading a texture
     vk::texture_info config_texture = {
         .phsyical_memory_properties = physical_device.memory_properties(),
     };
-    vk::texture texture1(logical_device, std::filesystem::path("asset_samples/viking_room.png"), config_texture);
+    vk::texture texture1(logical_device,
+                         std::filesystem::path("asset_samples/viking_room.png"),
+                         config_texture);
 
     std::array<vk::write_image, 1> samplers = {
         vk::write_image{
@@ -615,7 +626,6 @@ main() {
         }
     };
     set0_resource.update(uniforms, sample_images);
-
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -666,7 +676,7 @@ main() {
         };
         ubo.proj[1][1] *= -1;
 
-        std::array<global_uniform, 1> ubo_arr = {ubo};
+        std::array<global_uniform, 1> ubo_arr = { ubo };
         test_ubo.transfer<global_uniform>(ubo_arr);
 
         // Before we can send stuff to the GPU, since we already updated the
