@@ -52,9 +52,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          style: .clang-tidy
+          style: '.clang-tidy'
           extensions: 'cpp, cppm'
-          files-changed-only: false
+          files-changed-only: true
           thread-comments: false
 
       - name: Fail fast?!
