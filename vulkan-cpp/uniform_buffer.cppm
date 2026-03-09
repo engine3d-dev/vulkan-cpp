@@ -30,7 +30,6 @@ export namespace vk {
                 buffer_parameters uniform_info = {
                     .physical_memory_properties =
                       p_uniform_info.phsyical_memory_properties,
-                    // .property_flags = (memory_property)property_flags,
                     .property_flags = static_cast<memory_property>(
                       memory_property::host_visible_bit |
                       memory_property::host_coherent_bit),
