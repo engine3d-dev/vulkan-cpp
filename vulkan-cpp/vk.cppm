@@ -23,6 +23,5 @@ export import :descriptor_resource;
 export import :texture;
 
 namespace vk {
-    inline namespace v1 {
-    };
+    inline namespace v1 {};
 };

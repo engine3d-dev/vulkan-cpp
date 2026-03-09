@@ -143,7 +143,8 @@ export namespace vk {
              * ```
              *
              */
-            void transfer(std::span<const uint8_t> p_data, uint32_t p_offset = 0) {
+            void transfer(std::span<const uint8_t> p_data,
+                          uint32_t p_offset = 0) {
                 void* mapped = nullptr;
                 vk_check(vkMapMemory(m_device,
                                      m_device_memory,
