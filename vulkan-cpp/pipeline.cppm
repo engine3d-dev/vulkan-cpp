@@ -460,6 +460,9 @@ export namespace vk {
              *
              * ```
              *
+             * @tparam T is the type of the push constant
+             * @tparam max_size parameter for controlling max of bytes to send
+             *
              * @param p_current current command to push constants directly to
              * the shader
              * @param p_stage is specifying what stage of the push constants are
