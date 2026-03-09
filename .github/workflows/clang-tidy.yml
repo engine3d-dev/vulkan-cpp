@@ -58,7 +58,7 @@ jobs:
           thread-comments: false
 
       - name: Fail fast?!
-        if: steps.linter.outputs.checks-failed != '0'
+        if: ${{ steps.linter.outputs.checks-failed > 0 }}
         run: |
           echo "some linter checks failed. ${{ steps.linter.outputs.checks-failed }}"
           # for actual deployment
