@@ -543,41 +543,6 @@ export namespace vk {
             uint32_t queue_family_index = 0;
         };
 
-        // raw image handlers
-        // struct image {
-        //     VkImage image = nullptr;
-        //     VkImageView view = nullptr;
-        // };
-
-        // sampler + raw image handlers
-        // struct sampled_image {
-        //     VkImage image = nullptr;
-        //     VkImageView view = nullptr;
-        //     VkSampler sampler = nullptr;
-        //     VkDeviceMemory device_memory = nullptr;
-        // };
-
-        //! @brief enumeration if an image is provided
-        // struct swapchain_image_enumeration {
-        //     VkImage image = nullptr;
-        //     VkFormat format;
-        //     // VkImageAspectFlags aspect;
-        //     image_aspect_flags aspect;
-        //     uint32_t layer_count = 0;
-        //     uint32_t mip_levels = 1;
-        // };
-
-        // Image enumeration for creating a brand new VkImage/VkImageView
-        // handlers struct image_enumeration {
-        //     uint32_t width = -1;
-        //     uint32_t height = -1;
-        //     VkFormat format;
-        //     // VkImageAspectFlags aspect;
-        //     image_aspect_flags aspect;
-        //     uint32_t layer_count = 1;
-        //     uint32_t mip_levels = 1;
-        // };
-
         /**
          * @param renderpass vulkan requires framebuffers to know renderpasses
          * up front
