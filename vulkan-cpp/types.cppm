@@ -1257,7 +1257,6 @@ export namespace vk {
         };
 
         struct renderpass_begin_params {
-            VkCommandBuffer current_command = nullptr;
             VkExtent2D extent;
             VkFramebuffer current_framebuffer = nullptr;
             std::array<float, 4> color;

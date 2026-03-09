@@ -32,11 +32,11 @@ export namespace vk {
                        std::span<attachment> p_renderpass_attachments,
                        bool p_enable_subpasses = true)
               : m_device(p_device) {
-                create(p_renderpass_attachments, p_enable_subpasses);
+                configure(p_renderpass_attachments, p_enable_subpasses);
             }
 
-            void create(std::span<const attachment> p_renderpass_attachments,
-                        bool p_enable_subpasses = true) {
+            void configure(std::span<const attachment> p_renderpass_attachments,
+                           bool p_enable_subpasses = true) {
                 // 1. Specifically for setting up the attachment description
                 std::vector<VkAttachmentDescription> attachment_description(
                   p_renderpass_attachments.size());
@@ -56,14 +56,10 @@ export namespace vk {
                     attachment_description[i] = {
                         .flags = 0,
                         .format = attachment_spec.format,
-                        // .samples = VK_SAMPLE_COUNT_1_BIT,
                         .samples = static_cast<VkSampleCountFlagBits>(
                           attachment_spec.samples),
-                        // .loadOp = to_attachment_load(attachment_spec.load),
                         .loadOp =
                           static_cast<VkAttachmentLoadOp>(attachment_spec.load),
-                        // .storeOp =
-                        // to_attachment_store(attachment_spec.store),
                         .storeOp = static_cast<VkAttachmentStoreOp>(
                           attachment_spec.store),
                         .stencilLoadOp = static_cast<VkAttachmentLoadOp>(
@@ -111,8 +107,6 @@ export namespace vk {
                     uint32_t slot = depth_attachment_indices[i];
                     depth_attachment_references[i] = {
                         .attachment = slot,
-                        // .layout =
-                        // to_image_layout(p_renderpass_attachments[slot].layout)
                         .layout = static_cast<VkImageLayout>(
                           p_renderpass_attachments[slot].layout)
                     };
@@ -167,9 +161,8 @@ export namespace vk {
 
             [[nodiscard]] bool alive() const { return m_renderpass; }
 
-            void begin(const renderpass_begin_params& p_begin_info) {
-                // TODO: Move VkViewport and VkScissor to vk::swapchain since
-                // these are information more closely set by the swapchain
+            void begin(const VkCommandBuffer& p_command,
+                       const renderpass_begin_params& p_begin_info) {
                 VkViewport viewport = {
                     .x = 0.0f,
                     .y = 0.0f,
@@ -179,23 +172,21 @@ export namespace vk {
                     .maxDepth = 1.0f,
                 };
 
-                vkCmdSetViewport(p_begin_info.current_command, 0, 1, &viewport);
+                vkCmdSetViewport(p_command, 0, 1, &viewport);
 
                 VkRect2D scissor = {
                     .offset = { 0, 0 },
-                    .extent = { p_begin_info.extent.width,
-                                p_begin_info.extent.height },
+                    .extent = p_begin_info.extent,
                 };
 
-                vkCmdSetScissor(p_begin_info.current_command, 0, 1, &scissor);
+                vkCmdSetScissor(p_command, 0, 1, &scissor);
 
                 // setting color for this specific renderpass
-                VkClearColorValue renderpass_color = {
-                    { p_begin_info.color.at(0),
-                      p_begin_info.color.at(1),
-                      p_begin_info.color.at(2),
-                      p_begin_info.color.at(3) }
-                };
+                VkClearColorValue renderpass_color = {};
+                std::copy(p_begin_info.color.begin(),
+                          p_begin_info.color.end(),
+                          renderpass_color.float32);
+
                 std::array<VkClearValue, 2> clear_values = {};
 
                 clear_values[0].color = renderpass_color;
@@ -221,7 +212,7 @@ export namespace vk {
                 };
 
                 vkCmdBeginRenderPass(
-                  p_begin_info.current_command,
+                  p_command,
                   &renderpass_begin_params,
                   static_cast<VkSubpassContents>(p_begin_info.subpass));
             }
