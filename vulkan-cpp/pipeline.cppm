@@ -133,7 +133,7 @@ export namespace vk {
              */
             pipeline(const VkDevice& p_device, const pipeline_params& p_info)
               : m_device(p_device) {
-                invalidate(p_info);
+                configure(p_info);
             }
 
             /**
@@ -166,7 +166,7 @@ export namespace vk {
              * More info on vulkan's official
              * [docs](https://docs.vulkan.org/refpages/latest/refpages/source/vkCreateGraphicsPipelines.html)
              */
-            void invalidate(const pipeline_params& p_info) {
+            void configure(const pipeline_params& p_info) {
                 std::vector<VkPipelineShaderStageCreateInfo>
                   pipeline_shader_stages(p_info.shader_modules.size());
 
@@ -499,8 +499,7 @@ export namespace vk {
             //! @return true if m_pipeline is valid, false if invalid
             [[nodiscard]] bool alive() const { return m_pipeline; }
 
-            //! @return VkPipelineLayout that has been created with the
-            //! vk::pipeline handle
+            //! @return the VkPipelineLayout handle
             [[nodiscard]] VkPipelineLayout layout() const {
                 return m_pipeline_layout;
             }
@@ -516,8 +515,9 @@ export namespace vk {
                 }
             }
 
-            //! @brief allows for treating vk::pipeline as a VkPipeline handle
-            //! for simple use
+            /**
+             * @brief Directly vk::pipeline as a VkPipeline handle
+             */
             operator VkPipeline() const { return m_pipeline; }
 
             operator VkPipeline() { return m_pipeline; }
