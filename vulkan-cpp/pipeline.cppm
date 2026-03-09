@@ -474,17 +474,23 @@ export namespace vk {
              * More info on vulkan's official
              * [docs](https://docs.vulkan.org/refpages/latest/refpages/source/vkCmdPushConstants.html)
              */
+            template<typename T, size_t max_size = 128>
             void push_constant(const VkCommandBuffer& p_current,
+                               const T& p_data,
                                shader_stage p_stage,
                                uint32_t p_offset,
-                               uint32_t p_range,
-                               const void* p_data) {
+                               uint32_t p_range) {
+                // Perform compile-time checks
+                // Should only accept 128 bytes of data to send over push
+                // constants
+                static_assert(sizeof(T) == max_size);
+
                 vkCmdPushConstants(p_current,
                                    m_pipeline_layout,
                                    static_cast<VkShaderStageFlags>(p_stage),
                                    p_offset,
                                    p_range,
-                                   p_data);
+                                   &p_data);
             }
 
             //! @return true if m_pipeline is valid, false if invalid
