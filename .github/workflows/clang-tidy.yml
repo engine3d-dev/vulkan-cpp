@@ -46,6 +46,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Generate compilation database
+        run: |
+          cmake -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
       - uses: cpp-linter/cpp-linter-action@main
         id: linter
         continue-on-error: true
