@@ -14,7 +14,6 @@ module;
 
 export module vk:surface;
 
-
 export import :types;
 export import :utilities;
 export import :instance;
@@ -24,8 +23,12 @@ export namespace vk {
 
         class surface {
         public:
-            surface(const VkInstance& p_instance, GLFWwindow* p_window_handle) : m_instance(p_instance) {
-                vk_check(glfwCreateWindowSurface( m_instance, p_window_handle, nullptr, &m_surface_handler), "glfwCreateWindowSurface");
+            surface(const VkInstance& p_instance, GLFWwindow* p_window_handle)
+              : m_instance(p_instance) {
+                vk_check(
+                  glfwCreateWindowSurface(
+                    m_instance, p_window_handle, nullptr, &m_surface_handler),
+                  "glfwCreateWindowSurface");
             }
 
             [[nodiscard]] bool alive() const { return m_surface_handler; }

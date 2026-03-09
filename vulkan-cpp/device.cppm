@@ -7,7 +7,6 @@ export module vk:device;
 export import :types;
 export import :utilities;
 
-
 export namespace vk {
     inline namespace v1 {
         /**
@@ -22,14 +21,15 @@ export namespace vk {
             };
 
         public:
-            device(const VkPhysicalDevice& p_physical, const device_params& p_config) {
+            device(const VkPhysicalDevice& p_physical,
+                   const device_params& p_config) {
                 VkDeviceQueueCreateInfo device_queue_ci = {
                     .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
                     .pNext = nullptr,
                     .flags = 0,
                     .queueFamilyIndex = p_config.queue_family_index,
                     .queueCount =
-                    static_cast<uint32_t>(p_config.queue_priorities.size()),
+                      static_cast<uint32_t>(p_config.queue_priorities.size()),
                     .pQueuePriorities = p_config.queue_priorities.data(),
                 };
 
@@ -42,7 +42,7 @@ export namespace vk {
                     .enabledLayerCount = 0,
                     .ppEnabledLayerNames = nullptr,
                     .enabledExtensionCount =
-                    static_cast<uint32_t>(p_config.extensions.size()),
+                      static_cast<uint32_t>(p_config.extensions.size()),
                     .ppEnabledExtensionNames = p_config.extensions.data(),
                 };
 
@@ -51,8 +51,9 @@ export namespace vk {
                 features.robustBufferAccess = false;
                 create_info.pEnabledFeatures = &features;
 
-                vk_check(vkCreateDevice(p_physical, &create_info, nullptr, &m_device),
-                        "vkCreateDevice");
+                vk_check(
+                  vkCreateDevice(p_physical, &create_info, nullptr, &m_device),
+                  "vkCreateDevice");
             }
 
             [[nodiscard]] queue_family family() const { return m_queue_family; }
@@ -63,9 +64,7 @@ export namespace vk {
                 }
             }
 
-            void wait() {
-                vkDeviceWaitIdle(m_device);
-            }
+            void wait() { vkDeviceWaitIdle(m_device); }
 
             operator VkDevice() const { return m_device; }
 
