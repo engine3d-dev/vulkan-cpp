@@ -24,8 +24,6 @@ import vk;
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 
-#include <stdio.h>
-
 #include <tiny_obj_loader.h>
 
 import cubemap;
@@ -689,6 +687,7 @@ main() {
     // };
     cubemap test_cubemap(logical_device, faces, physical_device.memory_properties(), main_renderpass);
 
+
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
@@ -720,8 +719,7 @@ main() {
         float time = std::chrono::duration<float, std::chrono::seconds::period>(
                        current_time - start_time)
                        .count();
-
-        // We set the uniforms and then we offload that to the GPU
+        
         global_uniform ubo = {
             .model = glm::rotate(glm::mat4(1.0f),
                                  time * glm::radians(90.0f),
