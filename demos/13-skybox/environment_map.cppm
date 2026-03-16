@@ -80,7 +80,6 @@ public:
         uint32_t property_flag = vk::memory_property::host_visible_bit |
                                     vk::memory_property::host_cached_bit;
         vk::buffer_parameters staging_buffer_params = {
-            .device_size = static_cast<uint32_t>(image_size),
             .physical_memory_properties = p_memory_properties,
             .property_flags =
                 static_cast<vk::memory_property>(property_flag),
@@ -88,7 +87,7 @@ public:
         };
 
         vk::buffer_stream staging_buffer =
-            vk::buffer_stream(m_device, staging_buffer_params);
+            vk::buffer_stream(m_device, static_cast<uint32_t>(image_size), staging_buffer_params);
 
         // Creating image handle to storing the HDR
         vk::image_params skybox_image_params = {
@@ -108,9 +107,9 @@ public:
         // &data); std::memcpy(data, pixels,
         // static_cast<size_t>(total_size_bytes)); vkUnmapMemory(m_device,
         // staging_memory);
-        std::span<const uint8_t> pixels_data(
-            reinterpret_cast<const uint8_t*>(pixels), image_size);
-        staging_buffer.write(pixels_data);
+        std::span<const uint8_t> pixels_data(reinterpret_cast<const uint8_t*>(pixels), image_size);
+        staging_buffer.transfer(pixels_data);
+        // staging_buffer.write(pixels_data);
 
         // Free CPU pixels immediately after staging copy
         stbi_image_free(pixels);
@@ -182,14 +181,7 @@ public:
             -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f,
             1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f
         };
-        // m_physical = instance_context::physical_driver();
-        // m_device = instance_context::logical_device();
 
-        // std::vector<vk::vertex_input> vertices = {
-        //     vk::vertex_input{
-        //         .position = {-1.0f,  1.0f, -1.0f,}
-        //     },
-        // };
         std::vector<vk::vertex_input> vertices = {
             // Front Face
             vk::vertex_input{ { -1.0f, 1.0f, -1.0f },
@@ -347,29 +339,12 @@ public:
                                 { 0.0f, 0.0f, 0.0f },
                                 { 0.0f, 0.0f } }
         };
-        // for (size_t i = 0; i < skyboxVertices.size(); i += 3) {
-        //     vk::vertex_input v{};
 
-        //     // Assign position from the float array
-        //     v.position = glm::vec3(
-        //         vertices[i],
-        //         vertices[i + 1],
-        //         vertices[i + 2]
-        //     );
-
-        //     // Default values for the remaining fields
-        //     v.color   = glm::vec3(1.0f); // Default white
-        //     v.normals = glm::vec3(0.0f); // Or calculate if needed
-        //     v.uv      = glm::vec2(0.0f);
-
-        //     vertices.push_back(v);
-        // }
         vk::vertex_params vbo_params = {
             .phsyical_memory_properties = p_memory_properties,
-            .vertices = vertices
         };
-
-        m_skybox_vbo = vk::vertex_buffer(m_device, vbo_params);
+        m_skybox_vbo_size = vertices.size();
+        m_skybox_vbo = vk::vertex_buffer(m_device, vertices, vbo_params);
     }
 
     void create_skybox_pipeline(
@@ -428,16 +403,16 @@ public:
         // set=0 binding=0 UBO: mat4 VP
         vk::uniform_params ubo_params = {
             .phsyical_memory_properties = p_memory_properties,
-            .size_bytes = sizeof(skybox_uniform),
             .debug_name = "skybox_ubo",
             .vkSetDebugUtilsObjectNameEXT = nullptr,
         };
-        m_skybox_ubo = vk::uniform_buffer(m_device, ubo_params);
+        m_skybox_ubo = vk::uniform_buffer(m_device, sizeof(skybox_uniform), ubo_params);
         // vk::uniform_buffer(m_device, sizeof(skybox_uniform), ubo_params);
 
         skybox_uniform identity = { .proj_view = glm::mat4(1.0f) };
         identity.proj_view[1][1] *= -1;
-        m_skybox_ubo.update(&identity);
+        std::span<const uint8_t> bytes(reinterpret_cast<uint8_t*>(&identity), 1);
+        m_skybox_ubo.transfer(bytes);
 
         // set=0 bindings:
         //  - binding 0: UBO (vertex)
@@ -560,7 +535,7 @@ public:
     void update_uniform(const skybox_uniform& p_ubo) {
         // m_skybox_ubo.transfer(std::span<const skybox_uniform>(&p_ubo,
         // 1));
-        m_skybox_ubo.update(&p_ubo);
+        m_skybox_ubo.transfer(std::span<const skybox_uniform>(&p_ubo, 1));
     }
 
     void bind(const VkCommandBuffer& p_current) {
@@ -571,7 +546,8 @@ public:
 
     void draw(const VkCommandBuffer& p_current) {
         // bind(p_current);
-        vkCmdDraw(p_current, m_skybox_vbo.size(), 1, 0, 0);
+        // vkCmdDraw(p_current, m_skybox_vbo.size(), 1, 0, 0);
+        vkCmdDraw(p_current, m_skybox_vbo_size, 1, 0, 0);
         // vkCmdDrawIndexed(p_current, 36, 1, 0, 0, 0);
     }
 
@@ -604,4 +580,5 @@ private:
     vk::descriptor_resource m_skybox_descriptors{};
     vk::pipeline m_skybox_pipeline{};
     vk::vertex_buffer m_skybox_vbo;
+    uint64_t m_skybox_vbo_size=0;
 };
