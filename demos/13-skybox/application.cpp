@@ -313,14 +313,14 @@ main() {
     // gets set with the renderpass
     std::array<float, 4> color = { 0.f, 0.5f, 0.5f, 1.f };
     
-    std::vector<std::string> faces = {
-        "asset_samples/skybox/right.jpg",
-        "asset_samples/skybox/left.jpg",
-        "asset_samples/skybox/top.jpg",
-        "asset_samples/skybox/bottom.jpg",
-        "asset_samples/skybox/front.jpg",
-        "asset_samples/skybox/back.jpg"
-    };
+    // std::vector<std::string> faces = {
+    //     "asset_samples/skybox/right.jpg",
+    //     "asset_samples/skybox/left.jpg",
+    //     "asset_samples/skybox/top.jpg",
+    //     "asset_samples/skybox/bottom.jpg",
+    //     "asset_samples/skybox/front.jpg",
+    //     "asset_samples/skybox/back.jpg"
+    // };
     environment_map skybox = environment_map(logical_device, std::filesystem::path("asset_samples/skybox/monkstown_castle_4k.hdr"), physical_device.memory_properties(), main_renderpass);
 
 
