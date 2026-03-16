@@ -2,8 +2,7 @@ module;
 
 #include <vulkan/vulkan.h>
 #include <span>
-#include <cstring>
-#include <mdspan>
+#include <vector>
 
 export module vk:buffer_streams;
 
@@ -165,41 +164,75 @@ export namespace vk {
              * @param p_command is the current command buffer to perform and
              * store this operation into
              * @param p_image is the destination to copy data from the buffer to
-             * @param p_extent is the size of the image that is being copied
+             * @param p_copies are the amount of buffer to image copy data to
+             * transfer to the GPU
              *
              * ```C++
              *
-             * buffer_streams texture_image(logical_device, ...);
+             * buffer_streams staging_buffer(logical_device, ...);
              *
-             * texture_image.copy(temp_command_buffer, texture_image,
-             * texture_format, old_layout, new_layout);
+             * std::array<vk::buffer_image_copy, 1> region_copies = {
+             *      vk::buffer_image_copy region1{
+             *          .image_extent = { .width = width, .height = height,
+             * .depth = 1, },
+             *      }
+             * };
+             * staging_buffer.copy_to_image(command, sample_image,
+             * region_copies);
+             *
              * ```
              *
              */
             void copy_to_image(const VkCommandBuffer& p_command,
                                const VkImage& p_image,
-                               image_extent p_extent) {
-                VkBufferImageCopy buffer_image_copy = {
-                    .bufferOffset = 0,
-                    .bufferRowLength = 0,
-                    .bufferImageHeight = 0,
-                    .imageSubresource = { .aspectMask =
-                                            VK_IMAGE_ASPECT_COLOR_BIT,
-                                          .mipLevel = 0,
-                                          .baseArrayLayer = 0,
-                                          .layerCount = 1 },
-                    .imageOffset = { .x = 0, .y = 0, .z = 0 },
-                    .imageExtent = { .width = p_extent.width,
-                                     .height = p_extent.height,
-                                     .depth = 1 }
-                };
+                               std::span<const buffer_image_copy> p_copies) {
+                std::vector<VkBufferImageCopy> image_copies(p_copies.size());
 
-                vkCmdCopyBufferToImage(p_command,
-                                       m_handle,
-                                       p_image,
-                                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                       1,
-                                       &buffer_image_copy);
+                for (uint32_t i = 0; i < image_copies.size(); i++) {
+                    const buffer_image_copy image_copy = p_copies[i];
+                    image_copies[i] = {
+                        .bufferOffset = image_copy.offset,
+                        .bufferRowLength = image_copy.row_length,
+                        .bufferImageHeight = image_copy.image_height,
+                        .imageSubresource = {
+                            .aspectMask = static_cast<VkImageAspectFlags>(image_copy.aspect_mask),
+                            .mipLevel = image_copy.mip_level,
+                            .baseArrayLayer = image_copy.base_array_layer,
+                            .layerCount = image_copy.layer_count,
+                        },
+                        .imageOffset = { static_cast<int32_t>(image_copy.image_offset.width), static_cast<int32_t>(image_copy.image_offset.height), static_cast<int32_t>(image_copy.image_offset.depth), },
+                        .imageExtent = { image_copy.image_extent.width, image_copy.image_extent.height, image_copy.image_extent.depth, },
+                    };
+                }
+
+                // VkBufferImageCopy buffer_image_copy = {
+                //     .bufferOffset = 0,
+                //     .bufferRowLength = 0,
+                //     .bufferImageHeight = 0,
+                //     .imageSubresource = { .aspectMask =
+                //                             VK_IMAGE_ASPECT_COLOR_BIT,
+                //                           .mipLevel = 0,
+                //                           .baseArrayLayer = 0,
+                //                           .layerCount = 1 },
+                //     .imageOffset = { .x = 0, .y = 0, .z = 0 },
+                //     .imageExtent = { .width = p_extent.width,
+                //                      .height = p_extent.height,
+                //                      .depth = 1 }
+                // };
+
+                // vkCmdCopyBufferToImage(p_command,
+                //                        m_handle,
+                //                        p_image,
+                //                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                //                        1,
+                //                        &buffer_image_copy);
+                vkCmdCopyBufferToImage(
+                  p_command,
+                  m_handle,
+                  p_image,
+                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                  static_cast<uint32_t>(image_copies.size()),
+                  image_copies.data());
             }
 
             void destroy() {

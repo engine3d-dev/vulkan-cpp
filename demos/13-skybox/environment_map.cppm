@@ -129,9 +129,15 @@ public:
                                         texture_format,
                                         VK_IMAGE_LAYOUT_UNDEFINED,
                                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-
+        
+        std::array<vk::buffer_image_copy, 1> region_copies = {
+            vk::buffer_image_copy{
+                .image_offset = { .width = 0, .height = 0, .depth = 0, },
+                .image_extent = skybox_image_params.extent
+            },
+        };
         staging_buffer.copy_to_image(
-            upload_cmd, m_skybox_image, skybox_image_params.extent);
+            upload_cmd, m_skybox_image, region_copies);
 
         // Begin Memory Barrier: TRANSFER_DST to SHADER_READ_ONLY
         m_skybox_image.memory_barrier(
