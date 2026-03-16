@@ -324,6 +324,12 @@ main() {
     environment_map skybox = environment_map(logical_device, std::filesystem::path("asset_samples/skybox/monkstown_castle_4k.hdr"), physical_device.memory_properties(), main_renderpass);
 
 
+    // editor camera properties
+    float field_of_view = 45.f;
+    glm::vec3 position = { 3.5f, 4.90f, 36.40f};
+    glm::vec3 scale{1.f};
+    glm::vec2 plane = {0.1f, 5000.f};
+
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
@@ -351,20 +357,45 @@ main() {
         float time = std::chrono::duration<float, std::chrono::seconds::period>(
                        current_time - start_time)
                        .count();
-       global_uniform ubo = {
-            .model = glm::rotate(glm::mat4(1.0f),
-                                 time * glm::radians(90.0f),
-                                 glm::vec3(0.0f, 0.0f, 1.0f)),
-            .view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f),
-                                glm::vec3(0.0f, 0.0f, 0.0f),
-                                glm::vec3(0.0f, 0.0f, 1.0f)),
-            .proj = glm::perspective(glm::radians(45.0f),
-                                     (float)swapchain_extent.width /
-                                       (float)swapchain_extent.height,
-                                     0.1f,
-                                     10.0f)
-        };
+    //    global_uniform ubo = {
+    //         .model = glm::rotate(glm::mat4(1.0f),
+    //                              time * glm::radians(90.0f),
+    //                              glm::vec3(0.0f, 0.0f, 1.0f)),
+    //         .view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f),
+    //                             glm::vec3(0.0f, 0.0f, 0.0f),
+    //                             glm::vec3(0.0f, 0.0f, 1.0f)),
+    //         .proj = glm::perspective(glm::radians(90.f),
+    //                                  (float)swapchain_extent.width /
+    //                                    (float)swapchain_extent.height,
+    //                                  0.1f,
+    //                                  10.0f)
+    //     };
+
+
+        // if(glfwGetKey(main_window, GLFW_KEY))
+        // glm::vec3 up = glm::rotate(to_quaternion, atlas::math::up());
+        // glm::vec3 forward = glm::rotate(to_quaternion, atlas::math::backward());
+        // glm::vec3 right = glm::rotate(to_quaternion, atlas::math::right());
+        if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+            position.z += 1.f;
+        }
+        if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+            position.x += 1.f;
+        }
+        if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+            position.z -= 1.f;
+        }
+        if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+            position.x -= 1.f;
+        }
+        global_uniform ubo = {};
+        ubo.proj = glm::mat4(1.f);
+        ubo.proj = glm::perspective(glm::radians(field_of_view), static_cast<float>(swapchain_extent.width / swapchain_extent.height), plane.x, plane.y);
         ubo.proj[1][1] *= -1;
+
+        ubo.view = glm::mat4(1.f);
+        ubo.view = glm::translate(ubo.view, position);
+        ubo.view = glm::inverse(ubo.view);
 
         skybox_uniform sky_ubo = {
             .proj_view = ubo.proj * glm::mat4(glm::mat3(ubo.view)),

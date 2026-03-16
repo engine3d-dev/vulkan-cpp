@@ -1302,8 +1302,6 @@ public:
 
         skybox_uniform identity = { .proj_view = glm::mat4(1.0f) };
         identity.proj_view[1][1] *= -1;
-        // m_skybox_ubo.write(std::span<const skybox_uniform>(&identity,
-        // 1));
         m_skybox_ubo.update(&identity);
 
         // set=0 bindings:
