@@ -2,8 +2,7 @@ module;
 
 #include <vulkan/vulkan.h>
 #include <span>
-#include <cstring>
-#include <mdspan>
+#include <vector>
 
 export module vk:buffer_streams;
 
@@ -158,48 +157,121 @@ export namespace vk {
             }
 
             /**
+             * @brief Transfers CPU-accessible data from the staging buffer to
+             * the GPU resource image.
              *
-             * @brief This function automatically assumes the destination image
-             * layout is going to be set to VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+             * This API requires a command buffer to perform memory copying from
+             * a staging buffer to an image, performing any necessary format
+             * conversion or sizzling.
              *
-             * @param p_command is the current command buffer to perform and
-             * store this operation into
-             * @param p_image is the destination to copy data from the buffer to
-             * @param p_extent is the size of the image that is being copied
+             * Where swizzling is the transformation of pixel data to a more
+             * linear format in the given staging buffer to a more optimized
+             * non-linear layout using the vk::image_tiling_optimal
+             *
+             * @param p_command is the current command to record to perform this
+             * operation with
+             * @param p_image is the CPU-accessible data to be transferred to
+             * @param p_copies regions defining copy operations. Each entry
+             * specify:
+             * - .offset: starting byte for the staging buffer.
+             * - .row_length: Length of pixels in the buffer (0 tightly packed).
+             * - .aspect_mask: Part of the image target (color/depth/stencil).
+             * - .mip_level: Mipmap levels to update for LOD (level-of-detail).
+             * - .base_array_layer: Starting layer (face index for cubemaps).
+             * - .layer_count: Count of layers to copy into.
+             * - .image_offset: {x, y, z} starting coordinate within the image.
+             * - .image_extent: {w, h, d} size of the region to be updated.
+             *
+             * @brief Requirements when performing this operation
+             *
+             * - p_image: Must be in vk::image_layout::transfer_dst_optimal
+             * before command is in record state. Use pipeline barriers to
+             * transition before performing this operation.
+             * - source buffer: must be specified with
+             * vk::buffer_usage::transfer_src_bit,
+             * - dst image: must have vk::image_usage::transfer_dst_bit
+             * specified.
+             * - alignment: .offset must be a multiple of texel size (e.g., 4
+             * for RGBA). Other hardware require to be a multiple of 4.
+             * - (.image_offset + .image_extent): Must not exceed actual
+             * dimensions of the image handle.
+             * - Command buffer must be from a queue family which supports
+             * transfer and graphics operation.
+             *
+             * @brief Pixels of data stored in the staging buffer before
+             * transferring to GPU-accessible memory.
+             *
+             * [ bytes 0 .......................................... bytes N ]
+             * |--- Region[0] Data --- | (Unused) | --- Region[1] --- | (etc.)
+             * \______________________/ \__________________________/  |
+             * | Copy Instruction 0                    | Copy Instruction 1
+             * | (p_copies[0])                         | (p_copies[1])
+             * V                                       V
+             * @brief Destination for the GPU-resource Image
+             *
+             * Each vk::buffer_image_copy defines the specific parts of an image
+             * that is being transferred for being accessible to the GPU
+             *
+             * Each designated copy region is designated to different parts of a
+             * given image. Which wou
+             *
+             * +----------------------------------------------------+
+             * | Mip Level 0:                                       |
+             * | +--------------+                                   |
+             * | | [ Region 0 ] | <-- Maps from p_copies[0].offset  |
+             * | +--------------+                                   |
+             * |                                                    |
+             * | Mip Level 1:                                       |
+             * | +-------------                                     |
+             * | | [ Region 1]  | <-- Maps from p_copies[1].offset  |
+             * | +--------------+                                   |
+             * +----------------------------------------------------+
+             *
+             *
+             * Example Usage:
              *
              * ```C++
              *
-             * buffer_streams texture_image(logical_device, ...);
+             * vk::buffer_stream staging_buffer(logical_device, {...});
              *
-             * texture_image.copy(temp_command_buffer, texture_image,
-             * texture_format, old_layout, new_layout);
+             * std::array<vk::buffer_image_copy, 1> copy_regions = {
+             *      vk::buffer_image_copy{
+             *          .image_extent = { width, height, .depth=1 },
+             *      },
+             * };
+             * staging_buffer.copy_to_image(command, image, copy_regions);
+             *
              * ```
-             *
              */
             void copy_to_image(const VkCommandBuffer& p_command,
                                const VkImage& p_image,
-                               image_extent p_extent) {
-                VkBufferImageCopy buffer_image_copy = {
-                    .bufferOffset = 0,
-                    .bufferRowLength = 0,
-                    .bufferImageHeight = 0,
-                    .imageSubresource = { .aspectMask =
-                                            VK_IMAGE_ASPECT_COLOR_BIT,
-                                          .mipLevel = 0,
-                                          .baseArrayLayer = 0,
-                                          .layerCount = 1 },
-                    .imageOffset = { .x = 0, .y = 0, .z = 0 },
-                    .imageExtent = { .width = p_extent.width,
-                                     .height = p_extent.height,
-                                     .depth = 1 }
-                };
+                               std::span<const buffer_image_copy> p_copies) {
+                std::vector<VkBufferImageCopy> image_copies(p_copies.size());
 
-                vkCmdCopyBufferToImage(p_command,
-                                       m_handle,
-                                       p_image,
-                                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                       1,
-                                       &buffer_image_copy);
+                for (uint32_t i = 0; i < image_copies.size(); i++) {
+                    const buffer_image_copy image_copy = p_copies[i];
+                    image_copies[i] = {
+                        .bufferOffset = image_copy.offset,
+                        .bufferRowLength = image_copy.row_length,
+                        .bufferImageHeight = image_copy.image_height,
+                        .imageSubresource = {
+                            .aspectMask = static_cast<VkImageAspectFlags>(image_copy.aspect_mask),
+                            .mipLevel = image_copy.mip_level,
+                            .baseArrayLayer = image_copy.base_array_layer,
+                            .layerCount = image_copy.layer_count,
+                        },
+                        .imageOffset = { static_cast<int32_t>(image_copy.image_offset.width), static_cast<int32_t>(image_copy.image_offset.height), static_cast<int32_t>(image_copy.image_offset.depth), },
+                        .imageExtent = { image_copy.image_extent.width, image_copy.image_extent.height, image_copy.image_extent.depth, },
+                    };
+                }
+
+                vkCmdCopyBufferToImage(
+                  p_command,
+                  m_handle,
+                  p_image,
+                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                  static_cast<uint32_t>(image_copies.size()),
+                  image_copies.data());
             }
 
             void destroy() {

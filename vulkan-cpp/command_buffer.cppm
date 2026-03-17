@@ -18,12 +18,11 @@ export namespace vk {
         };
 
         /**
-         * @brief vk::command_buffer represents the wrapper around
-         * VkCommandBuffer
+         * @brief vk::command_buffer is an abstraction around the
+         * VkCommandBuffer.
          *
-         * Defines the command buffer and provides API's to directly interact
-         * with how the command buffer may be utilized based on the needs of the
-         * application that uses it
+         * vk::command_buffer can be represented as a VkCommandBuffer
+         * if the user decides to use the raw Vulkan API.
          *
          */
         class command_buffer {
@@ -62,23 +61,59 @@ export namespace vk {
             }
 
             /**
-             * @brief begins the recording operation of the particular command
-             * buffer
              *
-             * @param p_usage are flags to specify the behavior of the command
-             * buffer
-             * @param p_inherit_info is if this command buffer is created and
-             * used as a secondary command buffer, then this defines any state
-             * that will be inherited from the primary command buffer
+             * @brief Begin operation for GPU-specific work and where it is
+             * defined. A common GPU workflow is queueing up tasks, in this case
+             * commands.
              *
+             * @param p_usage are flags to specify recording behavior
+             * - ::one_time_submit: commands recorded once, then reset.
+             * - ::simultaneous_use: Commands that can be re-submitted while
+             * still running.
+             *
+             * @param p_inherit_info are used for command buffers specified as
+             * secondary
+             * - .renderpass: Inheriting renderpass handle from primary command.
+             * - .framebuffer: Inherit the "image" target from primary command.
+             *
+             * The CPU cannot directly offload tasks to the GPU, therefore this
+             * must be represented using command buffers which are queue'd up
+             * during recording states of the command buffer.
+             *
+             * @brief Additional Considerations:
+             * - Command buffer must be in 'initial' or 'executable' state
+             * before calling .begin/end. You cannot call `begin()` on a buffer
+             * that is already recording.
+             * - If a command buffer was already recording, it must be reset
+             * (manually or via
+             * VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT).
+             * - Every begin() call must follow-up with an end() call
+             * afterwards.
+             * - If using p_inherit_info, the command buffer must be created
+             * with the 'secondary' level flag.
+             *
+             *
+             * [ CPU Command ]                  [Record Stream]
+             * +----------------------+         +------------------------+
+             * |   .begin() <- start  |         |  [Header: Usage Flags] |
+             * |   [Draw Triangle]    | =====>  |  [Op: Bind Pipeline]   |
+             * |   [Copy Image]       |         |                        |
+             * |   .end()             |         |  [Op: Draw Call]       |
+             * |                      |         |  [Footer: End Tag]     |
+             * +----------------------+         +------------------------+
+             *
+             * Example Usage:
              *
              * ```C++
              *
-             * vk::command_buffer temp_command(logical_device, ....);
+             * vk::command_buffer primary_command(logical_device, ...);
              *
-             * temp_command.begin(command_usage::one_time_submit);
-             * temp_command.end(); // required whenever .begin is called
+             * primary_command.begin(vk::command_usage::one_time_submit);
+             * // perform GPU-specific work
+             * primary_command.end();
+             *
              * ```
+             *
              *
              */
             void begin(
@@ -114,7 +149,16 @@ export namespace vk {
             }
 
             /**
-             * @brief ends command buffer recording operation
+             * @brief Stops the recording process, command moves from
+             * 'recording' to 'executing' state. Which implies the command is
+             * ready to be submitted to the vk::device_queue handle.
+             *
+             * @brief Additional Considerations:
+             * - Cannot end a command buffer if a renderpass is still active.
+             * (must invoked renderpass::end beforehand).
+             * - If the command_buffer::end returns an error, command handle
+             * becomes invalid and cannot be submitted.
+             *
              */
             void end() {
                 m_begin_end_count++;
@@ -122,41 +166,52 @@ export namespace vk {
             }
 
             /**
+             * @brief Performs high-speed raw memory transfers between two
+             * buffer handles.
              *
-             * @brief Copy from the source buffer to a destination specified
-             * buffer
+             * Commonly used for uploading data by copying
+             * between CPU-visible staging buffers to GPU-local buffers. (faster
+             * for GPU to read)
              *
+             * @param p_src is the handle to source buffer (incoming data)
+             * @param p_dst is the handle to destination buffer (data
+             * transfering to)
+             * @param p_size_bytes are the total amount of memory to copy in
+             * bytes.
              *
-             * Command buffer records this and expects a staging buffer  to map
-             * chunks of data in GPU memory
+             * @brief Additional Considerations:
+             * - p_src must have vk::buffer_usage::transfer_src_bit set
+             * - p_dst must have vk::buffer_usage::transfer_dst_bit set.
+             * - p_size_bytes must be less or equals to size of both source and
+             * destination buffers.
+             * - Must be called between '.begin()' and '.end()' of a command
+             * buffer.
+             * - If when you plan to using p_dst after performing this
+             * operation, you need to make sure to perform a buffer memory
+             * barrier to ensure the copy is finished beforehand.
              *
-             * Then calling this API to handle copying the sources in staging
-             * buffer to its final destination buffer, moving those chunks into
-             * the final buffer handle
+             * [CPU-Visible Staging (buffer)]        [Dst: GPU-local Buffer]
+             * +-------------------------+         +------------------------+
+             * | [Data Segment]          |         |    [Identical Copy]    |
+             * | [Size: size_bytes]      | =====>  |    [Size: size_bytes]  |
+             * |                         |         |                        |
+             * +-------------------------+         +------------------------+
              *
-             *
-             * @param p_src is the buffer to copy its region from
-             * @param p_dst is the buffer to copy that region into
-             * @param p_size_bytes is the amount of bytes stored in the buffer
-             * that is being copied into the destination buffer
-             *
+             * Example Usage:
              *
              * ```C++
-             *
-             * // staging buffer to make sure we copy data regions chunks to
-             * vertex buffer correctly vk::buffer_stream
-             * staging_buffer(logical_device, ...);
-             *
-             * // vertex_buffer handle is the destination to copy the regions to
+             * vk::buffer_stream staging_buffer(logical_device, ...);
              * vk::buffer_stream vertex_buffer(logical_device, ...);
              *
-             * vk::command_buffer temp_command(logical_device, ...);
+             * vk::command_buffer primary_command(logical_device, ...);
              *
-             * temp_command.begin(command_usage::one_time_submit);
-             * temp_command.copy(staging_buffer, vertex_buffer, size_bytes);
-             * temp_command.end();
+             * primary_command.begin(vk::command_usage::one_time_submit);
              *
+             * // Transferring data from staging to GPU-accessible buffer handle
+             * const auto size_bytes = vertices.size_bytes();
+             * primary_command.copy(staging_buffer, vertex_buffer, size_bytes)
              *
+             * primary_command.end();
              * ```
              *
              */
@@ -172,13 +227,38 @@ export namespace vk {
             [[nodiscard]] bool alive() const { return m_command_buffer; }
 
             /**
-             * @brief Used to execute secondary command buffers
+             * @brief Primary command buffer calls batch of secondary command
+             * buffers.
              *
-             * The command buffer that is executing these commands must be a
-             * specified primary command buffer
+             * Useful for multithreaded rendering: Recording to different
+             * secondary commands with responsibilities of your scenes (UI,
+             * Shadow, Geometry, etc).
              *
-             * @param p_commands is the secondary command buffer that gets
-             * executed if the command buffer itself is a primary command buffer
+             * Then being able to link the secondary command buffers to the
+             * primary command buffer altogether.
+             *
+             * @param p_commands are arbitrary secondary command buffers to be
+             * executed part of the primary command buffer, if m_command_buffer
+             * is a primary command.
+             *
+             * @brief Additional Considerations:
+             * - m_command_buffer must be a primary command buffer.
+             * - 'p_commands' MUST be secondary command buffers that have
+             * already been closed with the `.end()` API.
+             * - Inheritance info used in the secondary `.begin()` MUST match
+             * the current state of the primary command buffer.
+             *
+             *
+             * [ PRIMARY COMMAND ]                      [ Secondary Commands ]
+             * +--------------------+                   +--------------------+
+             * | Begin Command      |                   | [Secondary Cmd A]  |
+             * |                    |                   | (Draw UI)          |
+             * | Begin RenderPass   | -- [execute] -->  +--------------------+
+             * |                    |                   | [Secondary Cmd B] |
+             * |    .execute(A, B)  |                   | (Draw Particles)   |
+             * +--------------------+                   +--------------------+
+             *
+             *
              */
             void execute(std::span<const VkCommandBuffer> p_commands) {
                 vkCmdExecuteCommands(m_command_buffer,
@@ -186,6 +266,9 @@ export namespace vk {
                                      p_commands.data());
             }
 
+            /**
+             * @brief Explicitly API to properly do command buffer cleanup
+             */
             void destroy() {
                 vkFreeCommandBuffers(
                   m_device, m_command_pool, 1, &m_command_buffer);

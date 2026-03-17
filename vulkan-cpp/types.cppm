@@ -543,41 +543,6 @@ export namespace vk {
             uint32_t queue_family_index = 0;
         };
 
-        // raw image handlers
-        // struct image {
-        //     VkImage image = nullptr;
-        //     VkImageView view = nullptr;
-        // };
-
-        // sampler + raw image handlers
-        // struct sampled_image {
-        //     VkImage image = nullptr;
-        //     VkImageView view = nullptr;
-        //     VkSampler sampler = nullptr;
-        //     VkDeviceMemory device_memory = nullptr;
-        // };
-
-        //! @brief enumeration if an image is provided
-        // struct swapchain_image_enumeration {
-        //     VkImage image = nullptr;
-        //     VkFormat format;
-        //     // VkImageAspectFlags aspect;
-        //     image_aspect_flags aspect;
-        //     uint32_t layer_count = 0;
-        //     uint32_t mip_levels = 1;
-        // };
-
-        // Image enumeration for creating a brand new VkImage/VkImageView
-        // handlers struct image_enumeration {
-        //     uint32_t width = -1;
-        //     uint32_t height = -1;
-        //     VkFormat format;
-        //     // VkImageAspectFlags aspect;
-        //     image_aspect_flags aspect;
-        //     uint32_t layer_count = 1;
-        //     uint32_t mip_levels = 1;
-        // };
-
         /**
          * @param renderpass vulkan requires framebuffers to know renderpasses
          * up front
@@ -1257,7 +1222,6 @@ export namespace vk {
         };
 
         struct renderpass_begin_params {
-            VkCommandBuffer current_command = nullptr;
             VkExtent2D extent;
             VkFramebuffer current_framebuffer = nullptr;
             std::array<float, 4> color;
@@ -1517,6 +1481,7 @@ export namespace vk {
         struct image_extent {
             uint32_t width = 1;
             uint32_t height = 1;
+            uint32_t depth = 1;
         };
 
         struct image_params {
@@ -1538,6 +1503,18 @@ export namespace vk {
             uint32_t address_mode_u = sampler_address_mode::repeat;
             uint32_t addrses_mode_v = sampler_address_mode::repeat;
             uint32_t addrses_mode_w = sampler_address_mode::repeat;
+        };
+
+        struct buffer_image_copy {
+            uint32_t offset = 0;
+            uint32_t row_length = 0;
+            uint32_t image_height = 0;
+            image_aspect_flags aspect_mask = image_aspect_flags::color_bit;
+            uint32_t mip_level = 0;
+            uint32_t base_array_layer = 0;
+            uint32_t layer_count = 1;
+            image_extent image_offset{};
+            image_extent image_extent{};
         };
 
         struct buffer_parameters {
