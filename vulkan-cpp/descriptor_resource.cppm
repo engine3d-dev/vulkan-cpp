@@ -24,9 +24,92 @@ export namespace vk {
             std::span<descriptor_entry> entries;
         };
 
+        /**
+         * @brief Descriptor resources are an abstraction class around the
+         * descriptor set handles.
+         *
+         * Shaders are not able to directly have access to CPU-visible uniforms.
+         * Therefore, descriptor sets are used for performing the required
+         * configuration for descriptor set handles.
+         *
+         * @brief Additional Considerations:
+         * - Block of memory dedicated to holding these handles.
+         * - Defines what memory data layout the shader expects to receive.
+         * - VkDescriptorSet is the instance handle to used during draw call
+         * operations
+         *
+         */
         class descriptor_resource {
         public:
             descriptor_resource() = default;
+
+            /**
+             * @brief Constructs a descriptor resource for configuring the
+             * handle
+             *
+             * @param p_device is the logical device used to initiate these
+             * resources.
+             * @param p_info is the configuration for creating the descriptor
+             * set.
+             * - .slot:             specifying the index to this particular
+             * resource (layout(set = N, binding = X)).
+             * - .max_sets:         Maximum number of descriptors allowed in the
+             * pool.
+             * - .entries:          Arbitrary of descriptor entries defining in
+             * each resource slot.
+             * - .type:             Buffer/Image type (e.g. uniform)
+             * - .descriptor_count: Count of elements (1 for single, >1 or
+             * arrays).
+             * - .binding_point:    Actual binding index specified in the
+             * shader.
+             * - .stage:            Shader stage allowed to access this
+             * resource.
+             *
+             *
+             * [ Descriptor Pool ]          [ Descriptor Layout ]
+             * +---------------------+      +---------------------------+
+             * | [ UBO Memory Slot ] |      | Binding 0: Uniform Buffer |
+             * | [ Sampler Slot]     |      | Binding 1: Tex Sampler    |
+             * +---------------------+      +---------------------------+
+             * |                           |
+             * \__________________________/
+             * |
+             * V
+             * [ Descriptor Set Handle]
+             *
+             *
+             * Example Usage:
+             *
+             * ```C++
+             *
+             * std::array<vk::descriptor_entry, 2> entries = {
+             *  vk::descriptor_entry{
+             *         // specifies "layout (set = 0, binding = 0) uniform
+             * GlobalUbo" .type = vk::buffer::uniform, .binding_point = {
+             *              .binding = 0,
+             *              .stage = vk::shader_stage::vertex,
+             *          },
+             *          .descriptor_count = 1,
+             *      },
+             *      vk::descriptor_entry{
+             *          // layout (set = 0, binding = 1) uniform sampler2D
+             *          .type = vk::buffer::combined_image_sampler,
+             *          .binding_point = {
+             *              .binding = 1,
+             *              .stage = vk::shader_stage::fragment,
+             *          },
+             *          .descriptor_count = 1,
+             *      }
+             * };
+             * vk::descriptor_layout layout = {
+             *      .slot = 0,
+             *      .max_sets = 2,
+             *      .entries = entries,
+             * };
+             * vk::descriptor_resource set0(logical_device, layout);
+             * ```
+             *
+             */
             descriptor_resource(const VkDevice& p_device,
                                 const descriptor_layout& p_info)
               : m_device(p_device)
@@ -106,6 +189,38 @@ export namespace vk {
                          "vkAllocateDescriptorSets");
             }
 
+            /**
+             * @brief Bind the current data that stored in memory to the
+             * active descriptor set for execution.
+             *
+             * This function records instructions into the command buffer to
+             * "map" that data into the GPU's register file.
+             *
+             * Specifically any addresses within the shader that have variables
+             * assigned to set = N.
+             *
+             * @param p_current is the active command recording to perform draw
+             * calls.
+             * @param p_pipeline_layout is the layout describing descriptor set
+             * resources are mapped to.
+             *
+             * @brief Additional Considerations:
+             * - `p_pipeline_layout` MUST be the same layout used to create the
+             * currently bound pipeline.
+             * - `m_slot` must match the `set = N` declaration in your shader
+             * code.
+             * - The descriptor set must have been created with a layout that is
+             * "compatible" with the pipeline layout.
+             * - This must be invoke within a command buffer recording via
+             * `.begin()`.
+             *
+             * [ Descriptor Set (Data) ]           [ Pipleine Layout ]
+             * +-------------------+              +-----------------------+
+             * | [Uniform Buffer ]  |             | Slot 0: [ Attached ]  |
+             * | [Image Sampler ]  | --> Bind --> | Slot 1: [Empty]       |
+             * +-------------------+              +-----------------------+
+             *
+             */
             void bind(const VkCommandBuffer& p_current,
                       const VkPipelineLayout& p_pipeline_layout) {
                 vkCmdBindDescriptorSets(p_current,
@@ -118,6 +233,87 @@ export namespace vk {
                                         nullptr);
             }
 
+            /**
+             * @brief Performs the operation to actual update the descriptor set
+             * handle with the uniforms data segments.
+             *
+             * This maps the uniform VkBuffer and VkImage handles to the
+             * specific logical bindings that are associated with the shader
+             * declarations.
+             *
+             * Without setting this, the descriptor set would be implied to
+             * contain empty slots and pointing (lookup) to nothing.
+             *
+             * @brief Additional Considerations:
+             * - Cannot update a descriptor set that is currently in used by a
+             * command buffer that is "in-flight" (executing on the GPU).
+             * - Resource type (e.g. combind_image_sampler) must match what has
+             * been defined in the `descriptor layout` for that `dst_binding`.
+             * - Buffer/Image handles must remain valid until the GPU has
+             * finished executing the cmomand buffer that is using this
+             * particular descriptor set.
+             *
+             *
+             * [ CPU Uniforms Handles ]                [ GPU Descriptor ]
+             * +--------------------+           +----------------------------+
+             * | write_buffer       | --maps--> | Binding 0: Buffer Ptr      |
+             * | (Handle + Offset)  |           | (Address: 0x00FF...)       |
+             * +--------------------+           +----------------------------+
+             * | write_image        | --maps--> | Binding 1: Image Ptr       |
+             * | (View + Sampler)   |           | (Layout: shader_read_only) |
+             * +--------------------+           +----------------------------+
+             * (Mapping CPU Data)                   (Active GPU Resources)
+             *
+             * [GLSL Shader]
+             * GLSL equivalent of the active GPU resources of the "GPU
+             * Descriptor"
+             * +-----------------------------------------------+
+             * | layout(set=N, binding = 0) uniform buffer {}; |
+             * | layout(set=N, binding = 1) sampler2D texture; |
+             * +-----------------------------------------------+
+             * (Executing GPU-visible Resources)
+             * 
+             * Example Usage:
+             * 
+             * ```C++
+             * 
+             * vk::descriptor_resource set0(logical_device, layout);
+             * 
+             * // Uniform Buffers Handle
+             * std::array<vk::write_buffer, 1> uniforms0 = {
+             *  vk::write_buffer{
+             *       .buffer = test_ubo,
+             *       .offset = 0,
+             *      .range = static_cast<uint32_t>(test_ubo.size_bytes()),
+             *  },
+             * };
+             * std::array<vk::write_buffer_descriptor, 1> uniforms = {
+             *  vk::write_buffer_descriptor{
+             *      .dst_binding = 0,
+             *      .uniforms = uniforms0,
+             *  },
+             * };
+             * 
+             * // View + Samplers Handle
+             * std::array<vk::write_image, 1> samplers = {
+             *   vk::write_image{
+             *      .sampler = sampler,
+             *      .view = image_view,
+             *      .layout = vk::image_layout::shader_read_only_optimal,
+             *   },
+             * };
+             *
+             * // Specify image descriptor images/samplers to the descriptor
+             * std::array<vk::write_image_descriptor, 1> sample_images = {
+             *   vk::write_image_descriptor{
+             *     .dst_binding = 1,
+             *     .sample_images = samplers,
+             *   }
+             * };
+             * set0_resource.update(uniforms, sample_images);
+             * ```
+             * 
+             */
             void update(std::span<const write_buffer_descriptor> p_uniforms,
                         std::span<const write_image_descriptor> p_images = {}) {
                 std::vector<VkWriteDescriptorSet> write_descriptors;
