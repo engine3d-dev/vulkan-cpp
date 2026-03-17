@@ -41,11 +41,6 @@ export namespace vk {
 
             [[nodiscard]] bool alive() const { return m_index_buffer; }
 
-            void bind(const VkCommandBuffer& p_current, uint64_t p_offset = 0) {
-                vkCmdBindIndexBuffer(
-                  p_current, m_index_buffer, p_offset, VK_INDEX_TYPE_UINT32);
-            }
-
             operator VkBuffer() const { return m_index_buffer; }
 
             operator VkBuffer() { return m_index_buffer; }

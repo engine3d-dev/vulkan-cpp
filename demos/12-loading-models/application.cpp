@@ -168,13 +168,13 @@ public:
 
     [[nodiscard]] bool loaded() const { return m_is_loaded; }
 
-    void bind(const VkCommandBuffer& p_command) {
-        m_vertex_buffer.bind(p_command);
+    [[nodiscard]] VkBuffer vertex_handle() const { return m_vertex_buffer; }
 
-        if (m_has_indices) {
-            m_index_buffer.bind(p_command);
-        }
-    }
+    [[nodiscard]] VkBuffer index_handle() const { return m_index_buffer; }
+
+    [[nodiscard]] bool has_indices() const { return m_has_indices; }
+
+    [[nodiscard]] uint32_t indices_size() const { return m_indices_size; }
 
     void draw(const VkCommandBuffer& p_command) {
         if (m_has_indices) {
@@ -667,8 +667,15 @@ main() {
         // drawing stuff to
         main_graphics_pipeline.bind(current);
 
-        // Must be binded before descriptor resource gets binded
-        test_model.bind(current);
+        // test_model.bind(current);
+        // std::array<VkBuffer, 1> vertex = { test_model.vertex_handle() };
+        const VkBuffer vertex = test_model.vertex_handle();
+        uint64_t offset = 0;
+        current.bind_vertex_buffers(std::span<const VkBuffer>(&vertex, 1), std::span<uint64_t>(&offset, 1));
+
+        if(test_model.has_indices()) {
+            current.bind_index_buffers32(test_model.index_handle());
+        }
 
         static auto start_time = std::chrono::high_resolution_clock::now();
 
@@ -703,8 +710,10 @@ main() {
         // buffers or else that becomes undefined behavior
         // set0_resource.bind(current, main_graphics_pipeline.layout());
 
-        std::array<const VkDescriptorSet, 2> descriptors = { set0_resource,
-                                                             set1_resource };
+        std::array<const VkDescriptorSet, 2> descriptors = {
+            set0_resource,
+            set1_resource,
+        };
 
         current.bind_descriptors(main_graphics_pipeline.layout(),
                                  VK_PIPELINE_BIND_POINT_GRAPHICS,
