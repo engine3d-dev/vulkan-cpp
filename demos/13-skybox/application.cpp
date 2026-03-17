@@ -312,7 +312,7 @@ main() {
 
     // gets set with the renderpass
     std::array<float, 4> color = { 0.f, 0.5f, 0.5f, 1.f };
-    
+
     // std::vector<std::string> faces = {
     //     "asset_samples/skybox/right.jpg",
     //     "asset_samples/skybox/left.jpg",
@@ -321,14 +321,17 @@ main() {
     //     "asset_samples/skybox/front.jpg",
     //     "asset_samples/skybox/back.jpg"
     // };
-    environment_map skybox = environment_map(logical_device, std::filesystem::path("asset_samples/skybox/monkstown_castle_4k.hdr"), physical_device.memory_properties(), main_renderpass);
-
+    environment_map skybox = environment_map(
+      logical_device,
+      std::filesystem::path("asset_samples/skybox/monkstown_castle_4k.hdr"),
+      physical_device.memory_properties(),
+      main_renderpass);
 
     // editor camera properties
     float field_of_view = 45.f;
-    glm::vec3 position = { 3.5f, 4.90f, 36.40f};
-    glm::vec3 scale{1.f};
-    glm::vec2 plane = {0.1f, 5000.f};
+    glm::vec3 position = { 3.5f, 4.90f, 36.40f };
+    glm::vec3 scale{ 1.f };
+    glm::vec2 plane = { 0.1f, 5000.f };
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -350,46 +353,50 @@ main() {
         // Binding a graphics pipeline -- before drawing stuff
         // Inside of this graphics pipeline bind, is where you want to do the
         // drawing stuff to
-       static auto start_time = std::chrono::high_resolution_clock::now();
+        static auto start_time = std::chrono::high_resolution_clock::now();
 
         auto current_time = std::chrono::high_resolution_clock::now();
         float time = std::chrono::duration<float, std::chrono::seconds::period>(
                        current_time - start_time)
                        .count();
-    //    global_uniform ubo = {
-    //         .model = glm::rotate(glm::mat4(1.0f),
-    //                              time * glm::radians(90.0f),
-    //                              glm::vec3(0.0f, 0.0f, 1.0f)),
-    //         .view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f),
-    //                             glm::vec3(0.0f, 0.0f, 0.0f),
-    //                             glm::vec3(0.0f, 0.0f, 1.0f)),
-    //         .proj = glm::perspective(glm::radians(90.f),
-    //                                  (float)swapchain_extent.width /
-    //                                    (float)swapchain_extent.height,
-    //                                  0.1f,
-    //                                  10.0f)
-    //     };
-
+        //    global_uniform ubo = {
+        //         .model = glm::rotate(glm::mat4(1.0f),
+        //                              time * glm::radians(90.0f),
+        //                              glm::vec3(0.0f, 0.0f, 1.0f)),
+        //         .view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f),
+        //                             glm::vec3(0.0f, 0.0f, 0.0f),
+        //                             glm::vec3(0.0f, 0.0f, 1.0f)),
+        //         .proj = glm::perspective(glm::radians(90.f),
+        //                                  (float)swapchain_extent.width /
+        //                                    (float)swapchain_extent.height,
+        //                                  0.1f,
+        //                                  10.0f)
+        //     };
 
         // if(glfwGetKey(main_window, GLFW_KEY))
         // glm::vec3 up = glm::rotate(to_quaternion, atlas::math::up());
-        // glm::vec3 forward = glm::rotate(to_quaternion, atlas::math::backward());
-        // glm::vec3 right = glm::rotate(to_quaternion, atlas::math::right());
-        if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+        // glm::vec3 forward = glm::rotate(to_quaternion,
+        // atlas::math::backward()); glm::vec3 right =
+        // glm::rotate(to_quaternion, atlas::math::right());
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
             position.z += 1.f;
         }
-        if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
             position.x += 1.f;
         }
-        if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
             position.z -= 1.f;
         }
-        if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
             position.x -= 1.f;
         }
         global_uniform ubo = {};
         ubo.proj = glm::mat4(1.f);
-        ubo.proj = glm::perspective(glm::radians(field_of_view), static_cast<float>(swapchain_extent.width / swapchain_extent.height), plane.x, plane.y);
+        ubo.proj = glm::perspective(
+          glm::radians(field_of_view),
+          static_cast<float>(swapchain_extent.width / swapchain_extent.height),
+          plane.x,
+          plane.y);
         ubo.proj[1][1] *= -1;
 
         ubo.view = glm::mat4(1.f);

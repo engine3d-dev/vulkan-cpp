@@ -62,8 +62,9 @@ export namespace vk {
             // 6. transition image layout
             // Ensure that we are transferring our image data and correcting the
             // format to ensure we do not lose any data in the process
-            texture_image.memory_barrier(temp_command_buffer, texture_format, old_layout, new_layout);
-            
+            texture_image.memory_barrier(
+              temp_command_buffer, texture_format, old_layout, new_layout);
+
             std::array<vk::buffer_image_copy, 1> region_copies = {
                 vk::buffer_image_copy{
                     .image_offset = { .width = 0, .height = 0, .depth = 1, },
@@ -71,8 +72,10 @@ export namespace vk {
                 }
             };
 
-            // staging.copy_to_image(temp_command_buffer, texture_image, p_config.extent);
-            staging.copy_to_image(temp_command_buffer, texture_image, region_copies);
+            // staging.copy_to_image(temp_command_buffer, texture_image,
+            // p_config.extent);
+            staging.copy_to_image(
+              temp_command_buffer, texture_image, region_copies);
             old_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
             new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             texture_image.memory_barrier(

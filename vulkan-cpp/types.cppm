@@ -1481,7 +1481,7 @@ export namespace vk {
         struct image_extent {
             uint32_t width = 1;
             uint32_t height = 1;
-            uint32_t depth=1;
+            uint32_t depth = 1;
         };
 
         struct image_params {
@@ -1505,14 +1505,13 @@ export namespace vk {
             uint32_t addrses_mode_w = sampler_address_mode::repeat;
         };
 
-
         struct buffer_image_copy {
-            uint32_t offset=0;
-            uint32_t row_length=0;
-            uint32_t image_height=0;
-            image_aspect_flags aspect_mask=image_aspect_flags::color_bit;
-            uint32_t mip_level=0;
-            uint32_t base_array_layer=0;
+            uint32_t offset = 0;
+            uint32_t row_length = 0;
+            uint32_t image_height = 0;
+            image_aspect_flags aspect_mask = image_aspect_flags::color_bit;
+            uint32_t mip_level = 0;
+            uint32_t base_array_layer = 0;
             uint32_t layer_count = 1;
             image_extent image_offset{};
             image_extent image_extent{};
