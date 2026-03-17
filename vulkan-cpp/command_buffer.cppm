@@ -96,7 +96,7 @@ export namespace vk {
              * [ CPU Command ]                  [Record Stream]
              * +----------------------+         +------------------------+
              * |   .begin() <- start  |         |  [Header: Usage Flags] |
-             * |   [Draw Triangle]    | ==>     |  [Op: Bind Pipeline]   |
+             * |   [Draw Triangle]    | =====>  |  [Op: Bind Pipeline]   |
              * |   [Copy Image]       |         |                        |
              * |   .end()             |         |  [Op: Draw Call]       |
              * |                      |         |  [Footer: End Tag]     |
@@ -251,10 +251,10 @@ export namespace vk {
              *
              * [ PRIMARY COMMAND ]                      [ Secondary Commands ]
              * +--------------------+                   +--------------------+
-             * | Begin Command      |                   | (Secondary Cmd A)  |
+             * | Begin Command      |                   | [Secondary Cmd A]  |
              * |                    |                   | (Draw UI)          |
-             * | Begin RenderPass   | ----- [execute] ---> +-----------------+
-             * |                    |                   | [ Secondary Cmd B ]|
+             * | Begin RenderPass   | -- [execute] -->  +--------------------+
+             * |                    |                   | [Secondary Cmd B] |
              * |    .execute(A, B)  |                   | (Draw Particles)   |
              * +--------------------+                   +--------------------+
              *
