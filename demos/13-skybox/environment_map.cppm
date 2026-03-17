@@ -43,7 +43,7 @@ public:
                     const std::filesystem::path& p_filename,
                     VkPhysicalDeviceMemoryProperties p_memory_properties,
                     VkRenderPass p_renderpass)
-        : m_device(p_device) {
+      : m_device(p_device) {
         create_hdr_skybox(p_filename, p_memory_properties);
 
         create_skybox_pipeline(p_memory_properties, p_renderpass);
@@ -54,17 +54,17 @@ public:
     // }
 
     void create_hdr_skybox(
-        const std::filesystem::path& p_filename,
-        VkPhysicalDeviceMemoryProperties p_memory_properties) {
+      const std::filesystem::path& p_filename,
+      VkPhysicalDeviceMemoryProperties p_memory_properties) {
 
         stbi_set_flip_vertically_on_load(true);
         int w, h, channels;
         float* pixels = stbi_loadf(
-            p_filename.string().c_str(), &w, &h, &channels, STBI_rgb_alpha);
+          p_filename.string().c_str(), &w, &h, &channels, STBI_rgb_alpha);
 
         if (!pixels) {
             throw std::runtime_error("Failed to load HDR image at: " +
-                                        p_filename.string());
+                                     p_filename.string());
         }
 
         const uint32_t width = static_cast<uint32_t>(w);
@@ -73,21 +73,20 @@ public:
         VkFormat texture_format = VK_FORMAT_R32G32B32A32_SFLOAT;
         const uint64_t bytes_per_pixel_channel = 16; // float are 4 bytes
         const uint64_t total_size_bytes =
-            static_cast<uint64_t>(width * height * bytes_per_pixel_channel);
+          static_cast<uint64_t>(width * height * bytes_per_pixel_channel);
         const uint64_t image_size = total_size_bytes;
 
         // Creating staging buffer
         uint32_t property_flag = vk::memory_property::host_visible_bit |
-                                    vk::memory_property::host_cached_bit;
+                                 vk::memory_property::host_cached_bit;
         vk::buffer_parameters staging_buffer_params = {
             .physical_memory_properties = p_memory_properties,
-            .property_flags =
-                static_cast<vk::memory_property>(property_flag),
+            .property_flags = static_cast<vk::memory_property>(property_flag),
             .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         };
 
-        vk::buffer_stream staging_buffer =
-            vk::buffer_stream(m_device, static_cast<uint32_t>(image_size), staging_buffer_params);
+        vk::buffer_stream staging_buffer = vk::buffer_stream(
+          m_device, static_cast<uint32_t>(image_size), staging_buffer_params);
 
         // Creating image handle to storing the HDR
         vk::image_params skybox_image_params = {
@@ -107,7 +106,8 @@ public:
         // &data); std::memcpy(data, pixels,
         // static_cast<size_t>(total_size_bytes)); vkUnmapMemory(m_device,
         // staging_memory);
-        std::span<const uint8_t> pixels_data(reinterpret_cast<const uint8_t*>(pixels), image_size);
+        std::span<const uint8_t> pixels_data(
+          reinterpret_cast<const uint8_t*>(pixels), image_size);
         staging_buffer.transfer(pixels_data);
         // staging_buffer.write(pixels_data);
 
@@ -126,25 +126,23 @@ public:
 
         // Begin Memory Barrier: Undefined to TRANSFER_DST
         m_skybox_image.memory_barrier(upload_cmd,
-                                        texture_format,
-                                        VK_IMAGE_LAYOUT_UNDEFINED,
-                                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-        
+                                      texture_format,
+                                      VK_IMAGE_LAYOUT_UNDEFINED,
+                                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
         std::array<vk::buffer_image_copy, 1> region_copies = {
             vk::buffer_image_copy{
                 .image_offset = { .width = 0, .height = 0, .depth = 0, },
-                .image_extent = skybox_image_params.extent
+                .image_extent = skybox_image_params.extent,
             },
         };
-        staging_buffer.copy_to_image(
-            upload_cmd, m_skybox_image, region_copies);
+        staging_buffer.copy_to_image(upload_cmd, m_skybox_image, region_copies);
 
         // Begin Memory Barrier: TRANSFER_DST to SHADER_READ_ONLY
-        m_skybox_image.memory_barrier(
-            upload_cmd,
-            texture_format,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        m_skybox_image.memory_barrier(upload_cmd,
+                                      texture_format,
+                                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
         upload_cmd.end();
 
@@ -191,159 +189,159 @@ public:
         std::vector<vk::vertex_input> vertices = {
             // Front Face
             vk::vertex_input{ { -1.0f, 1.0f, -1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { -1.0f, -1.0f, -1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { 1.0f, -1.0f, -1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { 1.0f, -1.0f, -1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { 1.0f, 1.0f, -1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { -1.0f, 1.0f, -1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
 
             // Left Face
             vk::vertex_input{ { -1.0f, -1.0f, 1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { -1.0f, -1.0f, -1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { -1.0f, 1.0f, -1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { -1.0f, 1.0f, -1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { -1.0f, 1.0f, 1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { -1.0f, -1.0f, 1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
 
             // Right Face
             vk::vertex_input{ { 1.0f, -1.0f, -1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { 1.0f, -1.0f, 1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { 1.0f, 1.0f, 1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { 1.0f, 1.0f, 1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { 1.0f, 1.0f, -1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { 1.0f, -1.0f, -1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
 
             // Back Face
             vk::vertex_input{ { -1.0f, -1.0f, 1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { -1.0f, 1.0f, 1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { 1.0f, 1.0f, 1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { 1.0f, 1.0f, 1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { 1.0f, -1.0f, 1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { -1.0f, -1.0f, 1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
 
             // Top Face
             vk::vertex_input{ { -1.0f, 1.0f, -1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { 1.0f, 1.0f, -1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { 1.0f, 1.0f, 1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { 1.0f, 1.0f, 1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { -1.0f, 1.0f, 1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { -1.0f, 1.0f, -1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
 
             // Bottom Face
             vk::vertex_input{ { -1.0f, -1.0f, -1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { -1.0f, -1.0f, 1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { 1.0f, -1.0f, -1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { 1.0f, -1.0f, -1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { -1.0f, -1.0f, 1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
             vk::vertex_input{ { 1.0f, -1.0f, 1.0f },
-                                { 1.0f, 1.0f, 1.0f },
-                                { 0.0f, 0.0f, 0.0f },
-                                { 0.0f, 0.0f } }
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } }
         };
 
         vk::vertex_params vbo_params = {
@@ -354,49 +352,49 @@ public:
     }
 
     void create_skybox_pipeline(
-        VkPhysicalDeviceMemoryProperties p_memory_properties,
-        const VkRenderPass& p_renderpass) {
+      VkPhysicalDeviceMemoryProperties p_memory_properties,
+      const VkRenderPass& p_renderpass) {
         create_buffers(p_memory_properties);
         std::array<vk::vertex_attribute_entry, 4> attribute_entries = {
             vk::vertex_attribute_entry{
-                .location = 0,
-                .format = vk::format::rgb32_sfloat,
-                .stride = offsetof(vk::vertex_input, position),
+              .location = 0,
+              .format = vk::format::rgb32_sfloat,
+              .stride = offsetof(vk::vertex_input, position),
             },
             vk::vertex_attribute_entry{
-                .location = 1,
-                .format = vk::format::rgb32_sfloat,
-                .stride = offsetof(vk::vertex_input, color),
+              .location = 1,
+              .format = vk::format::rgb32_sfloat,
+              .stride = offsetof(vk::vertex_input, color),
             },
             vk::vertex_attribute_entry{
-                .location = 2,
-                .format = vk::format::rgb32_sfloat,
-                .stride = offsetof(vk::vertex_input, normals),
+              .location = 2,
+              .format = vk::format::rgb32_sfloat,
+              .stride = offsetof(vk::vertex_input, normals),
             },
             vk::vertex_attribute_entry{
-                .location = 3,
-                .format = vk::format::rg32_sfloat,
-                .stride = offsetof(vk::vertex_input, uv),
+              .location = 3,
+              .format = vk::format::rg32_sfloat,
+              .stride = offsetof(vk::vertex_input, uv),
             }
         };
         std::array<vk::vertex_attribute, 1> attribute = {
             vk::vertex_attribute{
-                // layout (set = 0, binding = 0)
-                .binding = 0,
-                .entries = attribute_entries,
-                .stride = sizeof(vk::vertex_input),
-                .input_rate = vk::input_rate::vertex,
+              // layout (set = 0, binding = 0)
+              .binding = 0,
+              .entries = attribute_entries,
+              .stride = sizeof(vk::vertex_input),
+              .input_rate = vk::input_rate::vertex,
             },
         };
 
         const std::array<vk::shader_source, 2> sources = {
             vk::shader_source{
-                .filename = "shader_samples/sample7-skybox/skybox.vert.spv",
-                .stage = vk::shader_stage::vertex,
+              .filename = "shader_samples/sample7-skybox/skybox.vert.spv",
+              .stage = vk::shader_stage::vertex,
             },
             vk::shader_source{
-                .filename = "shader_samples/sample7-skybox/skybox.frag.spv",
-                .stage = vk::shader_stage::fragment,
+              .filename = "shader_samples/sample7-skybox/skybox.frag.spv",
+              .stage = vk::shader_stage::fragment,
             },
         };
 
@@ -412,12 +410,14 @@ public:
             .debug_name = "skybox_ubo",
             .vkSetDebugUtilsObjectNameEXT = nullptr,
         };
-        m_skybox_ubo = vk::uniform_buffer(m_device, sizeof(skybox_uniform), ubo_params);
+        m_skybox_ubo =
+          vk::uniform_buffer(m_device, sizeof(skybox_uniform), ubo_params);
         // vk::uniform_buffer(m_device, sizeof(skybox_uniform), ubo_params);
 
         skybox_uniform identity = { .proj_view = glm::mat4(1.0f) };
         identity.proj_view[1][1] *= -1;
-        std::span<const uint8_t> bytes(reinterpret_cast<uint8_t*>(&identity), 1);
+        std::span<const uint8_t> bytes(reinterpret_cast<uint8_t*>(&identity),
+                                       1);
         m_skybox_ubo.transfer(bytes);
 
         // set=0 bindings:
@@ -425,18 +425,18 @@ public:
         //  - binding 1: samplerCube (fragment)
         std::array<vk::descriptor_entry, 2> entries = {
             vk::descriptor_entry{
-                .type = vk::buffer::uniform,
-                .binding_point =
+              .type = vk::buffer::uniform,
+              .binding_point =
                 vk::descriptor_binding_point{
-                    .binding = 0, .stage = vk::shader_stage::vertex },
-                .descriptor_count = 1,
+                  .binding = 0, .stage = vk::shader_stage::vertex },
+              .descriptor_count = 1,
             },
             vk::descriptor_entry{
-                .type = vk::buffer::combined_image_sampler,
-                .binding_point =
+              .type = vk::buffer::combined_image_sampler,
+              .binding_point =
                 vk::descriptor_binding_point{
-                    .binding = 1, .stage = vk::shader_stage::fragment },
-                .descriptor_count = 1,
+                  .binding = 1, .stage = vk::shader_stage::fragment },
+              .descriptor_count = 1,
             },
         };
 
@@ -445,14 +445,13 @@ public:
             .max_sets = 1,
             .entries = entries,
         };
-        m_skybox_descriptors =
-            vk::descriptor_resource(m_device, desc_layout);
+        m_skybox_descriptors = vk::descriptor_resource(m_device, desc_layout);
 
         const std::array<vk::write_buffer, 1> ubo_writes = {
-            vk::write_buffer{
-                .buffer = static_cast<VkBuffer>(m_skybox_ubo),
-                .offset = 0,
-                .range = static_cast<uint32_t>(sizeof(skybox_uniform)) },
+            vk::write_buffer{ .buffer = static_cast<VkBuffer>(m_skybox_ubo),
+                              .offset = 0,
+                              .range =
+                                static_cast<uint32_t>(sizeof(skybox_uniform)) },
         };
         const vk::write_buffer_descriptor ubo_write_desc = {
             .dst_binding = 0,
@@ -461,9 +460,9 @@ public:
 
         const std::array<vk::write_image, 1> image_writes = {
             vk::write_image{
-                .sampler = m_skybox_image.sampler(),
-                .view = m_skybox_image.image_view(),
-                .layout = vk::image_layout::shader_read_only_optimal,
+              .sampler = m_skybox_image.sampler(),
+              .view = m_skybox_image.image_view(),
+              .layout = vk::image_layout::shader_read_only_optimal,
             },
         };
         const vk::write_image_descriptor image_write_desc = {
@@ -479,9 +478,9 @@ public:
         };
 
         const std::array<vk::color_blend_attachment_state, 1>
-            blend_attachments = {
-                vk::color_blend_attachment_state{ .blend_enabled = false },
-            };
+          blend_attachments = {
+              vk::color_blend_attachment_state{ .blend_enabled = false },
+          };
         vk::color_blend_state blend_state = {
             .logic_op_enable = false,
             .logical_op = vk::logical_op::copy,
@@ -501,37 +500,37 @@ public:
             .renderpass = p_renderpass,
             .shader_modules = m_skybox_shaders.handles(),
             .vertex_attributes =
-                m_skybox_shaders.vertex_attributes(), // no vertex input
+              m_skybox_shaders.vertex_attributes(), // no vertex input
             .vertex_bind_attributes =
-                m_skybox_shaders.vertex_bind_attributes(), // no vertex input
+              m_skybox_shaders.vertex_bind_attributes(), // no vertex input
             .descriptor_layouts = pipeline_layouts,
             .input_assembly =
-                vk::input_assembly_state{
+              vk::input_assembly_state{
                 .topology = vk::primitive_topology::triangle_list,
                 .primitive_restart_enable = false,
-                },
+              },
             .viewport =
-                vk::viewport_state{ .viewport_count = 1, .scissor_count = 1 },
+              vk::viewport_state{ .viewport_count = 1, .scissor_count = 1 },
             .rasterization =
-                vk::rasterization_state{
+              vk::rasterization_state{
                 .polygon_mode = vk::polygon_mode::fill,
                 .cull_mode = vk::cull_mode::front_bit,
                 // .cull_mode = vk::cull_mode::none,
                 // .front_face = vk::front_face::counter_clockwise,
                 .front_face = vk::front_face::clockwise,
                 .line_width = 1.f,
-                },
+              },
             .multisample = vk::multisample_state{},
             .color_blend = blend_state,
             .depth_stencil_enabled = true,
             .depth_stencil =
-                vk::depth_stencil_state{
+              vk::depth_stencil_state{
                 .depth_test_enable = true,
                 .depth_write_enable = false,
                 .depth_compare_op = vk::compare_op::less_or_equal,
                 .depth_bounds_test_enable = false,
                 .stencil_test_enable = false,
-                },
+              },
             .dynamic_states = dyn,
         };
 
@@ -586,5 +585,5 @@ private:
     vk::descriptor_resource m_skybox_descriptors{};
     vk::pipeline m_skybox_pipeline{};
     vk::vertex_buffer m_skybox_vbo;
-    uint64_t m_skybox_vbo_size=0;
+    uint64_t m_skybox_vbo_size = 0;
 };
