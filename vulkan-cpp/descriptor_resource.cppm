@@ -272,13 +272,13 @@ export namespace vk {
              * | layout(set=N, binding = 1) sampler2D texture; |
              * +-----------------------------------------------+
              * (Executing GPU-visible Resources)
-             * 
+             *
              * Example Usage:
-             * 
+             *
              * ```C++
-             * 
+             *
              * vk::descriptor_resource set0(logical_device, layout);
-             * 
+             *
              * // Uniform Buffers Handle
              * std::array<vk::write_buffer, 1> uniforms0 = {
              *  vk::write_buffer{
@@ -293,7 +293,7 @@ export namespace vk {
              *      .uniforms = uniforms0,
              *  },
              * };
-             * 
+             *
              * // View + Samplers Handle
              * std::array<vk::write_image, 1> samplers = {
              *   vk::write_image{
@@ -312,7 +312,7 @@ export namespace vk {
              * };
              * set0_resource.update(uniforms, sample_images);
              * ```
-             * 
+             *
              */
             void update(std::span<const write_buffer_descriptor> p_uniforms,
                         std::span<const write_image_descriptor> p_images = {}) {
