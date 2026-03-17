@@ -42,7 +42,7 @@ export namespace vk {
              *
              * Which includes how to treat these images for the particular tasks
              * that can be done on those images.
-             * 
+             *
              * @param p_renderpass_attachments
              * - .format: Image bit-depth
              * - .load/store: Configuring for loading/storing pixels
@@ -306,7 +306,7 @@ export namespace vk {
             void end(const VkCommandBuffer& p_current) {
                 vkCmdEndRenderPass(p_current);
             }
-            
+
             void destroy() {
                 vkDestroyRenderPass(m_device, m_renderpass, nullptr);
             }
