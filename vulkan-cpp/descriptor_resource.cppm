@@ -188,50 +188,6 @@ export namespace vk {
             }
 
             /**
-             * @brief Bind the current data that stored in memory to the
-             * active descriptor set for execution.
-             *
-             * This function records instructions into the command buffer to
-             * "map" that data into the GPU's register file.
-             *
-             * Specifically any addresses within the shader that have variables
-             * assigned to set = N.
-             *
-             * @param p_current is the active command recording to perform draw
-             * calls.
-             * @param p_pipeline_layout is the layout describing descriptor set
-             * resources are mapped to.
-             *
-             * @brief Additional Considerations:
-             * - `p_pipeline_layout` MUST be the same layout used to create the
-             * currently bound pipeline.
-             * - `m_slot` must match the `set = N` declaration in your shader
-             * code.
-             * - The descriptor set must have been created with a layout that is
-             * "compatible" with the pipeline layout.
-             * - This must be invoke within a command buffer recording via
-             * `.begin()`.
-             *
-             * [ Descriptor Set (Data) ]           [ Pipleine Layout ]
-             * +-------------------+              +-----------------------+
-             * | [Uniform Buffer ]  |             | Slot 0: [ Attached ]  |
-             * | [Image Sampler ]  | --> Bind --> | Slot 1: [Empty]       |
-             * +-------------------+              +-----------------------+
-             *
-             */
-            void bind(const VkCommandBuffer& p_current,
-                      const VkPipelineLayout& p_pipeline_layout) {
-                vkCmdBindDescriptorSets(p_current,
-                                        VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                        p_pipeline_layout,
-                                        m_slot,
-                                        1,
-                                        &m_descriptor_set,
-                                        0,
-                                        nullptr);
-            }
-
-            /**
              * @brief Performs the operation to actual update the descriptor set
              * handle with the uniforms data segments.
              *
@@ -400,6 +356,10 @@ export namespace vk {
                       m_device, m_descriptor_layout, nullptr);
                 }
             }
+
+            operator VkDescriptorSet() const { return m_descriptor_set; }
+
+            operator VkDescriptorSet() { return m_descriptor_set; }
 
         private:
             VkDevice m_device = nullptr;

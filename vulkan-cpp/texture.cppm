@@ -67,8 +67,8 @@ export namespace vk {
 
             std::array<vk::buffer_image_copy, 1> region_copies = {
                 vk::buffer_image_copy{
-                    .image_offset = { .width = 0, .height = 0, .depth = 1, },
-                    .image_extent = p_config.extent,
+                    .image_offset = { .width = 0, .height = 0, .depth = 0, },
+                    .image_extent = { .width = p_config.extent.width, .height = p_config.extent.height, .depth = 1, },
                 }
             };
 
