@@ -526,7 +526,7 @@ main() {
     vk::shader_resource geometry_resource(logical_device, shader_info);
     geometry_resource.vertex_attributes(attributes);
 
-    // Setting up descriptor sets for graphics pipeline
+    // Set 0: For Uniform BUffers (or global scene data)
     std::vector<vk::descriptor_entry> entries = {
     vk::descriptor_entry{
             // specifies "layout (set = 0, binding = 0) uniform GlobalUbo"
@@ -537,15 +537,6 @@ main() {
             },
             .descriptor_count = 1,
         },
-        vk::descriptor_entry{
-            // layout (set = 0, binding = 1) uniform sampler2D
-            .type = vk::buffer::combined_image_sampler,
-            .binding_point = {
-                .binding = 1,
-                .stage = vk::shader_stage::fragment,
-            },
-            .descriptor_count = 1,
-        }
     };
     vk::descriptor_layout set0_layout = {
         .slot = 0,               // indicate specific descriptor slot 0
@@ -554,7 +545,27 @@ main() {
     };
     vk::descriptor_resource set0_resource(logical_device, set0_layout);
 
-    std::array<VkDescriptorSetLayout, 1> layouts = { set0_resource.layout() };
+    // Set 1 = For Textures
+    std::vector<vk::descriptor_entry> entries_set1 = {
+        vk::descriptor_entry{
+            // layout (set = 1, binding = 0) uniform sampler2D
+            .type = vk::buffer::combined_image_sampler,
+            .binding_point = {
+                .binding = 0,
+                .stage = vk::shader_stage::fragment,
+            },
+            .descriptor_count = 1,
+        }
+    };
+    vk::descriptor_layout set1_layout = {
+        .slot = 1,               // indicate specific descriptor slot 0
+        .max_sets = image_count, // max descriptors to allocate
+        .entries = entries_set1,      // descriptor layout entries description
+    };
+
+    vk::descriptor_resource set1_resource(logical_device, set1_layout);
+
+    std::array<VkDescriptorSetLayout, 2> layouts = { set0_resource.layout(), set1_resource.layout(), };
 
     std::array<vk::color_blend_attachment_state, 1> color_blend_attachments = {
         vk::color_blend_attachment_state{},
@@ -621,13 +632,15 @@ main() {
     };
 
     // Specify image descriptor images/samplers to the descriptor
-    std::array<vk::write_image_descriptor, 1> sample_images = {
+    std::array<vk::write_image_descriptor, 1> set1_samples = {
         vk::write_image_descriptor{
-          .dst_binding = 1,
+          .dst_binding = 0,
           .sample_images = samplers,
         }
     };
-    set0_resource.update(uniforms, sample_images);
+    set0_resource.update(uniforms);
+
+    set1_resource.update({}, set1_samples);
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -685,7 +698,11 @@ main() {
         // before making any of the draw calls Something to note: You cannot
         // update descriptor sets in the process of a current-recording command
         // buffers or else that becomes undefined behavior
-        set0_resource.bind(current, main_graphics_pipeline.layout());
+        // set0_resource.bind(current, main_graphics_pipeline.layout());
+
+        std::array<const VkDescriptorSet, 2> descriptors = {set0_resource, set1_resource};
+
+        current.bind_descriptors(main_graphics_pipeline.layout(), VK_PIPELINE_BIND_POINT_GRAPHICS, descriptors);
 
         // Drawing-call to render actual triangle to the screen
         // vkCmdDrawIndexed(current, static_cast<uint32_t>(indices.size()), 1,
@@ -708,6 +725,7 @@ main() {
 
     texture1.destroy();
     set0_resource.destroy();
+    set1_resource.destroy();
     test_ubo.destroy();
     test_model.destroy();
 
