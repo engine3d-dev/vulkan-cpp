@@ -560,12 +560,15 @@ main() {
     vk::descriptor_layout set1_layout = {
         .slot = 1,               // indicate specific descriptor slot 0
         .max_sets = image_count, // max descriptors to allocate
-        .entries = entries_set1,      // descriptor layout entries description
+        .entries = entries_set1, // descriptor layout entries description
     };
 
     vk::descriptor_resource set1_resource(logical_device, set1_layout);
 
-    std::array<VkDescriptorSetLayout, 2> layouts = { set0_resource.layout(), set1_resource.layout(), };
+    std::array<VkDescriptorSetLayout, 2> layouts = {
+        set0_resource.layout(),
+        set1_resource.layout(),
+    };
 
     std::array<vk::color_blend_attachment_state, 1> color_blend_attachments = {
         vk::color_blend_attachment_state{},
@@ -700,9 +703,12 @@ main() {
         // buffers or else that becomes undefined behavior
         // set0_resource.bind(current, main_graphics_pipeline.layout());
 
-        std::array<const VkDescriptorSet, 2> descriptors = {set0_resource, set1_resource};
+        std::array<const VkDescriptorSet, 2> descriptors = { set0_resource,
+                                                             set1_resource };
 
-        current.bind_descriptors(main_graphics_pipeline.layout(), VK_PIPELINE_BIND_POINT_GRAPHICS, descriptors);
+        current.bind_descriptors(main_graphics_pipeline.layout(),
+                                 VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                 descriptors);
 
         // Drawing-call to render actual triangle to the screen
         // vkCmdDrawIndexed(current, static_cast<uint32_t>(indices.size()), 1,
