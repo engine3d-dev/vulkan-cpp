@@ -543,9 +543,10 @@ public:
         m_skybox_ubo.transfer(std::span<const skybox_uniform>(&p_ubo, 1));
     }
 
-    void bind(const VkCommandBuffer& p_current) {
+    void bind(vk::command_buffer p_current) {
         m_skybox_pipeline.bind(p_current);
-        m_skybox_descriptors.bind(p_current, m_skybox_pipeline.layout());
+        std::array<VkDescriptorSet, 1> descriptors = { m_skybox_descriptors };
+        p_current.bind_descriptors(m_skybox_pipeline.layout(), VK_PIPELINE_BIND_POINT_GRAPHICS, descriptors);
         m_skybox_vbo.bind(p_current);
     }
 
