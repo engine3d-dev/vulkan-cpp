@@ -83,23 +83,21 @@ export namespace vk {
              * ```C++
              *
              * std::array<vk::descriptor_entry, 2> entries = {
+             *   vk::descriptor_entry{
+             *      .type = vk::buffer::uniform, .binding_point = {
+             *      .binding = 0,
+             *      .stage = vk::shader_stage::vertex,
+             *    },
+             *    .descriptor_count = 1,
+             *  },
              *  vk::descriptor_entry{
-             *         // specifies "layout (set = 0, binding = 0) uniform
-             * GlobalUbo" .type = vk::buffer::uniform, .binding_point = {
-             *              .binding = 0,
-             *              .stage = vk::shader_stage::vertex,
-             *          },
-             *          .descriptor_count = 1,
-             *      },
-             *      vk::descriptor_entry{
-             *          // layout (set = 0, binding = 1) uniform sampler2D
-             *          .type = vk::buffer::combined_image_sampler,
-             *          .binding_point = {
-             *              .binding = 1,
-             *              .stage = vk::shader_stage::fragment,
-             *          },
-             *          .descriptor_count = 1,
-             *      }
+             *   .type = vk::buffer::combined_image_sampler,
+             *   .binding_point = {
+             *      .binding = 1,
+             *      .stage = vk::shader_stage::fragment,
+             *   },
+             *   .descriptor_count = 1,
+             *  },
              * };
              * vk::descriptor_layout layout = {
              *      .slot = 0,
