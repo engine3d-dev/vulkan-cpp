@@ -183,6 +183,8 @@ export namespace vk {
              * @brief Additional Considerations:
              * - `p_pipeline_layout` MUST be the same layout used to create the
              * currently bound pipeline.
+             * - `VkDescriptorSetLayout` used to create the descriptors MUST be
+             * included in the graphics pipeline layout configuration.
              * - `m_slot` must match the `set = N` declaration in your shader
              * code.
              * - The descriptor set must have been created with a layout that is
