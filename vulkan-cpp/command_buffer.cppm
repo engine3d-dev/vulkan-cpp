@@ -195,17 +195,17 @@ export namespace vk {
              * | [Uniform Buffer ]  |             | Slot 0: [ Attached ]  |
              * | [Image Sampler ]   | -> Bind --> | Slot 1: [Empty]       |
              * +-------------------+              +-----------------------+
-             * 
+             *
              */
-            void bind_descriptors(const VkPipelineLayout& p_pipeline_layout,
-                      uint64_t p_pipeline_bind_point,
-                      std::span<const VkDescriptorSet> p_descriptors,
-                      std::span<const uint32_t> p_dynamic_offsets = {},
-                      const uint32_t p_starting_slot = 0) {
+            void bind_descriptors(
+              const VkPipelineLayout& p_pipeline_layout,
+              uint64_t p_pipeline_bind_point,
+              std::span<const VkDescriptorSet> p_descriptors,
+              std::span<const uint32_t> p_dynamic_offsets = {},
+              const uint32_t p_starting_slot = 0) {
                 vkCmdBindDescriptorSets(
                   m_command_buffer,
-                  static_cast<VkPipelineBindPoint>(
-                    p_pipeline_bind_point),
+                  static_cast<VkPipelineBindPoint>(p_pipeline_bind_point),
                   p_pipeline_layout,
                   p_starting_slot,
                   static_cast<uint32_t>(p_descriptors.size()),
