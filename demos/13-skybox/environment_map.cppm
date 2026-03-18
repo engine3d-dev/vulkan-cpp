@@ -546,7 +546,9 @@ public:
     void bind(vk::command_buffer p_current) {
         m_skybox_pipeline.bind(p_current);
         std::array<VkDescriptorSet, 1> descriptors = { m_skybox_descriptors };
-        p_current.bind_descriptors(m_skybox_pipeline.layout(), VK_PIPELINE_BIND_POINT_GRAPHICS, descriptors);
+        p_current.bind_descriptors(m_skybox_pipeline.layout(),
+                                   VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                   descriptors);
         m_skybox_vbo.bind(p_current);
     }
 

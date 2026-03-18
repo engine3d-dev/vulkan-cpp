@@ -671,9 +671,10 @@ main() {
         // std::array<VkBuffer, 1> vertex = { test_model.vertex_handle() };
         const VkBuffer vertex = test_model.vertex_handle();
         uint64_t offset = 0;
-        current.bind_vertex_buffers(std::span<const VkBuffer>(&vertex, 1), std::span<uint64_t>(&offset, 1));
+        current.bind_vertex_buffers(std::span<const VkBuffer>(&vertex, 1),
+                                    std::span<uint64_t>(&offset, 1));
 
-        if(test_model.has_indices()) {
+        if (test_model.has_indices()) {
             current.bind_index_buffers32(test_model.index_handle());
         }
 
