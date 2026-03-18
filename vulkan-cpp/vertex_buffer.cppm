@@ -113,13 +113,6 @@ export namespace vk {
 
             [[nodiscard]] bool alive() const { return m_vertex_handler; }
 
-            void bind(const VkCommandBuffer& p_current) {
-                std::array<VkBuffer, 1> handlers = { m_vertex_handler };
-                VkDeviceSize offsets[] = { 0 };
-                vkCmdBindVertexBuffers(
-                  p_current, 0, 1, handlers.data(), offsets);
-            }
-
             // TODO: Probably handle flushing in vk::buffer_stream to give
             // support for this...?
             // void write(std::span<const vertex_input> p_vertices) {}

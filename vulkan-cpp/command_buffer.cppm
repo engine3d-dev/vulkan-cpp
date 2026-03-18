@@ -166,6 +166,152 @@ export namespace vk {
             }
 
             /**
+             * @brief Transferring the raw geomtric data of vertices to the
+             * vertex input stage of the graphics pipeline.
+             *
+             * This implies when starting to draw, to look at specific buffers
+             * to find the vertex attributes (position, normals, and color for
+             * each vertex)
+             *
+             * Unlike descriptor sets, vertex buffers are high-frequent data
+             * reads automatically by the hardware input's assembler for every
+             * vertex being processed.
+             *
+             * @param p_buffers an arbitrary span of buffers containg vertex
+             * attribute data.
+             * @param p_first_binding is the index of the first vertex binding
+             * to update (usually 0).
+             * @param p_offsets is a span of byte offsets specifying where the
+             * actual data begins inside each buffer.
+             *
+             * @brief Additional Consideration:
+             * - Number of buffers and their order MUST match what is specified
+             * with using `VkVertexInputBindingDescription` or
+             * `vk::vertex_attribute` specifications.
+             * - Size of `p_buffers` and `p_offsets` must be identical . Where
+             * each buffer needs a starting offset.
+             * - Every buffer MUST need to be created using
+             * `VK_BUFFER_USAGE_VERTEX_BUFFER_BIT`.
+             * - Data in these transfers
+             *
+             *
+             * Example Usage:
+             *
+             * ```C++
+             *
+             * vk::command_buffer current = ...;
+             *
+             * std::array<VkBuffer, 1> vertex = { vbo };
+             * uint64_t offset = 0;
+             * current.bind_vertex_buffers(vertex, std::span<uint64_t>(&offset,
+             * 1));
+             * ```
+             *
+             */
+            void bind_vertex_buffers(std::span<const VkBuffer> p_buffers,
+                                     std::span<const uint64_t> p_offsets = {},
+                                     const uint32_t p_first_binding = 0) {
+                vkCmdBindVertexBuffers(m_command_buffer,
+                                       p_first_binding,
+                                       static_cast<uint32_t>(p_buffers.size()),
+                                       p_buffers.data(),
+                                       p_offsets.data());
+            }
+
+            /**
+             * @brief Command tells the GPU what amount of bytes are stored in
+             * the indices for rendering.
+             *
+             * @param p_index_buffer is the handle containing the array of
+             * indices
+             * @param p_offset is the byte starting point (usually 0 unless you
+             * store multiple meshes in one buffer).
+             *
+             * @brief Additional Consideration:
+             * - Chosen API (8-bit, 16-bit, 32-bit) must match the bit-width of
+             * your data. If you bind a 32-bit buffer as 16-bit, the GPU will
+             * read twice as many indices, but each will be complete bad data.
+             * - .p_offset: must be aligned to size of the index type (e.g.
+             * p_offset % 4 == 0 for uint32).
+             *
+             * [ Index Buffer (memory) ]            [ GPU Input Assembly ]
+             * +-----------------------+            +--------------------+
+             * | [0] [1] [2]           | --Bind-->  | Indices Sequencer, |
+             * | [2] [3] [0]           |            | State              |
+             * +-----------------------+            +--------------------+
+             * (Indices 0, 1, 2, ... 5)              (Select Vertices Order)
+             *
+             */
+
+            /**
+             * @brief Used 1 byte per index.
+             *
+             * Minimal memory, limited to 256 vertices.
+             *
+             * Example Usage:
+             * ```C++
+             *
+             * vk::command_buffer current = ...;
+             *
+             * vk::index_buffer8 ibo = ...;
+             * current.bind_index_buffer8(ibo);
+             * ```
+             *
+             */
+            void bind_index_buffers8(const VkBuffer p_index_buffer,
+                                     const uint64_t p_offset = 0) {
+                vkCmdBindIndexBuffer(m_command_buffer,
+                                     p_index_buffer,
+                                     p_offset,
+                                     VK_INDEX_TYPE_UINT8);
+            }
+
+            /**
+             * @brief Use 2 bytes per index.
+             *
+             * Can be used for most 3D models up to 65k verties.
+             *
+             * ```C++
+             *
+             * vk::command_buffer current = ...;
+             *
+             * vk::index_buffer16 ibo = ...;
+             * current.bind_index_buffer16(ibo);
+             * ```
+             *
+             */
+            void bind_index_buffers16(const VkBuffer p_index_buffer,
+                                      const uint64_t p_offset = 0) {
+                vkCmdBindIndexBuffer(m_command_buffer,
+                                     p_index_buffer,
+                                     p_offset,
+                                     VK_INDEX_TYPE_UINT16);
+            }
+
+            /**
+             * @brief Use 4 bytes per index.
+             *
+             * Used for more higher-density terrain for complex meshes such as
+             * terrain.
+             *
+             * ```C++
+             *
+             * vk::command_buffer current = ...;
+             *
+             * vk::index_buffer32 ibo = ...;
+             * current.bind_index_buffer32(ibo);
+             * ```
+             *
+             */
+            void bind_index_buffers32(const VkBuffer p_index_buffer,
+                                      const uint64_t p_offset = 0) {
+                vkCmdBindIndexBuffer(m_command_buffer,
+                                     p_index_buffer,
+                                     p_offset,
+                                     VK_INDEX_TYPE_UINT32);
+            }
+
+            /**
              * @brief Bind the current data that stored in memory to the
              * active descriptor set for execution.
              *
