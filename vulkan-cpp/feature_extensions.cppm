@@ -55,32 +55,34 @@ namespace vk {
         { t.pNext } -> std::convertible_to<void*>;
     };
 
-    template<ExtensionConcept T, ExtensionConcept... Args>
-    void chain_features(T& head, Args&... tail) {
-        /**
-         * @brief Passing an arbitrary sequences of VkPhysicalDevice*Features
-         *
-         *
-         * @brief Handled using Variadic Templates
-         * Compiler does not generate a loop, rather it'll generate a flat
-         * sequence of instructions.
-         *
-         * Essentially doing something like: chain_features(descriptor_indexing,
-         * dynamic_rendering).
-         *
-         * The compiler will automatically assign the chaining .pNext pointer
-         * per sequence: (where it will automatically assign the .pNext pointer
-         * per feature specified in it's sequence) 1.) current.pNext =
-         * &descriptor_indexing 2.) descriptor_indexing.pNext =
-         * &dynamic_rendering
-         *
-         */
-        auto* current = reinterpret_cast<VkBaseOutStructure*>(&head);
-        ((current->pNext = reinterpret_cast<VkBaseOutStructure*>(&tail),
-          current = reinterpret_cast<VkBaseOutStructure*>(&tail)),
-         ...);
-        current->pNext = nullptr;
-    }
+    // template<ExtensionConcept T, ExtensionConcept... Args>
+    // void chain_features(T& head, Args&... tail) {
+    //     /**
+    //      * @brief Passing an arbitrary sequences of VkPhysicalDevice*Features
+    //      *
+    //      *
+    //      * @brief Handled using Variadic Templates
+    //      * Compiler does not generate a loop, rather it'll generate a flat
+    //      * sequence of instructions.
+    //      *
+    //      * Essentially doing something like:
+    //      chain_features(descriptor_indexing,
+    //      * dynamic_rendering).
+    //      *
+    //      * The compiler will automatically assign the chaining .pNext pointer
+    //      * per sequence: (where it will automatically assign the .pNext
+    //      pointer
+    //      * per feature specified in it's sequence) 1.) current.pNext =
+    //      * &descriptor_indexing 2.) descriptor_indexing.pNext =
+    //      * &dynamic_rendering
+    //      *
+    //      */
+    //     auto* current = reinterpret_cast<VkBaseOutStructure*>(&head);
+    //     ((current->pNext = reinterpret_cast<VkBaseOutStructure*>(&tail),
+    //       current = reinterpret_cast<VkBaseOutStructure*>(&tail)),
+    //      ...);
+    //     current->pNext = nullptr;
+    // }
 
     template<typename T, VkStructureType STYPE>
     struct feature_type : public T {
@@ -90,6 +92,7 @@ namespace vk {
         }
     };
 
+    // TEMP: Use for testing
     using descriptor_indexing_feature = feature_type<
       VkPhysicalDeviceDescriptorIndexingFeatures,
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES>;
@@ -131,58 +134,36 @@ namespace vk {
         }
 
     private:
-        std::tuple<Features...> m_data;
-    };
-
-    template<typename T, VkStructureType STYPE>
-    struct feature_type : public T {
-        explicit feature_type(T p_intiializer)
-          : T(p_intiializer) {
-            this->sType = STYPE;
-        }
-    };
-
-    using descriptor_indexing_feature = feature_type<
-      VkPhysicalDeviceDescriptorIndexingFeatures,
-      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES>;
-    using dynamic_rendering = feature_type<
-      VkPhysicalDeviceDynamicRenderingFeatures,
-      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES>;
-
-    template<ExtensionConcept... Features>
-    struct features {
-    public:
-        features(Features&&... p_args)
-          : m_data(std::forward<Features>(p_args)...) {
-
-            // We take our unpacked structure of vulkan features
-            // Then we chain the pNext pointer altogether for each feature we
-            // unpack
-            if constexpr (sizeof...(Features) > 0) {
-                std::apply([](auto&... spec) { chain_features(spec...); },
-                           m_data);
-            }
-        }
-
-        /**
-         * @brief We provide the chained pNext ptr
-         *
-         * This will let us directly have the chained features the user can
-         * specify.
-         *
-         * @return nullptr if no features are specified, returns the pNext
-         * feature chain otherwise.
-         *
-         */
-        [[nodiscard]] void* get_head() noexcept {
-            if constexpr (sizeof...(Features) > 0) {
-                return &std::get<0>(m_data);
-            }
-
-            return nullptr;
+        template<typename T>
+        void chain_pointers(T& head, Features&... tail) {
+            /**
+             * @brief Passing an arbitrary sequences of
+             * VkPhysicalDevice*Features
+             *
+             *
+             * @brief Handled using Variadic Templates
+             * Compiler does not generate a loop, rather it'll generate a flat
+             * sequence of instructions.
+             *
+             * Essentially doing something like:
+             * chain_features(descriptor_indexing, dynamic_rendering).
+             *
+             * The compiler will automatically assign the chaining .pNext
+             * pointer per sequence: (where it will automatically assign the
+             * .pNext pointer per feature specified in it's sequence) 1.)
+             * current.pNext = &descriptor_indexing 2.)
+             * descriptor_indexing.pNext = &dynamic_rendering
+             *
+             */
+            auto* current = reinterpret_cast<VkBaseOutStructure*>(&head);
+            ((current->pNext = reinterpret_cast<VkBaseOutStructure*>(&tail),
+              current = reinterpret_cast<VkBaseOutStructure*>(&tail)),
+             ...);
+            current->pNext = nullptr;
         }
 
     private:
         std::tuple<Features...> m_data;
     };
+
 };
