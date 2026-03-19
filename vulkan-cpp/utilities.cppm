@@ -312,16 +312,6 @@ export namespace vk {
         }
 
         /**
-         * @brief API to work with types that comes from C
-         * 
-         * TODO: May remove this due to some inguarantees of what the 
-        */
-        std::span<const uint8_t> as_bytes(const void* p_data, uint32_t p_size) {
-            const auto* bytes = reinterpret_cast<const uint8_t*>(p_data);
-            return std::span<const uint8_t>(bytes, p_size);
-        }
-
-        /**
          * @brief GPU memory is optimized differently for different tasks. An
          * image optimized for 'Transfer Destination' (filling with bytes) can
          * be look different in memory then an image configured for 'Shader Read

@@ -157,7 +157,7 @@ export namespace vk {
                 m_image = create_texture_with_data(
                   m_device,
                   config_image,
-                  std::span<const uint8_t>(white_color, image_size));
+                  std::span<const uint8_t>(white_color.data(), image_size));
                 m_texture_loaded = true;
             }
 
@@ -178,8 +178,6 @@ export namespace vk {
                             &h,
                             &channels,
                             STBI_rgb_alpha);
-                // m_width = static_cast<uint32_t>(w);
-                // m_height = static_cast<uint32_t>(h);
                 m_extent = {
                     .width = static_cast<uint32_t>(w),
                     .height = static_cast<uint32_t>(h),
@@ -193,7 +191,7 @@ export namespace vk {
                 // with bytes per pixel
                 // uint32_t layer_size_with_bytes =
                 uint32_t image_layer_sizes_with_bytes =
-                  m_width * m_height * bytes_per_pixel;
+                  m_extent.width * m_extent.height * bytes_per_pixel;
 
                 // uint32_t layer_count = 1;
                 uint32_t layer_count = p_texture_info.layer_count;
@@ -224,6 +222,8 @@ export namespace vk {
                   config_image,
                   std::span<uint8_t>(image_pixel_data, image_size));
 
+                // Proper cleanup of the image data
+                stbi_image_free(image_pixel_data);
                 m_texture_loaded = true;
             }
 
