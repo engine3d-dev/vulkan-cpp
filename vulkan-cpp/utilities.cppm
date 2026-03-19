@@ -298,16 +298,86 @@ export namespace vk {
                     (p_format == VK_FORMAT_D24_UNORM_S8_UINT));
         }
 
+        /**
+         * @brief Used to convert a given set of types T into chunks of bytes.
+         *
+         * This is used for the vulkan-cpp API's that expect to take in a
+         * span<const uint8_t> to transfer data over to the Vulkan C API, that
+         * expects a void*.
+         */
         template<typename T>
         std::span<uint8_t> to_bytes(T p_data) {
             return std::span<uint8_t>(reinterpret_cast<uint8_t*>(&p_data),
                                       sizeof(p_data));
         }
 
-        std::span<const uint8_t> as_bytes(const void* p_data, uint32_t p_size) {
-            const auto* bytes = reinterpret_cast<const uint8_t*>(p_data);
-            return std::span<const uint8_t>(bytes, p_size);
+        /**
+         * @brief GPU memory is optimized differently for different tasks. An
+         * image optimized for 'Transfer Destination' (filling with bytes) can
+         * be look different in memory then an image configured for 'Shader Read
+         * Only'.
+         *
+         * This API performs a transition operation which 'reformats' the image
+         * data at the hardware-level.
+         *
+         * Usually acts as a syncing point, ensuring the GPU finishes writing to
+         * the image before it makes an attempt to read from it.
+         *
+         * [ Image Memory ]           [ Transition ]         [ Image Memory ]
+         * +------------------+    +----------------+    +---------------------+
+         * | Layout: Undefined|    | Memory Flush   |    | Layout: Shader Read |
+         * | Access: 0        | => | Layout Reformat| => | Access: Shader Read |
+         * | (Initial/Invalid)|    | Exec Stall     |    | (For Sampling       |
+         * +------------------+    +----------------+    +---------------------+
+         *
+         * @brief Additional Consideration:
+         * - uses vkQueueWaitIdle, which stalls the CPU until the GPU is idle.
+         * - Only used for initialization or infrequent updates.
+         * - Use vk::image_layout::undefined as the old layout is faster but
+         * discards pixel data.
+         * - Transition applies to the entire subresource range (all
+         * mips/layers) defined within the p_image barrier logic.
+         *
+         */
+        /*
+        void transition_image_layout(VkDevice p_device,
+                                     vk::sample_image& p_image,
+                                     VkFormat p_format,
+                                     VkImageLayout p_old,
+                                     VkImageLayout p_new) {
+            vk::command_params copy_command_params = {
+                .levels = vk::command_levels::primary,
+                .queue_index = 0,
+                .flags = vk::command_pool_flags::reset,
+            };
+            vk::command_buffer temp_command_buffer =
+              vk::command_buffer(p_device, copy_command_params);
+
+            temp_command_buffer.begin(vk::command_usage::one_time_submit);
+
+            p_image.memory_barrier(temp_command_buffer, p_format, p_old, p_new);
+
+            temp_command_buffer.end();
+
+            VkCommandBuffer handle = temp_command_buffer;
+            VkSubmitInfo submit_info = {
+                .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+                .commandBufferCount = 1,
+                .pCommandBuffers = &handle,
+            };
+
+            uint32_t queue_family_index = 0;
+            uint32_t queue_index = 0;
+            VkQueue temp_graphics_queue;
+            vkGetDeviceQueue(
+              p_device, queue_family_index, queue_index, &temp_graphics_queue);
+
+            vkQueueSubmit(temp_graphics_queue, 1, &submit_info, nullptr);
+            vkQueueWaitIdle(temp_graphics_queue);
+
+            temp_command_buffer.destroy();
         }
+        */
 
     }; // end of v1 namespace
 };
