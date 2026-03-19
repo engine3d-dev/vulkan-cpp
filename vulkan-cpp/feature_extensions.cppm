@@ -7,6 +7,19 @@ module;
 export module vk::feature_extensions;
 
 namespace vk {
+
+    //! @brief Provide additional compile-time verification checks
+    template<typename DeviceFeature>
+    struct feature_trait : std::false_type {};
+
+    template<>
+    struct feature_trait<VkPhysicalDeviceDescriptorIndexingFeatures>
+      : std::true_type {};
+
+    template<>
+    struct feature_trait<VkPhysicalDeviceDynamicRenderingFeatures>
+      : std::true_type {};
+
     /**
      * @brief ExtensionConcept being a concept
      *
@@ -55,35 +68,6 @@ namespace vk {
         { t.pNext } -> std::convertible_to<void*>;
     };
 
-    // template<ExtensionConcept T, ExtensionConcept... Args>
-    // void chain_features(T& head, Args&... tail) {
-    //     /**
-    //      * @brief Passing an arbitrary sequences of VkPhysicalDevice*Features
-    //      *
-    //      *
-    //      * @brief Handled using Variadic Templates
-    //      * Compiler does not generate a loop, rather it'll generate a flat
-    //      * sequence of instructions.
-    //      *
-    //      * Essentially doing something like:
-    //      chain_features(descriptor_indexing,
-    //      * dynamic_rendering).
-    //      *
-    //      * The compiler will automatically assign the chaining .pNext pointer
-    //      * per sequence: (where it will automatically assign the .pNext
-    //      pointer
-    //      * per feature specified in it's sequence) 1.) current.pNext =
-    //      * &descriptor_indexing 2.) descriptor_indexing.pNext =
-    //      * &dynamic_rendering
-    //      *
-    //      */
-    //     auto* current = reinterpret_cast<VkBaseOutStructure*>(&head);
-    //     ((current->pNext = reinterpret_cast<VkBaseOutStructure*>(&tail),
-    //       current = reinterpret_cast<VkBaseOutStructure*>(&tail)),
-    //      ...);
-    //     current->pNext = nullptr;
-    // }
-
     template<typename T, VkStructureType STYPE>
     struct feature_type : public T {
         explicit feature_type(T p_intiializer)
@@ -101,16 +85,16 @@ namespace vk {
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES>;
 
     template<ExtensionConcept... Features>
-    struct features {
+    struct device_features {
     public:
-        features(Features&&... p_args)
+        device_features(Features&&... p_args)
           : m_data(std::forward<Features>(p_args)...) {
 
             // We take our unpacked structure of vulkan features
             // Then we chain the pNext pointer altogether for each feature we
             // unpack
             if constexpr (sizeof...(Features) > 0) {
-                std::apply([](auto&... spec) { chain_features(spec...); },
+                std::apply([](auto&... spec) { internal_data(spec...); },
                            m_data);
             }
         }
@@ -124,8 +108,14 @@ namespace vk {
          * @return nullptr if no features are specified, returns the pNext
          * feature chain otherwise.
          *
+         * @returns the internal data of the vulkan device extensions that are
+         * chained altogether.
+         *
+         * Will return nullptr if no extensions are enabled.
          */
-        [[nodiscard]] void* get_head() noexcept {
+        [[nodiscard]] void* data() const noexcept {
+
+            // This just ensures the data that
             if constexpr (sizeof...(Features) > 0) {
                 return &std::get<0>(m_data);
             }
@@ -133,9 +123,15 @@ namespace vk {
             return nullptr;
         }
 
+        // Deleting copy and move semantics
+        // This can cause the internal address members to change, which we do
+        // not want.
+        device_features(const device_features&) = delete;
+        device_features& operator=(const device_features&) = delete;
+
     private:
         template<typename T>
-        void chain_pointers(T& head, Features&... tail) {
+        void internal_data(T& head, Features&... tail) {
             /**
              * @brief Passing an arbitrary sequences of
              * VkPhysicalDevice*Features
