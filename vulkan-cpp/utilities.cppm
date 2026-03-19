@@ -377,8 +377,7 @@ export namespace vk {
 
             temp_command_buffer.destroy();
         }
-        */ 
-        
+        */
 
     }; // end of v1 namespace
 };
