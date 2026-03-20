@@ -3,22 +3,11 @@ module;
 #include <concepts>
 #include <type_traits>
 #include <tuple>
+#include <vulkan/vulkan.h>
 
-export module vk::feature_extensions;
+export module vk:feature_extensions;
 
-namespace vk {
-
-    //! @brief Provide additional compile-time verification checks
-    template<typename DeviceFeature>
-    struct feature_trait : std::false_type {};
-
-    template<>
-    struct feature_trait<VkPhysicalDeviceDescriptorIndexingFeatures>
-      : std::true_type {};
-
-    template<>
-    struct feature_trait<VkPhysicalDeviceDynamicRenderingFeatures>
-      : std::true_type {};
+export namespace vk {
 
     /**
      * @brief ExtensionConcept being a concept
@@ -56,11 +45,6 @@ namespace vk {
      * ONLY the vulkan feature struct static_assert(*this, "Invalid vulkan
      * feature specified. Only accepting valid vulkan features.");
      * };
-     *
-     *
-     * template<>
-     * struct device_feature<VkPhysicalDeviceDescriptorIndexingFeatures> :
-     * public std::true_type {};
      */
     template<typename T>
     concept ExtensionConcept = requires(T t) {
@@ -68,21 +52,53 @@ namespace vk {
         { t.pNext } -> std::convertible_to<void*>;
     };
 
-    template<typename T, VkStructureType STYPE>
-    struct feature_type : public T {
-        explicit feature_type(T p_intiializer)
-          : T(p_intiializer) {
-            this->sType = STYPE;
+    /**
+     * @brief a trait that can be aliased to an 
+    */
+    template<typename T, VkStructureType SType>
+    struct feature_trait : public T {
+
+        feature_trait(T p_initialize_feature)
+          : T(p_initialize_feature) {
+            this->sType = SType;
         }
     };
 
-    // TEMP: Use for testing
-    using descriptor_indexing_feature = feature_type<
+    // These are shorthand aliases that already setup the features 
+    using descriptor_indexing_feature = feature_trait<
       VkPhysicalDeviceDescriptorIndexingFeatures,
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES>;
-    using dynamic_rendering = feature_type<
+    using dynamic_rendering = feature_trait<
       VkPhysicalDeviceDynamicRenderingFeatures,
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES>;
+
+    template<ExtensionConcept T, ExtensionConcept... Features>
+    void internal_data(T& head, Features&... tail) {
+        /**
+         * @brief Passing an arbitrary sequences of
+         * VkPhysicalDevice*Features
+         *
+         *
+         * @brief Handled using Variadic Templates
+         * Compiler does not generate a loop, rather it'll generate a flat
+         * sequence of instructions.
+         *
+         * Essentially doing something like:
+         * chain_features(descriptor_indexing, dynamic_rendering).
+         *
+         * The compiler will automatically assign the chaining .pNext
+         * pointer per sequence: (where it will automatically assign the
+         * .pNext pointer per feature specified in it's sequence) 1.)
+         * current.pNext = &descriptor_indexing 2.)
+         * descriptor_indexing.pNext = &dynamic_rendering
+         *
+         */
+        auto* current = reinterpret_cast<VkBaseOutStructure*>(&head);
+        ((current->pNext = reinterpret_cast<VkBaseOutStructure*>(&tail),
+            current = reinterpret_cast<VkBaseOutStructure*>(&tail)),
+            ...);
+        current->pNext = nullptr;
+    }
 
     template<ExtensionConcept... Features>
     struct device_features {
@@ -113,7 +129,7 @@ namespace vk {
          *
          * Will return nullptr if no extensions are enabled.
          */
-        [[nodiscard]] void* data() const noexcept {
+        [[nodiscard]] void* data() noexcept {
 
             // This just ensures the data that
             if constexpr (sizeof...(Features) > 0) {
@@ -121,41 +137,6 @@ namespace vk {
             }
 
             return nullptr;
-        }
-
-        // Deleting copy and move semantics
-        // This can cause the internal address members to change, which we do
-        // not want.
-        device_features(const device_features&) = delete;
-        device_features& operator=(const device_features&) = delete;
-
-    private:
-        template<typename T>
-        void internal_data(T& head, Features&... tail) {
-            /**
-             * @brief Passing an arbitrary sequences of
-             * VkPhysicalDevice*Features
-             *
-             *
-             * @brief Handled using Variadic Templates
-             * Compiler does not generate a loop, rather it'll generate a flat
-             * sequence of instructions.
-             *
-             * Essentially doing something like:
-             * chain_features(descriptor_indexing, dynamic_rendering).
-             *
-             * The compiler will automatically assign the chaining .pNext
-             * pointer per sequence: (where it will automatically assign the
-             * .pNext pointer per feature specified in it's sequence) 1.)
-             * current.pNext = &descriptor_indexing 2.)
-             * descriptor_indexing.pNext = &dynamic_rendering
-             *
-             */
-            auto* current = reinterpret_cast<VkBaseOutStructure*>(&head);
-            ((current->pNext = reinterpret_cast<VkBaseOutStructure*>(&tail),
-              current = reinterpret_cast<VkBaseOutStructure*>(&tail)),
-             ...);
-            current->pNext = nullptr;
         }
 
     private:

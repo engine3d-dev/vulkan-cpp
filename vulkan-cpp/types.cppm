@@ -10,6 +10,8 @@ module;
 
 export module vk:types;
 
+import :feature_extensions;
+
 export namespace vk {
     inline namespace v1 {
         enum format : uint32_t {
@@ -536,6 +538,7 @@ export namespace vk {
         };
 
         struct device_params {
+            void* features{};
             std::span<float> queue_priorities{};
             std::span<const char*>
               extensions{}; // Can add VK_KHR_SWAPCHAIN_EXTENSION_NAME to this
