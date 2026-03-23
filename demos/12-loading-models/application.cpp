@@ -314,7 +314,19 @@ main() {
     std::array<const char*, 1> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 #endif
 
+    vk::device_features device_features{
+        vk::descriptor_indexing_feature{{
+            .descriptorBindingPartiallyBound = true,
+            .descriptorBindingVariableDescriptorCount = true,
+            .descriptorBindingSampledImageUpdateAfterBind = true,
+        } },
+        vk::dynamic_rendering_feature{ {
+          .dynamicRendering = true,
+        } },
+    };
+
     vk::device_params logical_device_params = {
+        .features = device_features.data(),
         .queue_priorities = priorities,
         .extensions = extensions,
         .queue_family_index = 0,
@@ -701,8 +713,7 @@ main() {
         };
         ubo.proj[1][1] *= -1;
 
-        std::array<global_uniform, 1> ubo_arr = { ubo };
-        test_ubo.transfer<global_uniform>(ubo_arr);
+        test_ubo.transfer<global_uniform>(std::span<const global_uniform>(&ubo, 1));
 
         // Before we can send stuff to the GPU, since we already updated the
         // descriptor set 0 beforehand, we must bind that descriptor resource
