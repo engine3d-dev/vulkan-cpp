@@ -254,14 +254,10 @@ export namespace vk {
           VkMemoryRequirements p_memory_requirements,
           memory_property p_property) {
             uint32_t memory_bits = p_memory_requirements.memoryTypeBits;
-            VkMemoryPropertyFlags property_flag =
-              static_cast<VkMemoryPropertyFlags>(p_property);
+            VkMemoryPropertyFlags property_flag = static_cast<VkMemoryPropertyFlags>(p_property);
 
-            for (uint32_t i = 0; i < p_physical_memory_props.memoryTypeCount;
-                 i++) {
-                if ((memory_bits & (1 << i)) and
-                    (p_physical_memory_props.memoryTypes[i].propertyFlags &
-                     property_flag) == property_flag) {
+            for (uint32_t i = 0; i < p_physical_memory_props.memoryTypeCount; i++) {
+                if ((memory_bits & (1 << i)) and (p_physical_memory_props.memoryTypes[i].propertyFlags & property_flag) == property_flag) {
                     return i;
                 }
             }

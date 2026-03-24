@@ -95,6 +95,28 @@ export namespace vk {
                 return physical_memory_properties;
             }
 
+            [[nodiscard]] uint32_t memory_properties(memory_property p_property_required) const {
+                allocation_params return_params = {};
+
+                VkPhysicalDeviceMemoryProperties memory_properties;
+                vkGetPhysicalDeviceMemoryProperties(m_physical_device, &memory_properties);
+
+                uint32_t mask = 0;
+                for(uint32_t i = 0; i < memory_properties.memoryTypeCount; i++) {
+                    auto type_flags = memory_properties.memoryTypes[i].propertyFlags;
+
+                    if((type_flags & p_property_required) == p_property_required) {
+                        mask |= ((1 << i));
+                    }
+                }
+
+                // return {
+                //     .memory_supported_mask = mask,
+                // };
+
+                return mask;
+            }
+
             operator VkPhysicalDevice() { return m_physical_device; }
 
             operator VkPhysicalDevice() const { return m_physical_device; }

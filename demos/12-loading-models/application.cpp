@@ -154,14 +154,31 @@ public:
         }
         m_indices_size = vertices.size();
         m_indices_size = indices.size();
-        vk::vertex_params vertex_info = {
+        const auto property_flags = static_cast<vk::memory_property>(vk::memory_property::host_visible_bit | vk::memory_property::host_cached_bit);
+
+        //! @brief Getting our brief
+        const uint32_t memory_supported_mask = p_physical.memory_properties(property_flags);
+
+        std::println("Memory Supported Mask: {}", memory_supported_mask);
+        // vk::vertex_params vertex_info = {
+        //     .phsyical_memory_properties = p_physical.memory_properties(),
+        //     .experiment = true,
+        //     .mask = memory_supported_mask,
+        // };
+        vk::buffer_parameters vertex_params = {
+            .physical_memory_properties = p_physical.memory_properties(),
+            .experiment = true,
+            .memory_mask = memory_supported_mask,
+            .property_flags = vk::memory_property::device_local_bit,
+            .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+                     VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        };
+
+        vk::index_params index_info = {
             .phsyical_memory_properties = p_physical.memory_properties(),
         };
 
-        vk::index_params index_info = { .phsyical_memory_properties =
-                                          p_physical.memory_properties() };
-
-        m_vertex_buffer = vk::vertex_buffer(p_device, vertices, vertex_info);
+        m_vertex_buffer = vk::vertex_buffer(p_device, vertices, vertex_params);
         m_index_buffer = vk::index_buffer(p_device, indices, index_info);
         m_is_loaded = true;
     }

@@ -3,6 +3,7 @@ module;
 #include <vulkan/vulkan.h>
 #include <span>
 #include <vector>
+#include <print>
 
 export module vk:buffer_streams;
 
@@ -51,24 +52,49 @@ export namespace vk {
                   "vkCreateBuffer");
 
                 // 2. retrieving buffer memory requirements
-                VkMemoryRequirements memory_requirements = {};
-                vkGetBufferMemoryRequirements(
-                  p_device, m_handle, &memory_requirements);
+                VkMemoryAllocateInfo memory_alloc_info={};
 
-                // 3. selects the required memory requirements for this specific
-                // buffer allocations
-                uint32_t memory_index = select_memory_requirements(
-                  p_settings.physical_memory_properties,
-                  memory_requirements,
-                  p_settings.property_flags);
+                if(!p_settings.experiment) {
+                    std::println("Disabled Experimentation: {}", p_settings.experiment);
+                    VkMemoryRequirements memory_requirements = {};
+                    vkGetBufferMemoryRequirements(
+                    p_device, m_handle, &memory_requirements);
 
-                // 4. allocatring the necessary memory based on memory
-                // requirements for the buffer handles
-                VkMemoryAllocateInfo memory_alloc_info = {
-                    .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-                    .allocationSize = memory_requirements.size,
-                    .memoryTypeIndex = memory_index
-                };
+                    // 3. selects the required memory requirements for this specific
+                    // buffer allocations
+                    uint32_t memory_index = select_memory_requirements(
+                    p_settings.physical_memory_properties,
+                    memory_requirements,
+                    p_settings.property_flags); // This is the only use of this!
+
+                    std::println("Memory Requirements Size: {}", memory_requirements.size);
+                    std::println("Memory Index: {}", memory_index);
+
+                    // 4. allocatring the necessary memory based on memory
+                    // requirements for the buffer handles
+                    memory_alloc_info = {
+                        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+                        .allocationSize = memory_requirements.size,
+                        .memoryTypeIndex = memory_index
+                    };
+                }
+                else {
+                    std::println("Enable Experimentation: {}", p_settings.experiment);
+                    // Experimental logic
+                    VkMemoryRequirements memory_requirements = {};
+                    vkGetBufferMemoryRequirements(p_device, m_handle, &memory_requirements);
+                    uint32_t mapped_memory_requirements = memory_requirements.memoryTypeBits & p_settings.memory_mask;
+                    uint32_t memory_index = std::countr_zero(mapped_memory_requirements);
+
+                    std::println("Memory Requirement Mapped: {}", mapped_memory_requirements);
+                    std::println("Memory Index: {}", memory_index);
+
+                    memory_alloc_info = {
+                        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+                        .allocationSize = memory_requirements.size,
+                        .memoryTypeIndex = memory_index
+                    };
+                }
 
 #if _DEBUG
                 // 1. Define the structure

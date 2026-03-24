@@ -486,6 +486,13 @@ export namespace vk {
             std::string description;
         };
 
+
+        struct allocation_params {
+            // uint32_t size=0;
+            uint32_t memory_supported_mask=0;
+            // uint32_t memory_index=0;
+        };
+
         //! @brief Defines the enum types for a selection of gpu device
         // types to select according to your hardware specs
 
@@ -1427,6 +1434,8 @@ export namespace vk {
         };
 
         struct vertex_params {
+            bool experiment=false;
+            uint32_t mask = 0;
             VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
             std::string debug_name;
             PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT =
@@ -1522,6 +1531,8 @@ export namespace vk {
 
         struct buffer_parameters {
             VkPhysicalDeviceMemoryProperties physical_memory_properties;
+            bool experiment=false;
+            uint32_t memory_mask=0;
             memory_property property_flags;
             VkBufferUsageFlags usage;
             VkSharingMode share_mode = VK_SHARING_MODE_EXCLUSIVE;
