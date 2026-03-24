@@ -35,7 +35,8 @@ export namespace vk {
 
                 VkDeviceCreateInfo create_info = {
                     .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-                    .pNext = nullptr,
+                    // .pNext = nullptr,
+                    .pNext = p_config.features,
                     .flags = 0,
                     .queueCreateInfoCount = 1,
                     .pQueueCreateInfos = &device_queue_ci,

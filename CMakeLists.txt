@@ -32,6 +32,7 @@ target_sources(${PROJECT_NAME} PUBLIC
     TYPE CXX_MODULES
     FILES
     vulkan-cpp/vk.cppm
+    vulkan-cpp/feature_extensions.cppm
     vulkan-cpp/types.cppm
     vulkan-cpp/utilities.cppm
     vulkan-cpp/instance.cppm

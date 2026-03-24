@@ -3,6 +3,7 @@ export module vk;
 export import :types;
 export import :instance;
 export import :physical_device;
+export import :feature_extensions;
 export import :device;
 export import :device_queue;
 export import :surface;
