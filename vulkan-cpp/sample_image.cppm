@@ -3,6 +3,7 @@ module;
 #include <vulkan/vulkan.h>
 #include <span>
 #include <vector>
+#include <bit>
 
 export module vk:sample_image;
 
@@ -30,24 +31,24 @@ export namespace vk {
         public:
             sample_image() = default;
             sample_image(const VkDevice& p_device,
-                         const image_params& p_image_properties)
+                         const image_params& p_image_params)
               : m_device(p_device) {
                 // 1. creating VkImage handle
                 VkImageCreateInfo image_ci = {
                     .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
                     .pNext = nullptr,
-                    .flags = p_image_properties.image_flags,
+                    .flags = p_image_params.image_flags,
                     .imageType = VK_IMAGE_TYPE_2D,
-                    .format = p_image_properties.format,
-                    .extent = { .width = p_image_properties.extent.width,
-                                .height = p_image_properties.extent.height,
-                                .depth = 1 },
-                    .mipLevels = p_image_properties.mip_levels,
-                    .arrayLayers = p_image_properties.array_layers,
+                    .format = p_image_params.format,
+                    .extent = { .width = p_image_params.extent.width,
+                                .height = p_image_params.extent.height,
+                                .depth = 1, },
+                    .mipLevels = p_image_params.mip_levels,
+                    .arrayLayers = p_image_params.array_layers,
                     .samples = VK_SAMPLE_COUNT_1_BIT,
                     .tiling = VK_IMAGE_TILING_OPTIMAL,
                     .usage =
-                      static_cast<VkImageUsageFlags>(p_image_properties.usage),
+                      static_cast<VkImageUsageFlags>(p_image_params.usage),
                     .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
                     .queueFamilyIndexCount = 0,
                     .pQueueFamilyIndices = nullptr,
@@ -62,12 +63,18 @@ export namespace vk {
                 vkGetImageMemoryRequirements(
                   p_device, m_image, &memory_requirements);
                 // uint32_t memory_type_index =
-                // vk::image_memory_requirements(p_image_properties.physical_device,
+                // vk::image_memory_requirements(p_image_params.physical_device,
                 // p_device, m_image);
-                uint32_t memory_index = select_memory_requirements(
-                  p_image_properties.phsyical_memory_properties,
-                  memory_requirements,
-                  p_image_properties.property);
+                // uint32_t memory_index = select_memory_requirements(
+                //   p_image_params.phsyical_memory_properties,
+                //   memory_requirements,
+                //   p_image_params.property);
+                uint32_t mapped_memory_requirements =
+                  memory_requirements.memoryTypeBits & p_image_params.memory_mask;
+
+                // Retrieving the next available bits that have been mapped
+                uint32_t memory_index =
+                  std::countr_zero(mapped_memory_requirements);
 
                 // 4. Allocate info
                 VkMemoryAllocateInfo memory_alloc_info = {
@@ -96,20 +103,20 @@ export namespace vk {
                     .flags = 0,
                     .image = m_image,
                     // .viewType = VK_IMAGE_VIEW_TYPE_2D,
-                    .viewType = p_image_properties.view_type,
-                    .format = p_image_properties.format,
+                    .viewType = p_image_params.view_type,
+                    .format = p_image_params.format,
                     .components = { .r = VK_COMPONENT_SWIZZLE_IDENTITY,
                                     .g = VK_COMPONENT_SWIZZLE_IDENTITY,
                                     .b = VK_COMPONENT_SWIZZLE_IDENTITY,
                                     .a = VK_COMPONENT_SWIZZLE_IDENTITY },
                     .subresourceRange = { .aspectMask =
                                             static_cast<VkImageAspectFlags>(
-                                              p_image_properties.aspect),
+                                              p_image_params.aspect),
                                           .baseMipLevel = 0,
                                           .levelCount = 1,
                                           .baseArrayLayer = 0,
                                           .layerCount =
-                                            p_image_properties.layer_count },
+                                            p_image_params.layer_count },
                 };
 
                 vk_check(vkCreateImageView(
@@ -121,15 +128,15 @@ export namespace vk {
                     .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
                     .pNext = nullptr,
                     .flags = 0,
-                    .magFilter = p_image_properties.range.min,
-                    .minFilter = p_image_properties.range.max,
+                    .magFilter = p_image_params.range.min,
+                    .minFilter = p_image_params.range.max,
                     .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
                     .addressModeU = static_cast<VkSamplerAddressMode>(
-                      p_image_properties.address_mode_u),
+                      p_image_params.address_mode_u),
                     .addressModeV = static_cast<VkSamplerAddressMode>(
-                      p_image_properties.addrses_mode_v),
+                      p_image_params.addrses_mode_v),
                     .addressModeW = static_cast<VkSamplerAddressMode>(
-                      p_image_properties.addrses_mode_w),
+                      p_image_params.addrses_mode_w),
                     .mipLodBias = 0.0f,
                     .anisotropyEnable = false,
                     .maxAnisotropy = 1,
@@ -148,7 +155,7 @@ export namespace vk {
 
             sample_image(const VkDevice& p_device,
                          const VkImage& p_image,
-                         const image_params& p_image_properties)
+                         const image_params& p_image_params)
               : m_device(p_device)
               , m_image(p_image) {
                 // Needs to create VkImageView after VkImage
@@ -160,20 +167,20 @@ export namespace vk {
                     .flags = 0,
                     .image = m_image,
                     .viewType = VK_IMAGE_VIEW_TYPE_2D,
-                    .format = p_image_properties.format,
+                    .format = p_image_params.format,
                     .components = { .r = VK_COMPONENT_SWIZZLE_IDENTITY,
                                     .g = VK_COMPONENT_SWIZZLE_IDENTITY,
                                     .b = VK_COMPONENT_SWIZZLE_IDENTITY,
                                     .a = VK_COMPONENT_SWIZZLE_IDENTITY },
                     .subresourceRange = { .aspectMask =
                                             static_cast<VkImageAspectFlags>(
-                                              p_image_properties.aspect),
+                                              p_image_params.aspect),
                                           .baseMipLevel = 0,
                                           .levelCount =
-                                            p_image_properties.mip_levels,
+                                            p_image_params.mip_levels,
                                           .baseArrayLayer = 0,
                                           .layerCount =
-                                            p_image_properties.layer_count },
+                                            p_image_params.layer_count },
                 };
 
                 vk_check(vkCreateImageView(
@@ -185,15 +192,15 @@ export namespace vk {
                     .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
                     .pNext = nullptr,
                     .flags = 0,
-                    .magFilter = p_image_properties.range.min,
-                    .minFilter = p_image_properties.range.max,
+                    .magFilter = p_image_params.range.min,
+                    .minFilter = p_image_params.range.max,
                     .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
                     .addressModeU = static_cast<VkSamplerAddressMode>(
-                      p_image_properties.address_mode_u),
+                      p_image_params.address_mode_u),
                     .addressModeV = static_cast<VkSamplerAddressMode>(
-                      p_image_properties.addrses_mode_v),
+                      p_image_params.addrses_mode_v),
                     .addressModeW = static_cast<VkSamplerAddressMode>(
-                      p_image_properties.addrses_mode_w),
+                      p_image_params.addrses_mode_w),
                     .mipLodBias = 0.0f,
                     .anisotropyEnable = false,
                     .maxAnisotropy = 1,

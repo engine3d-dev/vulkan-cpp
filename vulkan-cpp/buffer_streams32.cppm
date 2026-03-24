@@ -29,7 +29,7 @@ export namespace vk {
                     .pNext = nullptr,
                     .flags = 0,
                     .size = p_device_size, // size in bytes
-                    .usage = p_params.usage,
+                    .usage = static_cast<VkBufferUsageFlags>(p_params.usage),
                     .sharingMode = p_params.share_mode,
                 };
 
@@ -38,49 +38,19 @@ export namespace vk {
                   "vkCreateBuffer");
 
                 // 2. retrieving buffer memory requirements
-                VkMemoryAllocateInfo memory_alloc_info={};
+                VkMemoryRequirements memory_requirements = {};
+                vkGetBufferMemoryRequirements(p_device, m_handle, &memory_requirements);
+                uint32_t mapped_memory_requirements = memory_requirements.memoryTypeBits & p_params.memory_mask;
+                uint32_t memory_index = std::countr_zero(mapped_memory_requirements);
 
-                if(!p_params.experiment) {
-                    std::println("Disabled Experimentation: {}", p_params.experiment);
-                    VkMemoryRequirements memory_requirements = {};
-                    vkGetBufferMemoryRequirements(
-                    p_device, m_handle, &memory_requirements);
+                std::println("Memory Requirement Mapped: {} (BufferStream32)", mapped_memory_requirements);
+                std::println("Memory Index: {}", memory_index);
 
-                    // 3. selects the required memory requirements for this specific
-                    // buffer allocations
-                    uint32_t memory_index = select_memory_requirements(
-                    p_params.physical_memory_properties,
-                    memory_requirements,
-                    p_params.property_flags); // This is the only use of this!
-
-                    std::println("Memory Requirements Size: {}", memory_requirements.size);
-                    std::println("Memory Index: {}", memory_index);
-
-                    // 4. allocatring the necessary memory based on memory
-                    // requirements for the buffer handles
-                    memory_alloc_info = {
-                        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-                        .allocationSize = memory_requirements.size,
-                        .memoryTypeIndex = memory_index
-                    };
-                }
-                else {
-                    std::println("Enable Experimentation: {}", p_params.experiment);
-                    // Experimental logic
-                    VkMemoryRequirements memory_requirements = {};
-                    vkGetBufferMemoryRequirements(p_device, m_handle, &memory_requirements);
-                    uint32_t mapped_memory_requirements = memory_requirements.memoryTypeBits & p_params.memory_mask;
-                    uint32_t memory_index = std::countr_zero(mapped_memory_requirements);
-
-                    std::println("Memory Requirement Mapped: {}", mapped_memory_requirements);
-                    std::println("Memory Index: {}", memory_index);
-
-                    memory_alloc_info = {
-                        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-                        .allocationSize = memory_requirements.size,
-                        .memoryTypeIndex = memory_index
-                    };
-                }
+                VkMemoryAllocateInfo memory_alloc_info = {
+                    .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+                    .allocationSize = memory_requirements.size,
+                    .memoryTypeIndex = memory_index
+                };
 
 #if _DEBUG
                 // 1. Define the structure

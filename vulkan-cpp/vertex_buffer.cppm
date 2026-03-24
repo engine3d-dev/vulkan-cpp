@@ -37,17 +37,17 @@ export namespace vk {
                 // memory_property::host_cached_bit; uint32_t buffer_usage =
                 // buffer_usage::transfer_src_bit |
                 // buffer_usage::storage_buffer_bit;
-
+                const uint32_t transfer = static_cast<uint32_t>(buffer_usage::transfer_src_bit);
+                const uint32_t storage = static_cast<uint32_t>(buffer_usage::storage_buffer_bit);
+                uint32_t usage = transfer | storage;
                 buffer_parameters staging_buffer_params = {
-                    .physical_memory_properties =
-                      p_params.physical_memory_properties,
-                    .experiment = p_params.experiment,
                     .memory_mask = p_params.memory_mask,
                     .property_flags = static_cast<memory_property>(
                       memory_property::host_visible_bit |
                       memory_property::host_cached_bit),
-                    .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT |
-                             VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+                    // .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+                    // .usage = static_cast<buffer_usage>(static_cast<uint32_t>(buffer_usage::transfer_src_bit) | static_cast<uint32_t>(buffer_usage::storage_buffer_bit)),
+                    .usage = usage,
                     .debug_name = p_params.debug_name,
                     .vkSetDebugUtilsObjectNameEXT =
                       p_params.vkSetDebugUtilsObjectNameEXT

@@ -1440,13 +1440,6 @@ export namespace vk {
               nullptr;
         };
 
-        struct uniform_params {
-            VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
-            std::string debug_name;
-            PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT =
-              nullptr;
-        };
-
         struct descriptor_binding_point {
             uint32_t binding;
             shader_stage stage;
@@ -1491,6 +1484,7 @@ export namespace vk {
             image_extent extent{};
             VkFormat format = VK_FORMAT_UNDEFINED;
             memory_property property = memory_property::device_local_bit;
+            uint32_t memory_mask=0;
             image_aspect_flags aspect = image_aspect_flags::color_bit;
             uint32_t usage;
             VkImageCreateFlags image_flags = 0;
@@ -1498,7 +1492,7 @@ export namespace vk {
             uint32_t mip_levels = 1;
             uint32_t layer_count = 1;
             uint32_t array_layers = 1;
-            VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
+            // VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
             filter_range range{
                 .min = VK_FILTER_LINEAR,
                 .max = VK_FILTER_LINEAR,
@@ -1521,11 +1515,10 @@ export namespace vk {
         };
 
         struct buffer_parameters {
-            VkPhysicalDeviceMemoryProperties physical_memory_properties;
-            bool experiment=false;
             uint32_t memory_mask=0;
             memory_property property_flags;
-            VkBufferUsageFlags usage;
+            // VkBufferUsageFlags usage;
+            uint32_t usage;
             VkSharingMode share_mode = VK_SHARING_MODE_EXCLUSIVE;
             const char* debug_name = nullptr;
             PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT =
