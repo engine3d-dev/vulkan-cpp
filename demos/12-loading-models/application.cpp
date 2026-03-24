@@ -315,10 +315,10 @@ main() {
 #endif
 
     vk::device_features device_features{
-        vk::descriptor_indexing_feature{{
-            .descriptorBindingPartiallyBound = true,
-            .descriptorBindingVariableDescriptorCount = true,
-            .descriptorBindingSampledImageUpdateAfterBind = true,
+        vk::descriptor_indexing_feature{ {
+          .descriptorBindingPartiallyBound = true,
+          .descriptorBindingVariableDescriptorCount = true,
+          .descriptorBindingSampledImageUpdateAfterBind = true,
         } },
         vk::dynamic_rendering_feature{ {
           .dynamicRendering = true,
@@ -713,7 +713,8 @@ main() {
         };
         ubo.proj[1][1] *= -1;
 
-        test_ubo.transfer<global_uniform>(std::span<const global_uniform>(&ubo, 1));
+        test_ubo.transfer<global_uniform>(
+          std::span<const global_uniform>(&ubo, 1));
 
         // Before we can send stuff to the GPU, since we already updated the
         // descriptor set 0 beforehand, we must bind that descriptor resource
