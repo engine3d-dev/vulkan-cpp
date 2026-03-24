@@ -28,19 +28,6 @@ export namespace vk {
                          const buffer_parameters& p_params)
               : m_device(p_device) {
 
-                // buffer_parameters index_params = {
-                //     .physical_memory_properties =
-                //       p_info.phsyical_memory_properties,
-                //     .property_flags = static_cast<memory_property>(
-                //       memory_property::host_visible_bit |
-                //       memory_property::host_cached_bit),
-                //     .usage = static_cast<VkBufferUsageFlags>(
-                //       buffer_usage::index_buffer_bit),
-                //     .debug_name = p_info.debug_name.c_str(),
-                //     .vkSetDebugUtilsObjectNameEXT =
-                //       p_info.vkSetDebugUtilsObjectNameEXT
-                // };
-
                 m_index_buffer =
                   buffer_stream32(m_device, p_indices.size_bytes(), p_params);
 

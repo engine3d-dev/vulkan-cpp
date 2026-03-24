@@ -4,7 +4,7 @@ module;
 #include <span>
 #include <array>
 #include <cstring>
-#include <print>
+#include <bit>
 
 export module vk:buffer_streams32;
 
@@ -42,9 +42,6 @@ export namespace vk {
                 vkGetBufferMemoryRequirements(p_device, m_handle, &memory_requirements);
                 uint32_t mapped_memory_requirements = memory_requirements.memoryTypeBits & p_params.memory_mask;
                 uint32_t memory_index = std::countr_zero(mapped_memory_requirements);
-
-                std::println("Memory Requirement Mapped: {} (BufferStream32)", mapped_memory_requirements);
-                std::println("Memory Index: {}", memory_index);
 
                 VkMemoryAllocateInfo memory_alloc_info = {
                     .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,

@@ -1433,13 +1433,6 @@ export namespace vk {
             VkBuffer dst;
         };
 
-        struct index_params {
-            VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
-            std::string debug_name;
-            PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT =
-              nullptr;
-        };
-
         struct descriptor_binding_point {
             uint32_t binding;
             shader_stage stage;
@@ -1492,7 +1485,6 @@ export namespace vk {
             uint32_t mip_levels = 1;
             uint32_t layer_count = 1;
             uint32_t array_layers = 1;
-            // VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
             filter_range range{
                 .min = VK_FILTER_LINEAR,
                 .max = VK_FILTER_LINEAR,

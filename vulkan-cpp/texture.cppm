@@ -33,11 +33,8 @@ export namespace vk {
                                      memory_property::host_cached_bit;
 
             buffer_parameters staging_buffer_config = {
-                // .physical_memory_properties =
-                //   p_config.phsyical_memory_properties,
                 .memory_mask = p_config.memory_mask,
                 .property_flags = static_cast<memory_property>(property_flag),
-                // .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                 .usage = static_cast<uint32_t>(buffer_usage::transfer_src_bit),
             };
             buffer_stream staging(
@@ -114,8 +111,8 @@ export namespace vk {
         }
 
         // TODO: Remove redundant struct and replace with vk::image_params
-        struct texture_info {
-            uint32_t memory_mask=0;
+        struct texture_params {
+            uint32_t memory_mask = 0;
             uint32_t mip_levels = 1;
             uint32_t layer_count = 1;
         };
@@ -140,8 +137,9 @@ export namespace vk {
                     .extent = m_extent,
                     .format = static_cast<VkFormat>(format::r8g8b8a8_unorm),
                     .memory_mask = p_memory_mask,
-                    .usage = static_cast<uint32_t>(image_usage::transfer_dst_bit) | static_cast<uint32_t>(image_usage::sampled_bit),
-                    // .phsyical_memory_properties = p_property
+                    .usage =
+                      static_cast<uint32_t>(image_usage::transfer_dst_bit) |
+                      static_cast<uint32_t>(image_usage::sampled_bit),
                 };
                 int bytes_per_pixel =
                   bytes_per_texture_format(config_image.format);
@@ -165,7 +163,7 @@ export namespace vk {
             // to make the API's consistent.
             texture(const VkDevice& p_device,
                     const std::filesystem::path& p_filename,
-                    const texture_info& p_texture_info)
+                    const texture_params& p_texture_params)
               : m_device(p_device) {
                 // 1. load from file
                 int w, h;
@@ -194,20 +192,19 @@ export namespace vk {
                   m_extent.width * m_extent.height * bytes_per_pixel;
 
                 // uint32_t layer_count = 1;
-                uint32_t layer_count = p_texture_info.layer_count;
+                uint32_t layer_count = p_texture_params.layer_count;
                 uint32_t image_size =
                   image_layer_sizes_with_bytes * layer_count;
 
                 image_params config_image = {
                     .extent = m_extent,
                     .format = texture_format,
-                    .memory_mask = p_texture_info.memory_mask,
+                    .memory_mask = p_texture_params.memory_mask,
                     .usage =
-                      static_cast<uint32_t>(image_usage::transfer_dst_bit) | static_cast<uint32_t>(image_usage::sampled_bit),
-                    .mip_levels = p_texture_info.mip_levels,
-                    .layer_count = p_texture_info.layer_count,
-                    // .phsyical_memory_properties =
-                    //   p_texture_info.phsyical_memory_properties,
+                      static_cast<uint32_t>(image_usage::transfer_dst_bit) |
+                      static_cast<uint32_t>(image_usage::sampled_bit),
+                    .mip_levels = p_texture_params.mip_levels,
+                    .layer_count = p_texture_params.layer_count,
                 };
 
                 // Ensures the image data is valid before continuing
