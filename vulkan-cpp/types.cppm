@@ -1433,15 +1433,6 @@ export namespace vk {
             VkBuffer dst;
         };
 
-        struct vertex_params {
-            bool experiment=false;
-            uint32_t mask = 0;
-            VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
-            std::string debug_name;
-            PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT =
-              nullptr;
-        };
-
         struct index_params {
             VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
             std::string debug_name;

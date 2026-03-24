@@ -174,12 +174,16 @@ public:
                      VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         };
 
-        vk::index_params index_info = {
-            .phsyical_memory_properties = p_physical.memory_properties(),
+        vk::buffer_parameters index_params = {
+            .physical_memory_properties = p_physical.memory_properties(),
+            .experiment = true,
+            .memory_mask = memory_supported_mask,
+            .property_flags = static_cast<vk::memory_property>(vk::memory_property::host_visible_bit | vk::memory_property::host_cached_bit),
+            .usage = static_cast<VkBufferUsageFlags>(vk::buffer_usage::index_buffer_bit),
         };
 
         m_vertex_buffer = vk::vertex_buffer(p_device, vertices, vertex_params);
-        m_index_buffer = vk::index_buffer(p_device, indices, index_info);
+        m_index_buffer = vk::index_buffer(p_device, indices, index_params);
         m_is_loaded = true;
     }
 
