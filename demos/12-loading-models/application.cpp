@@ -322,8 +322,10 @@ main() {
     std::array<float, 1> priorities = { 0.f };
 
 #if defined(__APPLE__)
-    std::array<const char*, 2> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-                                              "VK_KHR_portability_subset" };
+    std::array<const char*, 2> extensions = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        "VK_KHR_portability_subset",
+    };
 #else
     std::array<const char*, 1> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 #endif

@@ -35,24 +35,6 @@ export struct skybox_uniform {
     glm::mat4 proj_view;
 };
 
-inline vk::memory_property
-operator|(vk::memory_property p_lhs, vk::memory_property p_rhs) {
-    // Lets us truncate the underlying type of the enum (class) to allow it to
-    // be bitwise OR'd
-    using T = std::underlying_type_t<vk::memory_property>;
-    return static_cast<vk::memory_property>(static_cast<T>(p_lhs) |
-                                            static_cast<T>(p_rhs));
-}
-
-inline vk::buffer_usage
-operator|(vk::buffer_usage p_lhs, vk::buffer_usage p_rhs) {
-    // Lets us truncate the underlying type of the enum (class) to allow it to
-    // be bitwise OR'd
-    using T = std::underlying_type_t<vk::buffer_usage>;
-    return static_cast<vk::buffer_usage>(static_cast<T>(p_lhs) |
-                                         static_cast<T>(p_rhs));
-}
-
 export class environment_map {
 public:
     environment_map() = default;
