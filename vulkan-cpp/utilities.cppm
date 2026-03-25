@@ -249,22 +249,6 @@ export namespace vk {
             return false;
         }
 
-        uint32_t select_memory_requirements(
-          VkPhysicalDeviceMemoryProperties p_physical_memory_props,
-          VkMemoryRequirements p_memory_requirements,
-          memory_property p_property) {
-            uint32_t memory_bits = p_memory_requirements.memoryTypeBits;
-            VkMemoryPropertyFlags property_flag = static_cast<VkMemoryPropertyFlags>(p_property);
-
-            for (uint32_t i = 0; i < p_physical_memory_props.memoryTypeCount; i++) {
-                if ((memory_bits & (1 << i)) and (p_physical_memory_props.memoryTypes[i].propertyFlags & property_flag) == property_flag) {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-
         int bytes_per_texture_format(VkFormat p_format) {
             switch (p_format) {
                 case VK_FORMAT_R8_SINT:
@@ -305,6 +289,42 @@ export namespace vk {
         std::span<uint8_t> to_bytes(T p_data) {
             return std::span<uint8_t>(reinterpret_cast<uint8_t*>(&p_data),
                                       sizeof(p_data));
+        }
+
+        /**
+         * @brief Bitwise OR Overloads Adapters
+         *
+         * These operator overloads allow for `enum class`'s which are strongly
+         * typed to be temporarily truncates the types to their original type.
+         *
+         * Performing bitwise OR operation to those particular enum class types
+         * that can perform those operations.
+         *
+         */
+        inline memory_property operator|(memory_property p_lhs,
+                                         memory_property p_rhs) {
+            // Lets us truncate the underlying type of the enum (class) to allow
+            // it to be bitwise OR'd
+            using T = std::underlying_type_t<memory_property>;
+            return static_cast<memory_property>(static_cast<T>(p_lhs) |
+                                                static_cast<T>(p_rhs));
+        }
+
+        inline buffer_usage operator|(buffer_usage p_lhs, buffer_usage p_rhs) {
+            // Lets us truncate the underlying type of the enum (class) to allow
+            // it to be bitwise OR'd
+            using T = std::underlying_type_t<buffer_usage>;
+            return static_cast<buffer_usage>(static_cast<T>(p_lhs) |
+                                             static_cast<T>(p_rhs));
+        }
+
+        inline image_aspect_flags operator|(image_aspect_flags p_lhs,
+                                            image_aspect_flags p_rhs) {
+            // Lets us truncate the underlying type of the enum (class) to allow
+            // it to be bitwise OR'd
+            using T = std::underlying_type_t<image_aspect_flags>;
+            return static_cast<image_aspect_flags>(static_cast<T>(p_lhs) |
+                                                   static_cast<T>(p_rhs));
         }
 
         /**
