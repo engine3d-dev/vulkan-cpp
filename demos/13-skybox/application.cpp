@@ -203,14 +203,17 @@ main() {
     uint32_t mip_levels = 1;
     for (uint32_t i = 0; i < swapchain_images.size(); i++) {
         vk::image_params swapchain_image_config = {
-            .extent = { .width = swapchain_extent.width,
-                        .height = swapchain_extent.height },
+            .extent = {
+                .width = swapchain_extent.width,
+                .height = swapchain_extent.height,
+            },
             .format = surface_properties.format.format,
+            .memory_mask = physical_device.memory_properties(vk::memory_property::device_local_bit),
             .aspect = vk::image_aspect_flags::color_bit,
             .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
             .mip_levels = 1,
             .layer_count = 1,
-            .phsyical_memory_properties = physical_device.memory_properties(),
+            // .phsyical_memory_properties = physical_device.memory_properties(),
         };
 
         swapchain_images[i] =
@@ -221,11 +224,11 @@ main() {
             .extent = { .width = swapchain_extent.width,
                         .height = swapchain_extent.height },
             .format = depth_format,
+            .memory_mask = physical_device.memory_properties(vk::memory_property::device_local_bit),
             .aspect = vk::image_aspect_flags::depth_bit,
             .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
             .mip_levels = 1,
             .layer_count = 1,
-            .phsyical_memory_properties = physical_device.memory_properties(),
         };
         swapchain_depth_images[i] =
           vk::sample_image(logical_device, image_config);
@@ -324,7 +327,7 @@ main() {
     environment_map skybox = environment_map(
       logical_device,
       std::filesystem::path("asset_samples/skybox/monkstown_castle_4k.hdr"),
-      physical_device.memory_properties(),
+      physical_device,
       main_renderpass);
 
     // editor camera properties

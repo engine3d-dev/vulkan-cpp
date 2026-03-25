@@ -35,18 +35,31 @@ export struct skybox_uniform {
     glm::mat4 proj_view;
 };
 
+inline vk::memory_property operator|(vk::memory_property p_lhs, vk::memory_property p_rhs) {
+    // Lets us truncate the underlying type of the enum (class) to allow it to be bitwise OR'd
+    using T = std::underlying_type_t<vk::memory_property>;
+    return static_cast<vk::memory_property>(static_cast<T>(p_lhs) | static_cast<T>(p_rhs));
+}
+
+inline vk::buffer_usage operator|(vk::buffer_usage p_lhs, vk::buffer_usage p_rhs) {
+    // Lets us truncate the underlying type of the enum (class) to allow it to be bitwise OR'd
+    using T = std::underlying_type_t<vk::buffer_usage>;
+    return static_cast<vk::buffer_usage>(static_cast<T>(p_lhs) | static_cast<T>(p_rhs));
+}
+
+
 export class environment_map {
 public:
     environment_map() = default;
 
     environment_map(const VkDevice& p_device,
                     const std::filesystem::path& p_filename,
-                    VkPhysicalDeviceMemoryProperties p_memory_properties,
+                    vk::physical_device& p_physical_device,
                     VkRenderPass p_renderpass)
-      : m_device(p_device) {
-        create_hdr_skybox(p_filename, p_memory_properties);
+      : m_device(p_device), m_physical_device(&p_physical_device) {
+        create_hdr_skybox(p_filename);
 
-        create_skybox_pipeline(p_memory_properties, p_renderpass);
+        create_skybox_pipeline(p_renderpass);
     }
 
     // ~environment_map() {
@@ -54,8 +67,7 @@ public:
     // }
 
     void create_hdr_skybox(
-      const std::filesystem::path& p_filename,
-      VkPhysicalDeviceMemoryProperties p_memory_properties) {
+      const std::filesystem::path& p_filename) {
 
         stbi_set_flip_vertically_on_load(true);
         int w, h, channels;
@@ -79,24 +91,40 @@ public:
         // Creating staging buffer
         uint32_t property_flag = vk::memory_property::host_visible_bit |
                                  vk::memory_property::host_cached_bit;
+        // vk::buffer_parameters staging_buffer_params = {
+        //     .physical_memory_properties = p_memory_properties,
+        //     .property_flags = static_cast<vk::memory_property>(property_flag),
+        //     .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        // };
         vk::buffer_parameters staging_buffer_params = {
-            .physical_memory_properties = p_memory_properties,
+            .memory_mask = m_physical_device->memory_properties(static_cast<vk::memory_property>(property_flag)),
             .property_flags = static_cast<vk::memory_property>(property_flag),
-            .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            .usage = static_cast<uint32_t>(vk::buffer_usage::transfer_src_bit),
         };
 
         vk::buffer_stream staging_buffer = vk::buffer_stream(
           m_device, static_cast<uint32_t>(image_size), staging_buffer_params);
 
         // Creating image handle to storing the HDR
+        // vk::image_params skybox_image_params = {
+        //     .extent = { .width = width, .height = height, },
+        //     .format = texture_format,
+        //     .property = vk::memory_property::device_local_bit,
+        //     .aspect = vk::image_aspect_flags::color_bit,
+        //     .usage = vk::image_usage::transfer_dst_bit |
+        //                 vk::image_usage::sampled_bit,
+        //     .phsyical_memory_properties = p_memory_properties,
+        // };
         vk::image_params skybox_image_params = {
             .extent = { .width = width, .height = height, },
             .format = texture_format,
+            // .memory_mask = physical_device.memory_properties(vk::memory_property::device_local_bit),
             .property = vk::memory_property::device_local_bit,
+            .memory_mask = m_physical_device->memory_properties(vk::memory_property::device_local_bit),
             .aspect = vk::image_aspect_flags::color_bit,
-            .usage = vk::image_usage::transfer_dst_bit |
-                        vk::image_usage::sampled_bit,
-            .phsyical_memory_properties = p_memory_properties,
+            .usage = vk::image_usage::transfer_dst_bit | vk::image_usage::sampled_bit,
+            .mip_levels = 1,
+            .layer_count = 1,
         };
         m_skybox_image = vk::sample_image(m_device, skybox_image_params);
 
@@ -164,7 +192,7 @@ public:
         stbi_set_flip_vertically_on_load(false);
     }
 
-    void create_buffers(VkPhysicalDeviceMemoryProperties p_memory_properties) {
+    void create_buffers() {
         std::vector<float> skyboxVertices = {
             // positions
             -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f,
@@ -344,17 +372,28 @@ public:
                               { 0.0f, 0.0f } }
         };
 
-        vk::vertex_params vbo_params = {
-            .phsyical_memory_properties = p_memory_properties,
+        // vk::vertex_params vbo_params = {
+        //     .phsyical_memory_properties = p_memory_properties,
+        // };
+        const uint32_t property = static_cast<uint32_t>(vk::buffer_usage::transfer_dst_bit) | static_cast<uint32_t>(vk::buffer_usage::vertex_buffer_bit);
+        vk::buffer_parameters vertex_params = {
+            // .memory_mask = p_memory_mask,
+            // .memory_mask = m_physical_device->memory_properties(static_cast<vk::memory_property>(vk::memory_property::device_local_bit) | static_cast<uint32_t>(vk::host_visibile_bit)),
+            .memory_mask = m_physical_device->memory_properties(vk::memory_property::host_visible_bit | vk::memory_property::host_cached_bit),
+            // .memory_mask = m_physical_device->memory_properties(vk::buffer_usage::transfer_dst_bit | vk::buffer_usage::vertex_buffer_bit),
+            // .property_flags = static_cast<vk::memory_property>(property),
+            .property_flags = vk::memory_property::host_visible_bit | vk::memory_property::host_cached_bit,
+            // .usage = static_cast<uint32_t>(vk::buffer_usage::transfer_dst_bit) |
+            //          static_cast<uint32_t>(vk::buffer_usage::vertex_buffer_bit),
+            .usage = static_cast<uint32_t>(vk::buffer_usage::transfer_dst_bit | vk::buffer_usage::vertex_buffer_bit),
         };
         m_skybox_vbo_size = vertices.size();
-        m_skybox_vbo = vk::vertex_buffer(m_device, vertices, vbo_params);
+        m_skybox_vbo = vk::vertex_buffer(m_device, vertices, vertex_params);
     }
 
     void create_skybox_pipeline(
-      VkPhysicalDeviceMemoryProperties p_memory_properties,
       const VkRenderPass& p_renderpass) {
-        create_buffers(p_memory_properties);
+        create_buffers();
         std::array<vk::vertex_attribute_entry, 4> attribute_entries = {
             vk::vertex_attribute_entry{
               .location = 0,
@@ -405,20 +444,29 @@ public:
         m_skybox_shaders.vertex_attributes(attribute);
 
         // set=0 binding=0 UBO: mat4 VP
-        vk::uniform_params ubo_params = {
-            .phsyical_memory_properties = p_memory_properties,
-            .debug_name = "skybox_ubo",
-            .vkSetDebugUtilsObjectNameEXT = nullptr,
+        // vk::uniform_params ubo_params = {
+        //     .phsyical_memory_properties = p_memory_properties,
+        //     .debug_name = "skybox_ubo",
+        //     .vkSetDebugUtilsObjectNameEXT = nullptr,
+        // };
+        // const uint32_t property = static_cast<uint32_t>(vk::memory_property::host_visible_bit) | static_cast<uint32_t>(vk::memory_property::host_cached_bit);
+        vk::buffer_parameters uniform_params = {
+            // .memory_mask = p_memory_mask,
+            // .memory_mask = m_physical_device->memory_properties(static_cast<vk::memory_property>(property)),
+            .memory_mask = m_physical_device->memory_properties(vk::memory_property::host_cached_bit),
+            .usage = static_cast<uint32_t>(vk::buffer_usage::uniform_buffer_bit),
         };
         m_skybox_ubo =
-          vk::uniform_buffer(m_device, sizeof(skybox_uniform), ubo_params);
+          vk::uniform_buffer(m_device, sizeof(skybox_uniform), uniform_params);
         // vk::uniform_buffer(m_device, sizeof(skybox_uniform), ubo_params);
 
         skybox_uniform identity = { .proj_view = glm::mat4(1.0f) };
         identity.proj_view[1][1] *= -1;
         std::span<const uint8_t> bytes(reinterpret_cast<uint8_t*>(&identity),
                                        1);
-        m_skybox_ubo.transfer(bytes);
+        std::println("Before transfer!");
+        // m_skybox_ubo.transfer(bytes);
+        std::println("After transfer!");
 
         // set=0 bindings:
         //  - binding 0: UBO (vertex)
@@ -538,8 +586,6 @@ public:
     }
 
     void update_uniform(const skybox_uniform& p_ubo) {
-        // m_skybox_ubo.transfer(std::span<const skybox_uniform>(&p_ubo,
-        // 1));
         m_skybox_ubo.transfer(std::span<const skybox_uniform>(&p_ubo, 1));
     }
 
@@ -549,7 +595,11 @@ public:
         p_current.bind_descriptors(m_skybox_pipeline.layout(),
                                    VK_PIPELINE_BIND_POINT_GRAPHICS,
                                    descriptors);
-        m_skybox_vbo.bind(p_current);
+        // m_skybox_vbo.bind(p_current);
+
+        std::array<const VkBuffer, 1> skybox_buffers = { m_skybox_vbo };
+        uint64_t offset=0;
+        p_current.bind_vertex_buffers(skybox_buffers, std::span<const uint64_t>(&offset, 1));
     }
 
     void draw(const VkCommandBuffer& p_current) {
@@ -580,7 +630,7 @@ public:
 
 private:
     VkDevice m_device = nullptr;
-
+    vk::physical_device* m_physical_device=nullptr;
     vk::sample_image m_skybox_image;
 
     vk::shader_resource m_skybox_shaders{};
