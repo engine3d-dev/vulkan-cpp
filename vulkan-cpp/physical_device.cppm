@@ -3,6 +3,7 @@ module;
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <stdexcept>
+#include <span>
 
 export module vk:physical_device;
 
@@ -95,26 +96,59 @@ export namespace vk {
                 return physical_memory_properties;
             }
 
-            [[nodiscard]] uint32_t memory_properties(memory_property p_property_required) const {
+            [[nodiscard]] uint32_t memory_properties(
+              memory_property p_property_required) const {
                 allocation_params return_params = {};
 
                 VkPhysicalDeviceMemoryProperties memory_properties;
-                vkGetPhysicalDeviceMemoryProperties(m_physical_device, &memory_properties);
+                vkGetPhysicalDeviceMemoryProperties(m_physical_device,
+                                                    &memory_properties);
 
                 uint32_t mask = 0;
-                for(uint32_t i = 0; i < memory_properties.memoryTypeCount; i++) {
-                    auto type_flags = memory_properties.memoryTypes[i].propertyFlags;
+                for (uint32_t i = 0; i < memory_properties.memoryTypeCount;
+                     i++) {
+                    auto type_flags =
+                      memory_properties.memoryTypes[i].propertyFlags;
 
-                    if((type_flags & p_property_required) == p_property_required) {
+                    if ((type_flags & p_property_required) ==
+                        p_property_required) {
                         mask |= ((1 << i));
                     }
                 }
-
-                // return {
-                //     .memory_supported_mask = mask,
-                // };
-
                 return mask;
+            }
+
+            /**
+             * @brief Requests the depth format from the physical device
+             *
+             * @param p_format_supported are the arbitrary depth format
+             * selections to select if either are available.
+             * @return the format that is the one of the requested depth
+             * formats.
+             */
+            [[nodiscard]] VkFormat request_depth_format(
+              std::span<const format> p_format_supported) {
+
+                return request_compatible_formats(
+                  p_format_supported,
+                  VK_IMAGE_TILING_OPTIMAL,
+                  VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+            }
+
+            /**
+             * @brief Requests a format and select an arbitrary format if those are available to select those
+             * 
+             * @param p_tiling is selecting arrangements of the data format
+             * @param p_feature_flag is the bitmask selection for the image format
+             */
+            [[nodiscard]] VkFormat request_format(
+              std::span<const format> p_format_supported,
+              uint32_t p_tiling,
+              uint32_t p_feature_flag) {
+                return request_compatible_formats(
+                  p_format_supported,
+                  static_cast<VkImageTiling>(p_tiling),
+                  static_cast<VkFormatFeatureFlags>(p_feature_flag));
             }
 
             operator VkPhysicalDevice() { return m_physical_device; }
@@ -122,6 +156,40 @@ export namespace vk {
             operator VkPhysicalDevice() const { return m_physical_device; }
 
         private:
+            VkFormat request_compatible_formats(
+              std::span<const format> p_format_supported,
+              VkImageTiling p_tiling,
+              VkFormatFeatureFlags p_feature_flag) {
+                VkFormat format = VK_FORMAT_UNDEFINED;
+
+                for (uint32_t i = 0; i < p_format_supported.size(); i++) {
+                    VkFormat current =
+                      static_cast<VkFormat>(p_format_supported[i]);
+                    VkFormatProperties format_properties;
+                    vkGetPhysicalDeviceFormatProperties(
+                      m_physical_device, current, &format_properties);
+
+                    switch (p_tiling) {
+                        case VK_IMAGE_TILING_LINEAR:
+                            if (format_properties.linearTilingFeatures &
+                                p_feature_flag) {
+                                format = current;
+                            }
+                            break;
+                        case VK_IMAGE_TILING_OPTIMAL:
+                            if (format_properties.optimalTilingFeatures &
+                                p_feature_flag) {
+                                format = current;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                return format;
+            }
+
             VkPhysicalDevice enumerate_physical_devices(
               const VkInstance& p_instance,
               const physical_gpu& p_physical_device_type) {
