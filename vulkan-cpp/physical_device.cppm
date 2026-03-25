@@ -136,10 +136,12 @@ export namespace vk {
             }
 
             /**
-             * @brief Requests a format and select an arbitrary format if those are available to select those
-             * 
+             * @brief Requests a format and select an arbitrary format if those
+             * are available to select those
+             *
              * @param p_tiling is selecting arrangements of the data format
-             * @param p_feature_flag is the bitmask selection for the image format
+             * @param p_feature_flag is the bitmask selection for the image
+             * format
              */
             [[nodiscard]] VkFormat request_format(
               std::span<const format> p_format_supported,
@@ -149,6 +151,52 @@ export namespace vk {
                   p_format_supported,
                   static_cast<VkImageTiling>(p_tiling),
                   static_cast<VkFormatFeatureFlags>(p_feature_flag));
+            }
+
+            [[nodiscard]] surface_params request_surface(
+              const VkSurfaceKHR& p_surface,
+              uint32_t p_format = VK_FORMAT_B8G8R8A8_SRGB,
+              uint32_t p_colorspace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+                surface_params enumerate_surface_properties{};
+                vk_check(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
+                           m_physical_device,
+                           p_surface,
+                           &enumerate_surface_properties.capabilities),
+                         "vkGetPhysicalDeviceSurfaceCapabilitiesKHR");
+
+                uint32_t format_count = 0;
+                std::vector<VkSurfaceFormatKHR> formats;
+                vk_check(
+                  vkGetPhysicalDeviceSurfaceFormatsKHR(
+                    m_physical_device, p_surface, &format_count, nullptr),
+                  "vkGetPhysicalDeviceSurfaceFormatsKHR");
+
+                formats.resize(format_count);
+
+                vk_check(vkGetPhysicalDeviceSurfaceFormatsKHR(m_physical_device,
+                                                              p_surface,
+                                                              &format_count,
+                                                              formats.data()),
+                         "vkGetPhysicalDeviceSurfaceFormatsKHR");
+
+                // These are format and colorspaces selected by the user.
+                VkFormat selected_format = static_cast<VkFormat>(p_format);
+                VkColorSpaceKHR color_space =
+                  static_cast<VkColorSpaceKHR>(p_colorspace);
+
+                for (const auto& format : formats) {
+                    if (format.format == selected_format &&
+                        format.colorSpace == color_space) {
+                        enumerate_surface_properties.format = format;
+                    }
+                }
+
+                if (enumerate_surface_properties.format.format ==
+                    VK_FORMAT_UNDEFINED) {
+                    enumerate_surface_properties.format = formats[0];
+                }
+
+                return enumerate_surface_properties;
             }
 
             operator VkPhysicalDevice() { return m_physical_device; }

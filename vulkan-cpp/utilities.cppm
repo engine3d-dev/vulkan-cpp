@@ -18,12 +18,6 @@ export namespace vk {
                       const std::string& p_name,
                       const std::source_location& p_source = {}) {
             if (p_result != VK_SUCCESS) {
-                std::println(
-                  "File {} on line {} failed VkResult check",
-                  std::filesystem::relative(p_source.file_name()).string(),
-                  p_source.line());
-                std::println("Current Function Location = {}",
-                             p_source.function_name());
                 std::println("{} VkResult returned: {}", p_name, (int)p_result);
             }
         }
@@ -40,42 +34,6 @@ export namespace vk {
               p_physical, &queue_family_count, queue_family_properties.data());
 
             return queue_family_properties;
-        }
-
-        surface_params enumerate_surface(const VkPhysicalDevice& p_physical,
-                                         const VkSurfaceKHR& p_surface) {
-            surface_params enumerate_surface_properties{};
-            vk_check(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
-                       p_physical,
-                       p_surface,
-                       &enumerate_surface_properties.capabilities),
-                     "vkGetPhysicalDeviceSurfaceCapabilitiesKHR");
-
-            uint32_t format_count = 0;
-            std::vector<VkSurfaceFormatKHR> formats;
-            vk_check(vkGetPhysicalDeviceSurfaceFormatsKHR(
-                       p_physical, p_surface, &format_count, nullptr),
-                     "vkGetPhysicalDeviceSurfaceFormatsKHR");
-
-            formats.resize(format_count);
-
-            vk_check(vkGetPhysicalDeviceSurfaceFormatsKHR(
-                       p_physical, p_surface, &format_count, formats.data()),
-                     "vkGetPhysicalDeviceSurfaceFormatsKHR");
-
-            for (const auto& format : formats) {
-                if (format.format == VK_FORMAT_B8G8R8A8_SRGB &&
-                    format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-                    enumerate_surface_properties.format = format;
-                }
-            }
-
-            if (enumerate_surface_properties.format.format ==
-                VK_FORMAT_UNDEFINED) {
-                enumerate_surface_properties.format = formats[0];
-            }
-
-            return enumerate_surface_properties;
         }
 
         uint32_t surface_image_size(
@@ -139,32 +97,6 @@ export namespace vk {
               vkCreateSemaphore(p_device, &semaphore_ci, nullptr, &semaphore),
               "vkCreateSemaphore");
             return semaphore;
-        }
-
-        uint32_t image_memory_requirements(const VkPhysicalDevice& p_physical,
-                                           const VkDevice& p_device,
-                                           const VkImage& p_image,
-                                           memory_property p_property) {
-            VkMemoryRequirements memory_requirements;
-            vkGetImageMemoryRequirements(
-              p_device, p_image, &memory_requirements);
-
-            uint32_t type_filter = memory_requirements.memoryTypeBits;
-            VkMemoryPropertyFlags property_flag =
-              static_cast<VkMemoryPropertyFlags>(p_property);
-
-            VkPhysicalDeviceMemoryProperties mem_props;
-            vkGetPhysicalDeviceMemoryProperties(p_physical, &mem_props);
-
-            for (uint32_t i = 0; i < mem_props.memoryTypeCount; i++) {
-                if ((type_filter & (1 << i)) and
-                    (mem_props.memoryTypes[i].propertyFlags & property_flag) ==
-                      property_flag) {
-                    return i;
-                }
-            }
-
-            return -1;
         }
 
         VkVertexInputRate to_input_rate(input_rate p_input_rate) {

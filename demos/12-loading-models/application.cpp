@@ -310,8 +310,9 @@ main() {
 
     // We provide a selection of format support that we want to check is
     // supported on current hardware device.
-    VkFormat depth_format =
-      vk::select_depth_format(physical_device, format_support);
+    // VkFormat depth_format =
+    //   vk::select_depth_format(physical_device, format_support);
+    VkFormat depth_format = physical_device.request_depth_format(format_support);
 
     vk::queue_indices queue_indices = physical_device.family_indices();
     std::println("Graphics Queue Family Index = {}", queue_indices.graphics);
@@ -353,8 +354,7 @@ main() {
     vk::surface window_surface(api_instance, window);
     std::println("Starting implementation of the swapchain!!!");
 
-    vk::surface_params surface_properties =
-      vk::enumerate_surface(physical_device, window_surface);
+    vk::surface_params surface_properties = physical_device.request_surface(window_surface);
 
     if (surface_properties.format.format != VK_FORMAT_UNDEFINED) {
         std::println("Surface Format.format is not undefined!!!");
