@@ -39,9 +39,12 @@ export namespace vk {
 
                 // 2. retrieving buffer memory requirements
                 VkMemoryRequirements memory_requirements = {};
-                vkGetBufferMemoryRequirements(p_device, m_handle, &memory_requirements);
-                uint32_t mapped_memory_requirements = memory_requirements.memoryTypeBits & p_params.memory_mask;
-                uint32_t memory_index = std::countr_zero(mapped_memory_requirements);
+                vkGetBufferMemoryRequirements(
+                  p_device, m_handle, &memory_requirements);
+                uint32_t mapped_memory_requirements =
+                  memory_requirements.memoryTypeBits & p_params.memory_mask;
+                uint32_t memory_index =
+                  std::countr_zero(mapped_memory_requirements);
 
                 VkMemoryAllocateInfo memory_alloc_info = {
                     .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,

@@ -224,7 +224,8 @@ main() {
             .extent = { .width = swapchain_extent.width,
                         .height = swapchain_extent.height },
             .format = depth_format,
-            .memory_mask = physical_device.memory_properties(vk::memory_property::device_local_bit),
+            .memory_mask = physical_device.memory_properties(
+              vk::memory_property::device_local_bit),
             .aspect = vk::image_aspect_flags::depth_bit,
             .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
             .mip_levels = 1,

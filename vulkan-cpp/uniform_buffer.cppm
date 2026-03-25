@@ -28,14 +28,6 @@ export namespace vk {
                            const buffer_parameters& p_uniform_params)
               : m_device(p_device)
               , m_size_bytes(p_size_bytes) {
-                // buffer_parameters uniform_info = {
-                //     .property_flags = static_cast<memory_property>(memory_property::host_visible_bit | memory_property::host_coherent_bit),
-                //     // .usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                //     .usage = buffer_usage::uniform_buffer_bit,
-                //     .debug_name = p_uniform_params.debug_name,
-                //     .vkSetDebugUtilsObjectNameEXT =
-                //       p_uniform_params.vkSetDebugUtilsObjectNameEXT
-                // };
                 std::println("vk::uniform_buffer!");
                 m_uniform_handle =
                   buffer_stream(m_device, p_size_bytes, p_uniform_params);

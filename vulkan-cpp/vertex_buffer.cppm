@@ -33,15 +33,19 @@ export namespace vk {
               : m_device(p_device) {
 
                 // Staging buffer
-                const uint32_t transfer = static_cast<uint32_t>(buffer_usage::transfer_src_bit);
-                const uint32_t storage = static_cast<uint32_t>(buffer_usage::storage_buffer_bit);
+                const uint32_t transfer =
+                  static_cast<uint32_t>(buffer_usage::transfer_src_bit);
+                const uint32_t storage =
+                  static_cast<uint32_t>(buffer_usage::storage_buffer_bit);
                 uint32_t usage = transfer | storage;
                 buffer_parameters staging_buffer_params = {
                     .memory_mask = p_params.memory_mask,
                     .property_flags = static_cast<memory_property>(
                       memory_property::host_visible_bit |
                       memory_property::host_cached_bit),
-                    .usage = static_cast<uint32_t>(buffer_usage::transfer_src_bit) | static_cast<uint32_t>(buffer_usage::storage_buffer_bit),
+                    .usage =
+                      static_cast<uint32_t>(buffer_usage::transfer_src_bit) |
+                      static_cast<uint32_t>(buffer_usage::storage_buffer_bit),
                     .debug_name = p_params.debug_name,
                     .vkSetDebugUtilsObjectNameEXT =
                       p_params.vkSetDebugUtilsObjectNameEXT
@@ -76,7 +80,7 @@ export namespace vk {
 
                 copy_command_buffer.copy_buffer(
                   staging_buffer, m_vertex_handler, p_vertices.size_bytes());
-                
+
                 copy_command_buffer.end();
                 VkCommandBuffer temp = copy_command_buffer;
                 VkSubmitInfo submit_info{};

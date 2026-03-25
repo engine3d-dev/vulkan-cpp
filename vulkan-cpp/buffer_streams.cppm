@@ -53,11 +53,15 @@ export namespace vk {
 
                 // retrieving buffer memory requirements
                 VkMemoryRequirements memory_requirements = {};
-                vkGetBufferMemoryRequirements(p_device, m_handle, &memory_requirements);
-                uint32_t mapped_memory_requirements = memory_requirements.memoryTypeBits & p_params.memory_mask;
-                uint32_t memory_index = std::countr_zero(mapped_memory_requirements);
+                vkGetBufferMemoryRequirements(
+                  p_device, m_handle, &memory_requirements);
+                uint32_t mapped_memory_requirements =
+                  memory_requirements.memoryTypeBits & p_params.memory_mask;
+                uint32_t memory_index =
+                  std::countr_zero(mapped_memory_requirements);
 
-                std::println("Memory Requirement Mapped: {} (Buffer Stream)", mapped_memory_requirements);
+                std::println("Memory Requirement Mapped: {} (Buffer Stream)",
+                             mapped_memory_requirements);
                 std::println("Memory Index: {}", memory_index);
 
                 VkMemoryAllocateInfo memory_alloc_info = {
@@ -75,14 +79,13 @@ export namespace vk {
                     .objectHandle = (uint64_t)
                       m_handle, // specify vulkan to what object handle this is
                     .pObjectName =
-                      p_params
-                        .debug_name // specify what type of buffer this is
+                      p_params.debug_name // specify what type of buffer this is
                 };
 
                 if (p_params.vkSetDebugUtilsObjectNameEXT != nullptr) {
                     // vkSetDebugUtilsObjectNameEXT(m_device, &debug_info);
                     p_params.vkSetDebugUtilsObjectNameEXT(m_device,
-                                                            &debug_info);
+                                                          &debug_info);
                 }
 #endif
                 vk_check(

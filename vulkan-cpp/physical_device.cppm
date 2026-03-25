@@ -191,14 +191,13 @@ export namespace vk {
                     }
                 }
 
-                if (surface_properties.format.format ==
-                    VK_FORMAT_UNDEFINED) {
+                if (surface_properties.format.format == VK_FORMAT_UNDEFINED) {
                     surface_properties.format = formats[0];
                 }
 
-
                 // Requesting the image size based on the surface capabilitie
-                surface_properties.image_size = request_surface_image_size(surface_properties.capabilities);
+                surface_properties.image_size =
+                  request_surface_image_size(surface_properties.capabilities);
                 return surface_properties;
             }
 
@@ -208,7 +207,7 @@ export namespace vk {
 
         private:
             uint32_t request_surface_image_size(
-                const VkSurfaceCapabilitiesKHR& p_capabilities) {
+              const VkSurfaceCapabilitiesKHR& p_capabilities) {
                 uint32_t requested_images = p_capabilities.minImageCount + 1;
 
                 uint32_t final_image_count = 0;

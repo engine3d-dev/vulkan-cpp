@@ -530,7 +530,7 @@ export namespace vk {
         struct surface_params {
             VkSurfaceCapabilitiesKHR capabilities;
             VkSurfaceFormatKHR format;
-            uint32_t image_size=0; // requested surface image size
+            uint32_t image_size = 0; // requested surface image size
         };
 
         struct queue_params {
