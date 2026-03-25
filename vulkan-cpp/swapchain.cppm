@@ -22,8 +22,7 @@ export namespace vk {
               : m_device(p_device)
               , m_surface_handler(p_surface)
               , m_surface_params(p_surface_properties) {
-                m_image_size =
-                  surface_image_size(m_surface_params.capabilities);
+                m_image_size = m_surface_params.image_size;
 
                 std::println("Surface Image Size = {}", m_image_size);
 

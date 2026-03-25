@@ -157,11 +157,11 @@ export namespace vk {
               const VkSurfaceKHR& p_surface,
               uint32_t p_format = VK_FORMAT_B8G8R8A8_SRGB,
               uint32_t p_colorspace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-                surface_params enumerate_surface_properties{};
+                surface_params surface_properties{};
                 vk_check(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
                            m_physical_device,
                            p_surface,
-                           &enumerate_surface_properties.capabilities),
+                           &surface_properties.capabilities),
                          "vkGetPhysicalDeviceSurfaceCapabilitiesKHR");
 
                 uint32_t format_count = 0;
@@ -187,16 +187,19 @@ export namespace vk {
                 for (const auto& format : formats) {
                     if (format.format == selected_format &&
                         format.colorSpace == color_space) {
-                        enumerate_surface_properties.format = format;
+                        surface_properties.format = format;
                     }
                 }
 
-                if (enumerate_surface_properties.format.format ==
+                if (surface_properties.format.format ==
                     VK_FORMAT_UNDEFINED) {
-                    enumerate_surface_properties.format = formats[0];
+                    surface_properties.format = formats[0];
                 }
 
-                return enumerate_surface_properties;
+
+                // Requesting the image size based on the surface capabilitie
+                surface_properties.image_size = request_surface_image_size(surface_properties.capabilities);
+                return surface_properties;
             }
 
             operator VkPhysicalDevice() { return m_physical_device; }
@@ -204,6 +207,23 @@ export namespace vk {
             operator VkPhysicalDevice() const { return m_physical_device; }
 
         private:
+            uint32_t request_surface_image_size(
+                const VkSurfaceCapabilitiesKHR& p_capabilities) {
+                uint32_t requested_images = p_capabilities.minImageCount + 1;
+
+                uint32_t final_image_count = 0;
+
+                if ((p_capabilities.maxImageCount > 0) and
+                    (requested_images > p_capabilities.maxImageCount)) {
+                    final_image_count = p_capabilities.maxImageCount;
+                }
+                else {
+                    final_image_count = requested_images;
+                }
+
+                return final_image_count;
+            }
+
             VkFormat request_compatible_formats(
               std::span<const format> p_format_supported,
               VkImageTiling p_tiling,

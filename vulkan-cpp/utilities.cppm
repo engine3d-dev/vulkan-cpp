@@ -36,23 +36,6 @@ export namespace vk {
             return queue_family_properties;
         }
 
-        uint32_t surface_image_size(
-          const VkSurfaceCapabilitiesKHR& p_capabilities) {
-            uint32_t requested_images = p_capabilities.minImageCount + 1;
-
-            uint32_t final_image_count = 0;
-
-            if ((p_capabilities.maxImageCount > 0) and
-                (requested_images > p_capabilities.maxImageCount)) {
-                final_image_count = p_capabilities.maxImageCount;
-            }
-            else {
-                final_image_count = requested_images;
-            }
-
-            return final_image_count;
-        }
-
         VkSampler create_sampler(const VkDevice& p_device,
                                  const filter_range& p_range,
                                  VkSamplerAddressMode p_address_mode) {
