@@ -16,7 +16,9 @@ export namespace vk {
 
         void vk_check(const VkResult& p_result, const std::string& p_name) {
             if (p_result != VK_SUCCESS) {
-                std::println("{} VkResult returned: {}", p_name, static_cast<int>(p_result));
+                std::println("{} VkResult returned: {}",
+                             p_name,
+                             static_cast<int>(p_result));
             }
         }
 
