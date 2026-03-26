@@ -93,7 +93,8 @@ export namespace vk {
                     m_vertex_binding_attributes[i] = {
                         .binding = attribute.binding,
                         .stride = attribute.stride,
-                        .inputRate = to_input_rate(attribute.input_rate),
+                        .inputRate =
+                          static_cast<VkVertexInputRate>(attribute.input_rate),
                     };
 
                     // then setting up the vertex attributes for the vertex data

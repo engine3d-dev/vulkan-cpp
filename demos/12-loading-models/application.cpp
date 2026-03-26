@@ -154,15 +154,29 @@ public:
         }
         m_indices_size = vertices.size();
         m_indices_size = indices.size();
-        vk::vertex_params vertex_info = {
-            .phsyical_memory_properties = p_physical.memory_properties(),
+
+        //! @brief Creating vertex/index buffers with host visibility flags
+        const auto property_flags = static_cast<vk::memory_property>(
+          vk::memory_property::host_visible_bit |
+          vk::memory_property::host_cached_bit);
+
+        vk::buffer_parameters vertex_params = {
+            .memory_mask = p_physical.memory_properties(property_flags),
+            .property_flags = vk::memory_property::device_local_bit,
+            .usage = static_cast<uint32_t>(vk::buffer_usage::transfer_dst_bit) |
+                     static_cast<uint32_t>(vk::buffer_usage::vertex_buffer_bit),
         };
 
-        vk::index_params index_info = { .phsyical_memory_properties =
-                                          p_physical.memory_properties() };
+        vk::buffer_parameters index_params = {
+            .memory_mask = p_physical.memory_properties(property_flags),
+            .property_flags = static_cast<vk::memory_property>(
+              vk::memory_property::host_visible_bit |
+              vk::memory_property::host_cached_bit),
+            .usage = static_cast<uint32_t>(vk::buffer_usage::index_buffer_bit),
+        };
 
-        m_vertex_buffer = vk::vertex_buffer(p_device, vertices, vertex_info);
-        m_index_buffer = vk::index_buffer(p_device, indices, index_info);
+        m_vertex_buffer = vk::vertex_buffer(p_device, vertices, vertex_params);
+        m_index_buffer = vk::index_buffer(p_device, indices, index_params);
         m_is_loaded = true;
     }
 
@@ -296,8 +310,10 @@ main() {
 
     // We provide a selection of format support that we want to check is
     // supported on current hardware device.
+    // VkFormat depth_format =
+    //   vk::select_depth_format(physical_device, format_support);
     VkFormat depth_format =
-      vk::select_depth_format(physical_device, format_support);
+      physical_device.request_depth_format(format_support);
 
     vk::queue_indices queue_indices = physical_device.family_indices();
     std::println("Graphics Queue Family Index = {}", queue_indices.graphics);
@@ -308,17 +324,19 @@ main() {
     std::array<float, 1> priorities = { 0.f };
 
 #if defined(__APPLE__)
-    std::array<const char*, 2> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-                                              "VK_KHR_portability_subset" };
+    std::array<const char*, 2> extensions = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        "VK_KHR_portability_subset",
+    };
 #else
     std::array<const char*, 1> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 #endif
 
     vk::device_features device_features{
         vk::descriptor_indexing_feature{ {
+          .descriptorBindingSampledImageUpdateAfterBind = true,
           .descriptorBindingPartiallyBound = true,
           .descriptorBindingVariableDescriptorCount = true,
-          .descriptorBindingSampledImageUpdateAfterBind = true,
         } },
         vk::dynamic_rendering_feature{ {
           .dynamicRendering = true,
@@ -338,7 +356,7 @@ main() {
     std::println("Starting implementation of the swapchain!!!");
 
     vk::surface_params surface_properties =
-      vk::enumerate_surface(physical_device, window_surface);
+      physical_device.request_surface(window_surface);
 
     if (surface_properties.format.format != VK_FORMAT_UNDEFINED) {
         std::println("Surface Format.format is not undefined!!!");
@@ -371,14 +389,17 @@ main() {
     uint32_t mip_levels = 1;
     for (uint32_t i = 0; i < swapchain_images.size(); i++) {
         vk::image_params swapchain_image_config = {
-            .extent = { .width = swapchain_extent.width,
-                        .height = swapchain_extent.height },
+            .extent = {
+                .width = swapchain_extent.width,
+                .height = swapchain_extent.height,
+            },
             .format = surface_properties.format.format,
+            .memory_mask = physical_device.memory_properties(
+              vk::memory_property::device_local_bit),
             .aspect = vk::image_aspect_flags::color_bit,
             .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
             .mip_levels = 1,
             .layer_count = 1,
-            .phsyical_memory_properties = physical_device.memory_properties(),
         };
 
         swapchain_images[i] =
@@ -386,14 +407,17 @@ main() {
 
         // Creating Images for depth buffering
         vk::image_params image_config = {
-            .extent = { .width = swapchain_extent.width,
-                        .height = swapchain_extent.height },
+            .extent = {
+                .width = swapchain_extent.width,
+                .height = swapchain_extent.height,
+            },
             .format = depth_format,
+            .memory_mask = physical_device.memory_properties(
+              vk::memory_property::device_local_bit),
             .aspect = vk::image_aspect_flags::depth_bit,
             .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
             .mip_levels = 1,
             .layer_count = 1,
-            .phsyical_memory_properties = physical_device.memory_properties(),
         };
         swapchain_depth_images[i] =
           vk::sample_image(logical_device, image_config);
@@ -608,13 +632,17 @@ main() {
                          logical_device,
                          physical_device);
 
-    // Setting up descriptor sets for handling uniforms
-    vk::uniform_params test_ubo_info = {
-        .phsyical_memory_properties = physical_device.memory_properties()
+    // Loading a texture
+
+    vk::buffer_parameters uniform_params = {
+        .memory_mask =
+          physical_device.memory_properties(static_cast<vk::memory_property>(
+            vk::memory_property::host_visible_bit |
+            vk::memory_property::host_cached_bit)),
+        .usage = static_cast<uint32_t>(vk::buffer_usage::uniform_buffer_bit),
     };
-    vk::uniform_buffer test_ubo =
-      vk::uniform_buffer(logical_device, sizeof(global_uniform), test_ubo_info);
-    // std::println("uniform_buffer.alive() = {}", test_ubo.alive());
+    vk::uniform_buffer test_ubo = vk::uniform_buffer(
+      logical_device, sizeof(global_uniform), uniform_params);
 
     std::array<vk::write_buffer, 1> uniforms0 = {
         vk::write_buffer{
@@ -630,9 +658,11 @@ main() {
         },
     };
 
-    // Loading a texture
-    vk::texture_info config_texture = {
-        .phsyical_memory_properties = physical_device.memory_properties(),
+    vk::texture_params config_texture = {
+        .memory_mask =
+          physical_device.memory_properties(static_cast<vk::memory_property>(
+            vk::memory_property::host_visible_bit |
+            vk::memory_property::host_cached_bit)),
     };
     vk::texture texture1(logical_device,
                          std::filesystem::path("asset_samples/viking_room.png"),

@@ -4,6 +4,7 @@ module;
 #include <span>
 #include <array>
 #include <cassert>
+#include <print>
 
 export module vk:uniform_buffer;
 
@@ -24,22 +25,12 @@ export namespace vk {
             uniform_buffer() = default;
             uniform_buffer(const VkDevice& p_device,
                            uint64_t p_size_bytes,
-                           const uniform_params& p_uniform_info)
+                           const buffer_parameters& p_uniform_params)
               : m_device(p_device)
               , m_size_bytes(p_size_bytes) {
-                buffer_parameters uniform_info = {
-                    .physical_memory_properties =
-                      p_uniform_info.phsyical_memory_properties,
-                    .property_flags = static_cast<memory_property>(
-                      memory_property::host_visible_bit |
-                      memory_property::host_coherent_bit),
-                    .usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                    .debug_name = p_uniform_info.debug_name.c_str(),
-                    .vkSetDebugUtilsObjectNameEXT =
-                      p_uniform_info.vkSetDebugUtilsObjectNameEXT
-                };
+                std::println("vk::uniform_buffer!");
                 m_uniform_handle =
-                  buffer_stream(m_device, p_size_bytes, uniform_info);
+                  buffer_stream(m_device, p_size_bytes, p_uniform_params);
             }
 
             [[nodiscard]] bool alive() const { return m_uniform_handle; }

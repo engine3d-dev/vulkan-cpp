@@ -4,6 +4,7 @@ module;
 #include <span>
 #include <array>
 #include <cstring>
+#include <bit>
 
 export module vk:buffer_streams32;
 
@@ -28,7 +29,7 @@ export namespace vk {
                     .pNext = nullptr,
                     .flags = 0,
                     .size = p_device_size, // size in bytes
-                    .usage = p_params.usage,
+                    .usage = static_cast<VkBufferUsageFlags>(p_params.usage),
                     .sharingMode = p_params.share_mode,
                 };
 
@@ -40,16 +41,11 @@ export namespace vk {
                 VkMemoryRequirements memory_requirements = {};
                 vkGetBufferMemoryRequirements(
                   p_device, m_handle, &memory_requirements);
+                uint32_t mapped_memory_requirements =
+                  memory_requirements.memoryTypeBits & p_params.memory_mask;
+                uint32_t memory_index =
+                  std::countr_zero(mapped_memory_requirements);
 
-                // 3. selects the required memory requirements for this specific
-                // buffer allocations
-                uint32_t memory_index = select_memory_requirements(
-                  p_params.physical_memory_properties,
-                  memory_requirements,
-                  p_params.property_flags);
-
-                // 4. allocatring the necessary memory based on memory
-                // requirements for the buffer handles
                 VkMemoryAllocateInfo memory_alloc_info = {
                     .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
                     .allocationSize = memory_requirements.size,

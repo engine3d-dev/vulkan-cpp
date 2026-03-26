@@ -14,17 +14,11 @@ export import :types;
 export namespace vk {
     inline namespace v1 {
 
-        void vk_check(const VkResult& p_result,
-                      const std::string& p_name,
-                      const std::source_location& p_source = {}) {
+        void vk_check(const VkResult& p_result, const std::string& p_name) {
             if (p_result != VK_SUCCESS) {
-                std::println(
-                  "File {} on line {} failed VkResult check",
-                  std::filesystem::relative(p_source.file_name()).string(),
-                  p_source.line());
-                std::println("Current Function Location = {}",
-                             p_source.function_name());
-                std::println("{} VkResult returned: {}", p_name, (int)p_result);
+                std::println("{} VkResult returned: {}",
+                             p_name,
+                             static_cast<int>(p_result));
             }
         }
 
@@ -42,150 +36,6 @@ export namespace vk {
             return queue_family_properties;
         }
 
-        VkFormat select_compatible_formats(
-          const VkPhysicalDevice& p_physical,
-          std::span<const vk::format> p_format_selection,
-          VkImageTiling p_tiling,
-          VkFormatFeatureFlags p_feature_flag) {
-            VkFormat format = VK_FORMAT_UNDEFINED;
-
-            for (size_t i = 0; i < p_format_selection.size(); i++) {
-                VkFormat current_format =
-                  static_cast<VkFormat>(p_format_selection[i]);
-                VkFormatProperties format_properties;
-                vkGetPhysicalDeviceFormatProperties(
-                  p_physical, current_format, &format_properties);
-
-                if (p_tiling == VK_IMAGE_TILING_LINEAR) {
-                    if (format_properties.linearTilingFeatures &
-                        p_feature_flag) {
-                        format = current_format;
-                    }
-                }
-                else if (p_tiling == VK_IMAGE_TILING_OPTIMAL and
-                         format_properties.optimalTilingFeatures &
-                           p_feature_flag) {
-                    format = current_format;
-                }
-            }
-
-            return format;
-        }
-
-        VkFormat select_depth_format(
-          const VkPhysicalDevice& p_physical,
-          std::span<const vk::format> p_format_selection) {
-
-            VkFormat format = select_compatible_formats(
-              p_physical,
-              p_format_selection,
-              VK_IMAGE_TILING_OPTIMAL,
-              VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
-            return format;
-        }
-
-        uint32_t physical_memory_properties(
-          const VkPhysicalDevice& p_physical,
-          uint32_t p_type_filter,
-          VkMemoryPropertyFlags p_property_flag) {
-            VkPhysicalDeviceMemoryProperties mem_props;
-            vkGetPhysicalDeviceMemoryProperties(p_physical, &mem_props);
-
-            for (uint32_t i = 0; i < mem_props.memoryTypeCount; i++) {
-                if ((p_type_filter & (1 << i)) and
-                    (mem_props.memoryTypes[i].propertyFlags &
-                     p_property_flag) == p_property_flag) {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-
-        surface_params enumerate_surface(const VkPhysicalDevice& p_physical,
-                                         const VkSurfaceKHR& p_surface) {
-            surface_params enumerate_surface_properties{};
-            vk_check(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
-                       p_physical,
-                       p_surface,
-                       &enumerate_surface_properties.capabilities),
-                     "vkGetPhysicalDeviceSurfaceCapabilitiesKHR");
-
-            uint32_t format_count = 0;
-            std::vector<VkSurfaceFormatKHR> formats;
-            vk_check(vkGetPhysicalDeviceSurfaceFormatsKHR(
-                       p_physical, p_surface, &format_count, nullptr),
-                     "vkGetPhysicalDeviceSurfaceFormatsKHR");
-
-            formats.resize(format_count);
-
-            vk_check(vkGetPhysicalDeviceSurfaceFormatsKHR(
-                       p_physical, p_surface, &format_count, formats.data()),
-                     "vkGetPhysicalDeviceSurfaceFormatsKHR");
-
-            for (const auto& format : formats) {
-                if (format.format == VK_FORMAT_B8G8R8A8_SRGB &&
-                    format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-                    enumerate_surface_properties.format = format;
-                }
-            }
-
-            if (enumerate_surface_properties.format.format ==
-                VK_FORMAT_UNDEFINED) {
-                enumerate_surface_properties.format = formats[0];
-            }
-
-            return enumerate_surface_properties;
-        }
-
-        uint32_t surface_image_size(
-          const VkSurfaceCapabilitiesKHR& p_capabilities) {
-            uint32_t requested_images = p_capabilities.minImageCount + 1;
-
-            uint32_t final_image_count = 0;
-
-            if ((p_capabilities.maxImageCount > 0) and
-                (requested_images > p_capabilities.maxImageCount)) {
-                final_image_count = p_capabilities.maxImageCount;
-            }
-            else {
-                final_image_count = requested_images;
-            }
-
-            return final_image_count;
-        }
-
-        VkSampler create_sampler(const VkDevice& p_device,
-                                 const filter_range& p_range,
-                                 VkSamplerAddressMode p_address_mode) {
-            VkSamplerCreateInfo sampler_info = {
-                .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-                .pNext = nullptr,
-                .flags = 0,
-                .magFilter = p_range.min,
-                .minFilter = p_range.max,
-                .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
-                .addressModeU = p_address_mode,
-                .addressModeV = p_address_mode,
-                .addressModeW = p_address_mode,
-                .mipLodBias = 0.0f,
-                .anisotropyEnable = false,
-                .maxAnisotropy = 1,
-                .compareEnable = false,
-                .compareOp = VK_COMPARE_OP_ALWAYS,
-                .minLod = 0.0f,
-                .maxLod = 0.0f,
-                .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
-                .unnormalizedCoordinates = false
-            };
-
-            VkSampler sampler = nullptr;
-            VkResult res =
-              vkCreateSampler(p_device, &sampler_info, nullptr, &sampler);
-            vk_check(res, "vkCreateSampler");
-            return sampler;
-        }
-
         VkSemaphore create_semaphore(const VkDevice& p_device) {
             // creating semaphores
             VkSemaphoreCreateInfo semaphore_ci = {
@@ -201,43 +51,6 @@ export namespace vk {
             return semaphore;
         }
 
-        uint32_t image_memory_requirements(const VkPhysicalDevice& p_physical,
-                                           const VkDevice& p_device,
-                                           const VkImage& p_image,
-                                           memory_property p_property) {
-            VkMemoryRequirements memory_requirements;
-            vkGetImageMemoryRequirements(
-              p_device, p_image, &memory_requirements);
-
-            uint32_t type_filter = memory_requirements.memoryTypeBits;
-            VkMemoryPropertyFlags property_flag =
-              static_cast<VkMemoryPropertyFlags>(p_property);
-
-            VkPhysicalDeviceMemoryProperties mem_props;
-            vkGetPhysicalDeviceMemoryProperties(p_physical, &mem_props);
-
-            for (uint32_t i = 0; i < mem_props.memoryTypeCount; i++) {
-                if ((type_filter & (1 << i)) and
-                    (mem_props.memoryTypes[i].propertyFlags & property_flag) ==
-                      property_flag) {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-
-        VkVertexInputRate to_input_rate(input_rate p_input_rate) {
-            switch (p_input_rate) {
-                case input_rate::vertex:
-                    return VK_VERTEX_INPUT_RATE_VERTEX;
-                case input_rate::instance:
-                    return VK_VERTEX_INPUT_RATE_INSTANCE;
-                default:
-                    return VK_VERTEX_INPUT_RATE_MAX_ENUM;
-            }
-        }
-
         bool has_depth_specified(image_layout p_layout) {
             if (p_layout == image_layout::depth_stencil_optimal) {
                 return true;
@@ -247,26 +60,6 @@ export namespace vk {
                 return true;
             }
             return false;
-        }
-
-        uint32_t select_memory_requirements(
-          VkPhysicalDeviceMemoryProperties p_physical_memory_props,
-          VkMemoryRequirements p_memory_requirements,
-          memory_property p_property) {
-            uint32_t memory_bits = p_memory_requirements.memoryTypeBits;
-            VkMemoryPropertyFlags property_flag =
-              static_cast<VkMemoryPropertyFlags>(p_property);
-
-            for (uint32_t i = 0; i < p_physical_memory_props.memoryTypeCount;
-                 i++) {
-                if ((memory_bits & (1 << i)) and
-                    (p_physical_memory_props.memoryTypes[i].propertyFlags &
-                     property_flag) == property_flag) {
-                    return i;
-                }
-            }
-
-            return -1;
         }
 
         int bytes_per_texture_format(VkFormat p_format) {
@@ -309,6 +102,42 @@ export namespace vk {
         std::span<uint8_t> to_bytes(T p_data) {
             return std::span<uint8_t>(reinterpret_cast<uint8_t*>(&p_data),
                                       sizeof(p_data));
+        }
+
+        /**
+         * @brief Bitwise OR Overloads Adapters
+         *
+         * These operator overloads allow for `enum class`'s which are strongly
+         * typed to be temporarily truncates the types to their original type.
+         *
+         * Performing bitwise OR operation to those particular enum class types
+         * that can perform those operations.
+         *
+         */
+        inline memory_property operator|(memory_property p_lhs,
+                                         memory_property p_rhs) {
+            // Lets us truncate the underlying type of the enum (class) to allow
+            // it to be bitwise OR'd
+            using T = std::underlying_type_t<memory_property>;
+            return static_cast<memory_property>(static_cast<T>(p_lhs) |
+                                                static_cast<T>(p_rhs));
+        }
+
+        inline buffer_usage operator|(buffer_usage p_lhs, buffer_usage p_rhs) {
+            // Lets us truncate the underlying type of the enum (class) to allow
+            // it to be bitwise OR'd
+            using T = std::underlying_type_t<buffer_usage>;
+            return static_cast<buffer_usage>(static_cast<T>(p_lhs) |
+                                             static_cast<T>(p_rhs));
+        }
+
+        inline image_aspect_flags operator|(image_aspect_flags p_lhs,
+                                            image_aspect_flags p_rhs) {
+            // Lets us truncate the underlying type of the enum (class) to allow
+            // it to be bitwise OR'd
+            using T = std::underlying_type_t<image_aspect_flags>;
+            return static_cast<image_aspect_flags>(static_cast<T>(p_lhs) |
+                                                   static_cast<T>(p_rhs));
         }
 
         /**

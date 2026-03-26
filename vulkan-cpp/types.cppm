@@ -486,6 +486,12 @@ export namespace vk {
             std::string description;
         };
 
+        struct allocation_params {
+            // uint32_t size=0;
+            uint32_t memory_supported_mask = 0;
+            // uint32_t memory_index=0;
+        };
+
         //! @brief Defines the enum types for a selection of gpu device
         // types to select according to your hardware specs
 
@@ -524,6 +530,7 @@ export namespace vk {
         struct surface_params {
             VkSurfaceCapabilitiesKHR capabilities;
             VkSurfaceFormatKHR format;
+            uint32_t image_size = 0; // requested surface image size
         };
 
         struct queue_params {
@@ -1102,10 +1109,10 @@ export namespace vk {
          *        - instance-based specification next data entry
          *
          */
-        enum class input_rate : uint8_t {
-            vertex,
-            instance,
-            max_enum,
+        enum class input_rate : uint32_t {
+            vertex = VK_VERTEX_INPUT_RATE_VERTEX,
+            instance = VK_VERTEX_INPUT_RATE_INSTANCE,
+            max_enum = VK_VERTEX_INPUT_RATE_MAX_ENUM,
         };
 
         //! @brief Equivalent to doing VkSampleCountFlagBits but simplified
@@ -1248,71 +1255,80 @@ export namespace vk {
         };
 
         /**
-         * @brief memory_property is a representation of vulkan's
-         * VkMemoryPropertyFlags.
+         * @brief Wrapper enum class for VkMemoryPropertyFlags
+         *
+         * Defines the physical locations and CPU-to-GPU access behavior for
+         * allocated memory heaps.
          *
          * @param device_local_bit
-         *
-         * Meaning: indicates memory allocated with this type is most efficient
-         * for the GPU to access. \n
-         *
-         * Implications: The memory with this bit typically
-         * resides on the GPU's VRAM. Accessing memory directly from GPU's since
-         * its faster. \n
-         *
-         * Usage: For resources that are primarily accessed by the GPU in the
-         * case of textures, vertex buffers, and framebuffers. If a memory type
-         * has this bit associated with it, the heap memory will also have be
-         * set along with VK_MEMORY_HEAP_DEVICE_LOCAL_BIT. \n
+         * - Used for high-speed GPU access.
+         * - Memory that is physically located on the GPU VRAM.
+         * - Usage: Performant-critical resources such as vertex buffers,
+         * framebuffers, textures, etc. CPU access is usually impossible unless
+         * Bar-Resize is used.
          *
          * @param host_visible_bit
-         *
-         * Meaning: Indicates memory alloated can be mapped to host's (CPU)
-         * address space using the vkMapMemory API. \n
-         *
-         * Implications: ALlows CPU to directly
-         * read from and write to memory. Crucial for transferring data between
-         * CPU to GPU. \n
-         *
-         * Usage: Use-case is for staging buffers, where data initially
-         * uploaded from CPU before being copied to device-local memory or for
-         * resourcfes that need frequent CPU updates. \n
+         * - Used for CPU-to-GPU transfers.
+         * - Memory can be mapped to CPU-address space via vkMapMemory
+         * - Usage: staging buffers. Allowing CPU to view and write data,
+         * the GPU will start to use.
          *
          * @param host_coherent_bit
-         *
-         * Meaning: Indicates host cache managemnet commands
-         * (vkFlushMappedMemoryRanges  and vkInvalidateMappedMemoryRanges) are
-         * not needed. Writes made by host will automatically become visible to
-         * the device, and writes made by device will automatically be visible
-         * to the host. \n
-         *
-         * Implications: Simplifies memory synchronization between CPU and GPU.
-         * Though can lead to slower CPU access if it means bypassing the CPU
-         * caches or involving more complex cache coherence protocols. \n
-         *
-         * Usage: Used with 'VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT' for easy data
-         * transfers, especially for frequent updated data where manual flushing
-         * would be cumbersome. \n
-         *
+         * - Used for automatic synchronization
+         * - Removes need for manual cache flushing/invalidation.
+         * - Implies writing from CPU are automatically visible to the GPU (and
+         * vice-versa).
+         * - Usage: Combined with `host_visible_bit` for frequent updated data
+         * (like uniform buffers) to avoid complex manual sync calls.
          *
          * @param host_cached_bit
+         * - Used for fast CPU reads.
+         * - Memory stored in CPU's L1/L2/L3 cache heirarchy.
+         * - Implies massive performance boost for CPU reads. Without this, CPU
+         * reads from host-visible memory which can be slow.
+         * - Usage: Use when needing for Readback information such as retrieving
+         * computed data on the GPU or analyzing results done in the compute
+         * shaders, even.
          *
-         * Meaning: Indicates memory allocated with this type is cached on the
-         * host (CPU). \n
+         * Additional Considerations: In cases `host_coherent_bit` is NOT set,
+         * MUST manually call `vkInvalidateMappedMemoryRanges` before reading to
+         * ensure the CPU cache isn't hoilding onto outdated data.
          *
-         * Implications: Host memory accesses (read/writes) to this memory
-         * type will go through CPU cache heirarchy. Significantly improves
-         * performance where random access patterns. If not set on
-         * `HOST_VISIBLE` memory, CPU accesses are often uncached and
-         * write-combined, meanming writes should be sequential and reads should
-         * be avoided for good performance. \n
+         * @param lazily_allocated_bit
+         * - Used for memory virtualization (mobile/tile-based optimziation).
+         * - GPU doesn't actually allocated physical VRAM for this until the
+         * moment it is accessed.
+         * - Implies data stays "on-chip" (like depth-buffer or renderpass), it
+         * may never be written to VRAM at all.
+         * - Can be used to save massive amounts of battery/bandwidth on mobile
+         * GPU's.
+         * - Usage: Strictly for "Transient Attachments" (Depth/Stencil or MSAA
+         * buffers) which are created and destroyed in a single renderpass.
          *
-         * Usage: Does well for CPU-side reading of data written to GPU
-         * (screenshots or feedback data) and for CPU-side writing of data to be
-         * accessed randomly. Flag usually implies explicit cache management
-         * (flushing/invalidating) is required if `HOST_COHERENT_BIT` is not
-         * also set. \n
+         * @param device_protected_bit
+         * - Content Security (DRM)
+         * - Places memory in a secure heap that cannot be read by the CPU or
+         * non-protected GPU queue's.
+         * - Prevents unauthorized memory scraping. If you try to copy this
+         * memory to a non-protected buffer, this operation will fail.
+         * - Usage: Critical data protection (video streaming/DRM) or sensitive
+         * computed data.
          *
+         * @param device_coherent_bit_amd
+         * - Performs fine-grained GPU-to-GPU synchronization (on AMD hardware).
+         * - Ensures memory writes from one GPU shader are immediately visible
+         * to other parts of the GPU without explicit cache flushes.
+         * - Usage: GPGPU or compute-heavy tasks on specifically AMD hardware
+         * where manual barriers overhead is too high.
+         *
+         * @param rdma_capable_bit_nv
+         * - Performs direct peer-to-peer transfer (to NVIDIA hardware).
+         * - Allows for external devices (like 100GB NICs or other GPUs) to
+         * read/write to this memory directly via Remote Direct Memory Access.
+         * - Bypasses the GPU entirely for network-to-GPU transfers, reducing
+         * latency close to near zero.
+         * - Usage: Can be used if you need to set the memory property for
+         * ultra-low latecy videop streaming
          *
          */
         enum memory_property : uint32_t {
@@ -1426,27 +1442,6 @@ export namespace vk {
             VkBuffer dst;
         };
 
-        struct vertex_params {
-            VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
-            std::string debug_name;
-            PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT =
-              nullptr;
-        };
-
-        struct index_params {
-            VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
-            std::string debug_name;
-            PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT =
-              nullptr;
-        };
-
-        struct uniform_params {
-            VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
-            std::string debug_name;
-            PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT =
-              nullptr;
-        };
-
         struct descriptor_binding_point {
             uint32_t binding;
             shader_stage stage;
@@ -1491,6 +1486,7 @@ export namespace vk {
             image_extent extent{};
             VkFormat format = VK_FORMAT_UNDEFINED;
             memory_property property = memory_property::device_local_bit;
+            uint32_t memory_mask = 0;
             image_aspect_flags aspect = image_aspect_flags::color_bit;
             uint32_t usage;
             VkImageCreateFlags image_flags = 0;
@@ -1498,7 +1494,6 @@ export namespace vk {
             uint32_t mip_levels = 1;
             uint32_t layer_count = 1;
             uint32_t array_layers = 1;
-            VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
             filter_range range{
                 .min = VK_FILTER_LINEAR,
                 .max = VK_FILTER_LINEAR,
@@ -1521,9 +1516,10 @@ export namespace vk {
         };
 
         struct buffer_parameters {
-            VkPhysicalDeviceMemoryProperties physical_memory_properties;
+            uint32_t memory_mask = 0;
             memory_property property_flags;
-            VkBufferUsageFlags usage;
+            // VkBufferUsageFlags usage;
+            uint32_t usage;
             VkSharingMode share_mode = VK_SHARING_MODE_EXCLUSIVE;
             const char* debug_name = nullptr;
             PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT =

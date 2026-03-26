@@ -42,8 +42,6 @@ export namespace vk {
             //! @return true if this queue is out of date
             // Can occur when acquired_next_image or present_frame are out of
             // date indication swapchain resizeability.
-            // TODO: Change this to using C++'s exceptions for handling
-            // out-of-date invalidation cases
             bool out_of_date(bool p_is_reset = true) {
                 // The return value we return
                 bool return_value = false;
