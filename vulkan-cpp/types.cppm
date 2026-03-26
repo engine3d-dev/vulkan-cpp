@@ -1109,10 +1109,10 @@ export namespace vk {
          *        - instance-based specification next data entry
          *
          */
-        enum class input_rate : uint8_t {
-            vertex,
-            instance,
-            max_enum,
+        enum class input_rate : uint32_t {
+            vertex=VK_VERTEX_INPUT_RATE_VERTEX,
+            instance=VK_VERTEX_INPUT_RATE_INSTANCE,
+            max_enum=VK_VERTEX_INPUT_RATE_MAX_ENUM,
         };
 
         //! @brief Equivalent to doing VkSampleCountFlagBits but simplified

@@ -14,11 +14,9 @@ export import :types;
 export namespace vk {
     inline namespace v1 {
 
-        void vk_check(const VkResult& p_result,
-                      const std::string& p_name,
-                      const std::source_location& p_source = {}) {
+        void vk_check(const VkResult& p_result, const std::string& p_name) {
             if (p_result != VK_SUCCESS) {
-                std::println("{} VkResult returned: {}", p_name, (int)p_result);
+                std::println("{} VkResult returned: {}", p_name, static_cast<int>(p_result));
             }
         }
 
@@ -36,37 +34,6 @@ export namespace vk {
             return queue_family_properties;
         }
 
-        VkSampler create_sampler(const VkDevice& p_device,
-                                 const filter_range& p_range,
-                                 VkSamplerAddressMode p_address_mode) {
-            VkSamplerCreateInfo sampler_info = {
-                .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-                .pNext = nullptr,
-                .flags = 0,
-                .magFilter = p_range.min,
-                .minFilter = p_range.max,
-                .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
-                .addressModeU = p_address_mode,
-                .addressModeV = p_address_mode,
-                .addressModeW = p_address_mode,
-                .mipLodBias = 0.0f,
-                .anisotropyEnable = false,
-                .maxAnisotropy = 1,
-                .compareEnable = false,
-                .compareOp = VK_COMPARE_OP_ALWAYS,
-                .minLod = 0.0f,
-                .maxLod = 0.0f,
-                .borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
-                .unnormalizedCoordinates = false
-            };
-
-            VkSampler sampler = nullptr;
-            VkResult res =
-              vkCreateSampler(p_device, &sampler_info, nullptr, &sampler);
-            vk_check(res, "vkCreateSampler");
-            return sampler;
-        }
-
         VkSemaphore create_semaphore(const VkDevice& p_device) {
             // creating semaphores
             VkSemaphoreCreateInfo semaphore_ci = {
@@ -80,17 +47,6 @@ export namespace vk {
               vkCreateSemaphore(p_device, &semaphore_ci, nullptr, &semaphore),
               "vkCreateSemaphore");
             return semaphore;
-        }
-
-        VkVertexInputRate to_input_rate(input_rate p_input_rate) {
-            switch (p_input_rate) {
-                case input_rate::vertex:
-                    return VK_VERTEX_INPUT_RATE_VERTEX;
-                case input_rate::instance:
-                    return VK_VERTEX_INPUT_RATE_INSTANCE;
-                default:
-                    return VK_VERTEX_INPUT_RATE_MAX_ENUM;
-            }
         }
 
         bool has_depth_specified(image_layout p_layout) {
