@@ -4,7 +4,6 @@ module;
 #include <span>
 #include <array>
 #include <cassert>
-#include <print>
 
 export module vk:uniform_buffer;
 
@@ -28,7 +27,6 @@ export namespace vk {
                            const buffer_parameters& p_uniform_params)
               : m_device(p_device)
               , m_size_bytes(p_size_bytes) {
-                std::println("vk::uniform_buffer!");
                 m_uniform_handle =
                   buffer_stream(m_device, p_size_bytes, p_uniform_params);
             }
