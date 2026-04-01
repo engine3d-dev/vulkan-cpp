@@ -3,6 +3,7 @@ module;
 #include <vulkan/vulkan.h>
 #include <span>
 #include <vector>
+#include <bit>
 
 export module vk:buffer_streams;
 
