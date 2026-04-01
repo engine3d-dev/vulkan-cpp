@@ -3,7 +3,7 @@ module;
 #include <vulkan/vulkan.h>
 #include <span>
 #include <vector>
-#include <print>
+#include <bit>
 
 export module vk:buffer_streams;
 
@@ -59,10 +59,6 @@ export namespace vk {
                   memory_requirements.memoryTypeBits & p_params.memory_mask;
                 uint32_t memory_index =
                   std::countr_zero(mapped_memory_requirements);
-
-                std::println("Memory Requirement Mapped: {} (Buffer Stream)",
-                             mapped_memory_requirements);
-                std::println("Memory Index: {}", memory_index);
 
                 VkMemoryAllocateInfo memory_alloc_info = {
                     .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,

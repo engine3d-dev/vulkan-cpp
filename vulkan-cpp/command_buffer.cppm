@@ -258,7 +258,7 @@ export namespace vk {
              * ```
              *
              */
-            void bind_index_buffers8(const VkBuffer p_index_buffer,
+            void bind_index_buffers8(const VkBuffer& p_index_buffer,
                                      const uint64_t p_offset = 0) {
                 vkCmdBindIndexBuffer(m_command_buffer,
                                      p_index_buffer,
@@ -280,7 +280,7 @@ export namespace vk {
              * ```
              *
              */
-            void bind_index_buffers16(const VkBuffer p_index_buffer,
+            void bind_index_buffers16(const VkBuffer& p_index_buffer,
                                       const uint64_t p_offset = 0) {
                 vkCmdBindIndexBuffer(m_command_buffer,
                                      p_index_buffer,
@@ -303,7 +303,7 @@ export namespace vk {
              * ```
              *
              */
-            void bind_index_buffers32(const VkBuffer p_index_buffer,
+            void bind_index_buffers32(const VkBuffer& p_index_buffer,
                                       const uint64_t p_offset = 0) {
                 vkCmdBindIndexBuffer(m_command_buffer,
                                      p_index_buffer,

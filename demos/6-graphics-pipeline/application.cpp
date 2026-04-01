@@ -13,6 +13,8 @@
 #include <array>
 #include <print>
 #include <span>
+#include <vector>
+
 import vk;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
@@ -124,7 +126,7 @@ main() {
     // We provide a selection of format support that we want to check is
     // supported on current hardware device.
     VkFormat depth_format =
-      vk::select_depth_format(physical_device, format_support);
+      physical_device.request_depth_format(format_support);
 
     vk::queue_indices queue_indices = physical_device.family_indices();
     std::println("Graphics Queue Family Index = {}", queue_indices.graphics);
@@ -153,7 +155,7 @@ main() {
     std::println("Starting implementation of the swapchain!!!");
 
     vk::surface_params surface_properties =
-      vk::enumerate_surface(physical_device, window_surface);
+      physical_device.request_surface(window_surface);
 
     if (surface_properties.format.format != VK_FORMAT_UNDEFINED) {
         std::println("Surface Format.format is not undefined!!!");
@@ -187,11 +189,12 @@ main() {
             .extent = { .width = swapchain_extent.width,
                         .height = swapchain_extent.height },
             .format = surface_properties.format.format,
+            .memory_mask = physical_device.memory_properties(
+              vk::memory_property::device_local_bit),
             .aspect = vk::image_aspect_flags::color_bit,
             .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
             .mip_levels = 1,
             .layer_count = 1,
-            .phsyical_memory_properties = physical_device.memory_properties(),
         };
 
         swapchain_images[i] =
@@ -202,11 +205,12 @@ main() {
             .extent = { .width = swapchain_extent.width,
                         .height = swapchain_extent.height },
             .format = depth_format,
+            .memory_mask = physical_device.memory_properties(
+              vk::memory_property::device_local_bit),
             .aspect = vk::image_aspect_flags::depth_bit,
             .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
             .mip_levels = 1,
             .layer_count = 1,
-            .phsyical_memory_properties = physical_device.memory_properties(),
         };
         swapchain_depth_images[i] =
           vk::sample_image(logical_device, image_config);
@@ -351,13 +355,12 @@ main() {
 
         // renderpass begin/end must be within a recording command buffer
         vk::renderpass_begin_params begin_renderpass = {
-            .current_command = current,
             .extent = swapchain_extent,
             .current_framebuffer = swapchain_framebuffers[current_frame],
             .color = color,
             .subpass = vk::subpass_contents::inline_bit
         };
-        main_renderpass.begin(begin_renderpass);
+        main_renderpass.begin(current, begin_renderpass);
 
         // Binding a graphics pipeline -- before drawing stuff
         // Inside of this graphics pipeline bind, is where you want to do the
