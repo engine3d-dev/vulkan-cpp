@@ -166,6 +166,151 @@ export namespace vk {
             }
 
             /**
+             * @brief Begin recording dynamic rendering pass instance
+             *
+             * Example Usage:
+             * ```C++
+             *
+             * vk::command_buffer current_command = ...;
+             *
+             * std::array<vk::rendering_attachment, 1> color_attachments = {
+             *      vk::rendering_attachment{
+             *          .image_view = ...,
+             *          .image_layout = ...,
+             *          .resolve_mode = ...,
+             *          .resolve_image_layout = ...,
+             *          .load = ...,
+             *          .store = ...,
+             *          .clear_values = {...},
+             *      }
+             * };
+             *
+             * std::array<vk::rendering_attachment, 1> depth_attachments = {
+             *      vk::rendering_attachment{
+             *          .image_view = ...,
+             *          .image_layout = ...,
+             *          .resolve_mode = ...,
+             *          .resolve_image_layout = ...,
+             *          .load = ...,
+             *          .store = ...,
+             *          .clear_values = {...},
+             *      }
+             * };
+             *
+             * vk;:rendering_begin_parameters begin_params = {
+             *      .render_area = {x, y},
+             *      .color_attachments = color_attachments,
+             *      .depth_attachments = depth_attachments,
+             * };
+             * current_command.begin_rendering(begin_params);
+             *
+             * current_command.end();
+             *
+             * ```
+             *
+             */
+            void begin_rendering(const rendering_begin_parameters& p_parameters,
+                                 subpass_contents p_subpass) {
+                std::vector<VkRenderingAttachmentInfo> color_attachments(
+                  p_parameters.color_attachments.size());
+                std::vector<VkRenderingAttachmentInfo> depth_attachments(
+                  p_parameters.depth_attachments.size());
+                std::vector<VkRenderingAttachmentInfo> stencil_attachments(
+                  p_parameters.stencil_attachments.size());
+
+                // Loading and setting color attachments (if any are set)
+                for (size_t i = 0; i < color_attachments.size(); i++) {
+                    rendering_attachment color_attach = color_attachments[i];
+                    VkRenderingAttachmentInfo color_attachment = {
+                        .image_view = color_attach.image_view,
+                        .imageLayout =
+                          static_cast<VkImageLayout>(color_attach.image_layout),
+                        .resolveMode = static_cast<VkResolveModeFlagBits>(
+                          color_attach.resolve_mode),
+                        .resolveImageView = color_attach.resolve_image_view,
+                        .resolveImageLayout = static_cast<VkImageLayout>(
+                          color_attach.resolve_image_layout),
+                        .loadOp =
+                          static_cast<VkAttachmentLoadOp>(color_attach.load),
+                        .storeOp =
+                          static_cast<VkAttachmentStoreOp>(color_attach.store),
+                        .clearValue = color_attach.clear_value,
+                    };
+
+                    color_attachments.emplace(color_attachment);
+                }
+
+                // Loading and setting depth attachments (if any are set)
+                for (size_t i = 0; i < depth_attachments.size(); i++) {
+                    rendering_attachment depth_attach = depth_attachments[i];
+                    VkRenderingAttachmentInfo depth_attachment = {
+                        .image_view = depth_attach.image_view,
+                        .imageLayout =
+                          static_cast<VkImageLayout>(depth_attach.image_layout),
+                        .resolveMode = static_cast<VkResolveModeFlagBits>(
+                          depth_attach.resolve_mode),
+                        .resolveImageView = depth_attach.resolve_image_view,
+                        .resolveImageLayout = static_cast<VkImageLayout>(
+                          depth_attach.resolve_image_layout),
+                        .loadOp =
+                          static_cast<VkAttachmentLoadOp>(depth_attach.load),
+                        .storeOp =
+                          static_cast<VkAttachmentStoreOp>(depth_attach.store),
+                        .clearValue = depth_attach.clear_value,
+                    };
+
+                    depth_attachments.emplace(depth_attachment);
+                }
+
+                // Loading and setting stencil attachments (if any are set)
+                for (size_t i = 0; i < stencil_attachments.size(); i++) {
+                    rendering_attachment stencil_attach =
+                      stencil_attachments[i];
+                    VkRenderingAttachmentInfo stencil_attachment = {
+                        .image_view = stencil_attach.image_view,
+                        .imageLayout = static_cast<VkImageLayout>(
+                          stencil_attach.image_layout),
+                        .resolveMode = static_cast<VkResolveModeFlagBits>(
+                          stencil_attach.resolve_mode),
+                        .resolveImageView = stencil_attach.resolve_image_view,
+                        .resolveImageLayout = static_cast<VkImageLayout>(
+                          stencil_attach.resolve_image_layout),
+                        .loadOp =
+                          static_cast<VkAttachmentLoadOp>(stencil_attach.load),
+                        .storeOp = static_cast<VkAttachmentStoreOp>(
+                          stencil_attach.store),
+                        .clearValue = stencil_attach.clear_value,
+                    };
+
+                    stencil_attachments.emplace(stencil_attachment);
+                }
+
+                VkRenderingInfo rendering_begin_info = {
+                    .renderArea = p_parameters.render_area.data(),
+                    .colorAttachmentCount =
+                      static_cast<uint32_t>(color_attachments.size()),
+                    .pColorAttachments = color_attachments.data(),
+                    .pDepthAttachment =
+                      depth_attachments
+                        .data(), // TODO: Consider removing as this is only a
+                                 // pointer to a single representation of depth
+                                 // struct rather then array
+                    .pStencilAttachment =
+                      stencil_attachments
+                        .data(), // TODO: Consider removing as this is only a
+                                 // pointer to a single representation of
+                                 // stencil struct rather then array
+                };
+
+                vkCmdBeginRendering(m_command_buffer, &rendering_begin_info);
+            }
+
+            /**
+             * @brief End recording for dynamic rendering pass
+             */
+            void end_rendering() { vkCmdEndRendering(m_command_buffer); }
+
+            /**
              * @brief Transferring the raw geomtric data of vertices to the
              * vertex input stage of the graphics pipeline.
              *
