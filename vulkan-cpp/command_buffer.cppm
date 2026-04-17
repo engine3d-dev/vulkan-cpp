@@ -220,11 +220,12 @@ export namespace vk {
 
                 // Loading and setting color attachments (if any are set)
                 for (size_t i = 0; i < color_attachments.size(); i++) {
-                    rendering_attachment color_attach = color_attachments[i];
+                    rendering_attachment color_attach =
+                      p_parameters.color_attachments[i];
                     VkRenderingAttachmentInfo color_attachment = {
-                        .image_view = color_attach.image_view,
+                        .imageView = color_attach.image_view,
                         .imageLayout =
-                          static_cast<VkImageLayout>(color_attach.image_layout),
+                          static_cast<VkImageLayout>(color_attach.layout),
                         .resolveMode = static_cast<VkResolveModeFlagBits>(
                           color_attach.resolve_mode),
                         .resolveImageView = color_attach.resolve_image_view,
@@ -234,19 +235,20 @@ export namespace vk {
                           static_cast<VkAttachmentLoadOp>(color_attach.load),
                         .storeOp =
                           static_cast<VkAttachmentStoreOp>(color_attach.store),
-                        .clearValue = color_attach.clear_value,
+                        .clearValue = color_attach.clear_values,
                     };
 
-                    color_attachments.emplace(color_attachment);
+                    color_attachments.emplace_back(color_attachment);
                 }
 
                 // Loading and setting depth attachments (if any are set)
                 for (size_t i = 0; i < depth_attachments.size(); i++) {
-                    rendering_attachment depth_attach = depth_attachments[i];
+                    rendering_attachment depth_attach =
+                      p_parameters.depth_attachments[i];
                     VkRenderingAttachmentInfo depth_attachment = {
-                        .image_view = depth_attach.image_view,
+                        .imageView = depth_attach.image_view,
                         .imageLayout =
-                          static_cast<VkImageLayout>(depth_attach.image_layout),
+                          static_cast<VkImageLayout>(depth_attach.layout),
                         .resolveMode = static_cast<VkResolveModeFlagBits>(
                           depth_attach.resolve_mode),
                         .resolveImageView = depth_attach.resolve_image_view,
@@ -256,20 +258,20 @@ export namespace vk {
                           static_cast<VkAttachmentLoadOp>(depth_attach.load),
                         .storeOp =
                           static_cast<VkAttachmentStoreOp>(depth_attach.store),
-                        .clearValue = depth_attach.clear_value,
+                        .clearValue = depth_attach.depth_values,
                     };
 
-                    depth_attachments.emplace(depth_attachment);
+                    depth_attachments.emplace_back(depth_attachment);
                 }
 
                 // Loading and setting stencil attachments (if any are set)
                 for (size_t i = 0; i < stencil_attachments.size(); i++) {
                     rendering_attachment stencil_attach =
-                      stencil_attachments[i];
+                      p_parameters.stencil_attachments[i];
                     VkRenderingAttachmentInfo stencil_attachment = {
-                        .image_view = stencil_attach.image_view,
+                        .imageView = stencil_attach.image_view,
                         .imageLayout = static_cast<VkImageLayout>(
-                          stencil_attach.image_layout),
+                          stencil_attach.layout),
                         .resolveMode = static_cast<VkResolveModeFlagBits>(
                           stencil_attach.resolve_mode),
                         .resolveImageView = stencil_attach.resolve_image_view,
@@ -279,14 +281,15 @@ export namespace vk {
                           static_cast<VkAttachmentLoadOp>(stencil_attach.load),
                         .storeOp = static_cast<VkAttachmentStoreOp>(
                           stencil_attach.store),
-                        .clearValue = stencil_attach.clear_value,
+                        .clearValue = stencil_attach.depth_values,
                     };
 
-                    stencil_attachments.emplace(stencil_attachment);
+                    stencil_attachments.emplace_back(stencil_attachment);
                 }
 
                 VkRenderingInfo rendering_begin_info = {
-                    .renderArea = p_parameters.render_area.data(),
+                    // .renderArea = p_parameters.render_area.data(),
+                    .renderArea = p_parameters.render_area,
                     .colorAttachmentCount =
                       static_cast<uint32_t>(color_attachments.size()),
                     .pColorAttachments = color_attachments.data(),

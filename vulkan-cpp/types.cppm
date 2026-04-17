@@ -1256,13 +1256,14 @@ export namespace vk {
          */
         struct rendering_attachment {
             VkImageView image_view = nullptr;
-            image_layout image_layout;
+            image_layout layout;
             resolved_mode_flags resolve_mode;
-            VkImageView resolve_image_View=nullptr;
+            VkImageView resolve_image_view=nullptr;
             image_layout resolve_image_layout;
             attachment_load load;
             attachment_store store;
             VkClearValue clear_values;
+            VkClearValue depth_values;
         };
 
         /**
@@ -1273,7 +1274,7 @@ export namespace vk {
          */
         struct rendering_begin_parameters {
             uint32_t rendering_flags=0;
-            std::array<float, 2> render_area{};
+            VkRect2D render_area{};
             uint32_t layer_count=0;
             uint32_t view_mask=0;
             std::span<const rendering_attachment> color_attachments{};
