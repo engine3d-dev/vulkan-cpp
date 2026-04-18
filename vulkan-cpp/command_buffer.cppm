@@ -210,8 +210,8 @@ export namespace vk {
              * ```
              *
              */
-            void begin_rendering(const rendering_begin_parameters& p_parameters,
-                                 subpass_contents p_subpass) {
+            void begin_rendering(
+              const rendering_begin_parameters& p_parameters) {
                 std::vector<VkRenderingAttachmentInfo> color_attachments(
                   p_parameters.color_attachments.size());
 

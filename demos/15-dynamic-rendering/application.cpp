@@ -500,23 +500,22 @@ main() {
               &color_render_attachment, 1),
         };
 
-        VkViewport viewport = {
+        vk::viewport_params viewport = {
             .x = 0.0f,
             .y = 0.0f,
             .width = static_cast<float>(swapchain_extent.width),
             .height = static_cast<float>(swapchain_extent.height),
-            .minDepth = 0.0f,
-            .maxDepth = 1.0f,
+            .min_depth = 0.0f,
+            .max_depth = 1.0f,
         };
+        current.set_viewport(0, 1, std::span<const vk::viewport_params>(&viewport, 1));
 
-        vkCmdSetViewport(current, 0, 1, &viewport);
-
-        VkRect2D scissor = {
+        vk::scissor_params scissor = {
             .offset = { 0, 0 },
             .extent = swapchain_extent,
         };
 
-        vkCmdSetScissor(current, 0, 1, &scissor);
+        current.set_scissor(0, 1, std::span<const vk::scissor_params>(&scissor, 1));
 
         current.begin_rendering(begin_params, {});
 
