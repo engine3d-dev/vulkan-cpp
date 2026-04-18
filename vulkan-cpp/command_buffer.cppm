@@ -214,13 +214,6 @@ export namespace vk {
                                  subpass_contents p_subpass) {
                 std::vector<VkRenderingAttachmentInfo> color_attachments(
                   p_parameters.color_attachments.size());
-                // std::vector<VkRenderingAttachmentInfo> depth_attachments(
-                //   p_parameters.depth_attachments.size());
-                // std::vector<VkRenderingAttachmentInfo> stencil_attachments(
-                //   p_parameters.stencil_attachments.size());
-
-                std::println("color_attachments.size() = {}",
-                             color_attachments.size());
 
                 // Loading and setting color attachments (if any are set)
                 for (size_t i = 0; i < color_attachments.size(); i++) {
