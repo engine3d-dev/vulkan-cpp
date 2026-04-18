@@ -1230,6 +1230,21 @@ export namespace vk {
               VK_PIPELINE_BIND_POINT_MAX_ENUM // VK_PIPELINE_BIND_POINT_MAX_ENUM
         };
 
+
+        struct viewport_params {
+            float x = 0.f;
+            float y = 0.f;
+            float width = 0.f;
+            float height=0.f;
+            float min_depth = 0.f;
+            float max_depth = 1.f;
+        };
+
+        struct scissor_params {
+            VkOffset2D offset;
+            VkExtent2D extent;
+        };
+
         /**
          * @brief Specifies a specific attachment that a renderpass may operate
          * using

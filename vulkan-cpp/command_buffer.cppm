@@ -602,6 +602,47 @@ export namespace vk {
                                      p_commands.data());
             }
 
+            void set_viewport(uint32_t p_first_viewport,
+                              uint32_t p_viewport_count,
+                              std::span<const viewport_params> p_params) {
+                std::vector<VkViewport> viewports(p_params.size());
+
+                for (uint32_t i = 0; i < viewports.size(); i++) {
+                    const auto viewport = p_params[i];
+                    viewports[i] = {
+                        .x = viewport.x,
+                        .y = viewport.x,
+                        .width = viewport.width,
+                        .height = viewport.height,
+                        .minDepth = viewport.min_depth,
+                        .maxDepth = viewport.max_depth,
+                    };
+                }
+                vkCmdSetViewport(m_command_buffer,
+                                 p_first_viewport,
+                                 p_viewport_count,
+                                 viewports.data());
+            }
+
+            void set_scissor(uint32_t p_first_scissor,
+                             uint32_t p_scissor_count,
+                             std::span<const scissor_params> p_params) {
+                std::vector<VkRect2D> scissors(p_params.size());
+
+                for (uint32_t i = 0; i < scissors.size(); i++) {
+                    const auto scissor = p_params[i];
+                    scissors[i] = {
+                        .offset = scissor.offset,
+                        .extent = scissor.extent,
+                    };
+                }
+
+                vkCmdSetScissor(m_command_buffer,
+                                p_first_scissor,
+                                p_scissor_count,
+                                scissors.data());
+            }
+
             /**
              * @brief Explicitly API to properly do command buffer cleanup
              */
