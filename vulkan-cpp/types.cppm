@@ -728,7 +728,8 @@ export namespace vk {
             average_bit = VK_RESOLVE_MODE_AVERAGE_BIT,
             min_bit = VK_RESOLVE_MODE_MIN_BIT,
             max_bit = VK_RESOLVE_MODE_MAX_BIT,
-            external_format_downsample_bit = VK_RESOLVE_MODE_EXTERNAL_FORMAT_DOWNSAMPLE_BIT_ANDROID,
+            external_format_downsample_bit =
+              VK_RESOLVE_MODE_EXTERNAL_FORMAT_DOWNSAMPLE_BIT_ANDROID,
             custom_bit = VK_RESOLVE_MODE_CUSTOM_BIT_EXT,
             none_khr = VK_RESOLVE_MODE_NONE_KHR,
             sample_zero_bit_khr = VK_RESOLVE_MODE_SAMPLE_ZERO_BIT_KHR,
@@ -736,7 +737,8 @@ export namespace vk {
             min_bit_khr = VK_RESOLVE_MODE_MIN_BIT_KHR,
             max_bit_khr = VK_RESOLVE_MODE_MAX_BIT_KHR,
 
-            external_format_downsample_android = VK_RESOLVE_MODE_EXTERNAL_FORMAT_DOWNSAMPLE_ANDROID
+            external_format_downsample_android =
+              VK_RESOLVE_MODE_EXTERNAL_FORMAT_DOWNSAMPLE_ANDROID
         };
 
         enum primitive_topology : uint8_t {
@@ -1258,7 +1260,7 @@ export namespace vk {
             VkImageView image_view = nullptr;
             image_layout layout;
             resolved_mode_flags resolve_mode;
-            VkImageView resolve_image_view=nullptr;
+            VkImageView resolve_image_view = nullptr;
             image_layout resolve_image_layout;
             attachment_load load;
             attachment_store store;
@@ -1273,13 +1275,13 @@ export namespace vk {
          *
          */
         struct rendering_begin_parameters {
-            uint32_t rendering_flags=0;
+            uint32_t rendering_flags = 0;
             VkRect2D render_area{};
-            uint32_t layer_count=0;
-            uint32_t view_mask=0;
+            uint32_t layer_count = 1;
+            uint32_t view_mask = 0;
             std::span<const rendering_attachment> color_attachments{};
-            std::span<const rendering_attachment> depth_attachments{};
-            std::span<const rendering_attachment> stencil_attachments{};
+            const rendering_attachment depth_attachment{};
+            const rendering_attachment stencil_attachment{};
         };
 
         struct renderpass_begin_params {

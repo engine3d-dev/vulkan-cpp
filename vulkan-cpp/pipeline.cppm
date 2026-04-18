@@ -368,12 +368,15 @@ export namespace vk {
                   "vkCreatePipelineLayout");
 
                 VkPipelineRenderingCreateInfo rendering_ci = {
-                    .sType = VK_STRUCTURE_TYPE_PIPELINE_CREATE_INFO_KHR,
+                    // .sType = VK_STRUCTURE_TYPE_PIPELINE_CREATE_INFO_KHR,
+                    .sType =
+                      VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR,
                     .pNext = nullptr,
-                    .colorAttachmentCount =
-                      static_cast<uint32_t>(p_params.color_attachment_formats.size()),
-                    .pColorAttachmentFormats = reinterpret_cast<const VkFormat*>(
-                      p_params.color_attachment_formats.data()),
+                    .colorAttachmentCount = static_cast<uint32_t>(
+                      p_params.color_attachment_formats.size()),
+                    .pColorAttachmentFormats =
+                      reinterpret_cast<const VkFormat*>(
+                        p_params.color_attachment_formats.data()),
                     .depthAttachmentFormat =
                       static_cast<VkFormat>(p_params.depth_format),
                     .stencilAttachmentFormat =
@@ -399,9 +402,7 @@ export namespace vk {
                                        ? &dynamic_state_ci
                                        : nullptr,
                     .layout = m_pipeline_layout,
-                    .renderPass = p_params.use_render_pipeline
-                                    ? p_params.renderpass
-                                    : nullptr,
+                    .renderPass = p_params.renderpass,
                     .subpass = 0,
                     .basePipelineHandle = nullptr,
                     .basePipelineIndex = -1

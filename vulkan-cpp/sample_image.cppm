@@ -461,6 +461,34 @@ export namespace vk {
                         break;
                     }
 
+                    // LAYOUT_UNDEFINED -> COLOR_ATTACHMENT_OPTIMAL
+                    // Transition to a color attachment
+                    case image_layout(
+                      VK_IMAGE_LAYOUT_UNDEFINED,
+                      VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL): {
+                        image_memory_barrier.srcAccessMask = 0;
+                        image_memory_barrier.dstAccessMask =
+                          VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+                        source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+                        dst_stages =
+                          VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+                    }
+
+                    // COLOR_ATTACHMENT_OPTIMAL -> PRESENT_SRC_KHR
+                    // Transition from being a color attachment to being a
+                    // presentable operation
+                    case image_layout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                                      VK_IMAGE_LAYOUT_PRESENT_SRC_KHR): {
+                        image_memory_barrier.srcAccessMask =
+                          VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+                        image_memory_barrier.dstAccessMask = 0;
+
+                        source_stage =
+                          VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+                        dst_stages = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+                    }
+
                     default: {
                         // Unhandled Transition
                         break;
