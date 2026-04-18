@@ -517,7 +517,7 @@ main() {
 
         current.set_scissor(0, 1, std::span<const vk::scissor_params>(&scissor, 1));
 
-        current.begin_rendering(begin_params, {});
+        current.begin_rendering(begin_params);
 
         main_graphics_pipeline.bind(current);
         vkCmdDraw(current, 3, 1, 0, 0);
