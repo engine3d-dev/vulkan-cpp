@@ -254,7 +254,8 @@ export namespace vk {
             void memory_barrier(const VkCommandBuffer& p_command,
                                 VkFormat p_format,
                                 VkImageLayout p_old,
-                                VkImageLayout p_new) {
+                                VkImageLayout p_new,
+                                uint32_t p_aspect_mask = VK_IMAGE_ASPECT_COLOR_BIT) {
 
                 // 1. Image Memory Barrier Initialization (using C++ Designated
                 // Initializers - C++20)
@@ -269,7 +270,7 @@ export namespace vk {
                     .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                     .image = m_image,
                     .subresourceRange = { .aspectMask =
-                                            VK_IMAGE_ASPECT_COLOR_BIT,
+                                            static_cast<VkImageAspectFlags>(p_aspect_mask),
                                           .baseMipLevel = 0,
                                           .levelCount = 1,
                                           .baseArrayLayer = 0,
