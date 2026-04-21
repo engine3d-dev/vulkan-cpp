@@ -495,8 +495,9 @@ main() {
           VK_IMAGE_LAYOUT_UNDEFINED,
           VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-        // Because dynamic rendering does not automatically handle layout transitions
-        // These memory barriers set the color and depth images for the output
+        // Because dynamic rendering does not automatically handle layout
+        // transitions These memory barriers set the color and depth images for
+        // the output
         swapchain_depth_images[current_frame].memory_barrier(
           current,
           depth_format,

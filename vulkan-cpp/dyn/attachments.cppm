@@ -5,6 +5,4 @@ export module vk:attachments;
 
 import :types;
 
-
-namespace vk::dyn {
-};
+namespace vk::dyn {};
