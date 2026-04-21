@@ -728,9 +728,9 @@ export namespace vk {
             average_bit = VK_RESOLVE_MODE_AVERAGE_BIT,
             min_bit = VK_RESOLVE_MODE_MIN_BIT,
             max_bit = VK_RESOLVE_MODE_MAX_BIT,
-            external_format_downsample_bit =
-              VK_RESOLVE_MODE_EXTERNAL_FORMAT_DOWNSAMPLE_BIT_ANDROID,
-            custom_bit = VK_RESOLVE_MODE_CUSTOM_BIT_EXT,
+            // external_format_downsample_bit =
+            //   VK_RESOLVE_MODE_EXTERNAL_FORMAT_DOWNSAMPLE_BIT_ANDROID,
+            // custom_bit = VK_RESOLVE_MODE_CUSTOM_BIT_EXT,
             none_khr = VK_RESOLVE_MODE_NONE_KHR,
             sample_zero_bit_khr = VK_RESOLVE_MODE_SAMPLE_ZERO_BIT_KHR,
             average_bit_khr = VK_RESOLVE_MODE_AVERAGE_BIT_KHR,
