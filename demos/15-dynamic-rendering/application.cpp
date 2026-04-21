@@ -235,8 +235,6 @@ get_instance_extensions() {
     return extension_names;
 }
 
-
-
 int
 main() {
     //! @note Just added the some test code to test the conan-starter setup code
@@ -308,10 +306,14 @@ main() {
     std::array<float, 1> priorities = { 0.f };
 
 #if defined(__APPLE__)
-    std::array<const char*, 2> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-                                              "VK_KHR_portability_subset" };
+    std::array<const char*, 2> extensions = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        "VK_KHR_portability_subset",
+    };
 #else
-    std::array<const char*, 1> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+    std::array<const char*, 1> extensions = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+    };
 #endif
 
     std::array<vk::format, 3> format_support = {
@@ -365,6 +367,7 @@ main() {
 
     // Creating Images
     std::vector<vk::sample_image> swapchain_images(image_count);
+    std::vector<vk::sample_image> swapchain_depth_images(image_count);
 
     VkExtent2D swapchain_extent = surface_properties.capabilities.currentExtent;
 
@@ -386,6 +389,22 @@ main() {
 
         swapchain_images[i] =
           vk::sample_image(logical_device, images[i], swapchain_image_config);
+
+        vk::image_params image_config = {
+            .extent = {
+                .width = swapchain_extent.width,
+                .height = swapchain_extent.height,
+            },
+            .format = depth_format,
+            .memory_mask = physical_device.memory_properties(
+              vk::memory_property::device_local_bit),
+            .aspect = vk::image_aspect_flags::depth_bit,
+            .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+            .mip_levels = 1,
+            .layer_count = 1,
+        };
+        swapchain_depth_images[i] =
+          vk::sample_image(logical_device, image_config);
     }
 
     // setting up command buffers
@@ -411,7 +430,6 @@ main() {
 
     // gets set with the renderpass
     std::array<float, 4> color = { 0.f, 0.5f, 0.5f, 1.f };
-
 
     // Loading graphics pipeline
     std::array<vk::shader_source, 2> shader_sources = {
@@ -441,7 +459,8 @@ main() {
     vk::pipeline_params pipeline_configuration = {
         .use_render_pipeline = true,
         .color_attachment_formats = std::span<const uint32_t>(&format, 1),
-        .depth_format = static_cast<uint32_t>(vk::format::undefined),
+        .depth_format = static_cast<uint32_t>(depth_format),
+        .stencil_format = static_cast<uint32_t>(depth_format),
         .renderpass = nullptr,
         .shader_modules = geometry_resource.handles(),
         .vertex_attributes = geometry_resource.vertex_attributes(),
@@ -454,7 +473,6 @@ main() {
     };
     vk::pipeline main_graphics_pipeline(logical_device, pipeline_configuration);
 
-
     VkClearValue clear_color = {
         { 0.f, 0.5f, 0.5f, 1.f },
     };
@@ -462,7 +480,6 @@ main() {
     VkClearValue depth_value = {
         .depthStencil = { .depth = 1.f, .stencil = 0 },
     };
-
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -478,6 +495,15 @@ main() {
           VK_IMAGE_LAYOUT_UNDEFINED,
           VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
+        // Because dynamic rendering does not automatically handle layout transitions
+        // These memory barriers set the color and depth images for the output
+        swapchain_depth_images[current_frame].memory_barrier(
+          current,
+          depth_format,
+          VK_IMAGE_LAYOUT_UNDEFINED,
+          VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+          VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
+
         vk::rendering_attachment color_render_attachment = {
             .image_view = swapchain_images[current_frame].image_view(),
             .layout = vk::image_layout::color_optimal,
@@ -489,6 +515,17 @@ main() {
             .clear_values = clear_color
         };
 
+        vk::rendering_attachment depth_render_attachment = {
+            .image_view = swapchain_depth_images[current_frame].image_view(),
+            .layout = vk::image_layout::depth_stencil_optimal,
+            .resolve_mode = vk::resolved_mode_flags::none,
+            .resolve_image_view = nullptr,
+            .resolve_image_layout = vk::image_layout::undefined,
+            .load = vk::attachment_load::clear,
+            .store = vk::attachment_store::store,
+            .depth_values = depth_value
+        };
+
         vk::rendering_begin_parameters begin_params = {
             .render_area = { { 0, 0 },
                              {
@@ -498,6 +535,8 @@ main() {
             .layer_count = 1,
             .color_attachments = std::span<const vk::rendering_attachment>(
               &color_render_attachment, 1),
+            .depth_attachment = depth_render_attachment,
+            .stencil_attachment = depth_render_attachment,
         };
 
         vk::viewport_params viewport = {
@@ -508,14 +547,16 @@ main() {
             .min_depth = 0.0f,
             .max_depth = 1.0f,
         };
-        current.set_viewport(0, 1, std::span<const vk::viewport_params>(&viewport, 1));
+        current.set_viewport(
+          0, 1, std::span<const vk::viewport_params>(&viewport, 1));
 
         vk::scissor_params scissor = {
             .offset = { 0, 0 },
             .extent = swapchain_extent,
         };
 
-        current.set_scissor(0, 1, std::span<const vk::scissor_params>(&scissor, 1));
+        current.set_scissor(
+          0, 1, std::span<const vk::scissor_params>(&scissor, 1));
 
         current.begin_rendering(begin_params);
 
@@ -549,6 +590,10 @@ main() {
     }
 
     for (auto& image : swapchain_images) {
+        image.destroy();
+    }
+
+    for (auto& image : swapchain_depth_images) {
         image.destroy();
     }
 
