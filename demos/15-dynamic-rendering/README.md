@@ -107,6 +107,33 @@ Now with Dynamic Rendering. You no longer need to keep track and create framebuf
 You can completely remove the creation of the renderpass and framebuffer handles. Replace `vk::attachment` with `vk::rendering_attachment`.
 
 
+## Preparing Graphics Pipeline
+
+Before getting dynamic rendering to work, you must also set a few parameters for the graphics pipeline to set the `VkPipelineRenderingCreateInfo`.
+
+This rendering create info parameters are used to specify attachment information the graphics pipeline should expect to receive.
+
+```C++
+vk::pipeline_params pipeline_configuration = {
+    .use_render_pipeline = true, // Dynamic Rendering
+    .color_attachment_formats = std::span<const uint32_t>(&format, 1), // Dynamic Rendering
+    .depth_format = static_cast<uint32_t>(depth_format), // Dynamic Rendering
+    .stencil_format = static_cast<uint32_t>(depth_format), // Dynamic Rendering
+    .renderpass = nullptr,
+    .shader_modules = geometry_resource.handles(),
+    .vertex_attributes = geometry_resource.vertex_attributes(),
+    .vertex_bind_attributes = geometry_resource.vertex_bind_attributes(),
+    .color_blend = {
+        .attachments = color_blend_attachments,
+    },
+    .depth_stencil_enabled = true,
+    .dynamic_states = dynamic_states,
+};
+vk::pipeline main_graphics_pipeline(logical_device, pipeline_configuration);
+```
+
+
+## Setting up Rendering Attachments
 Here are what the rendering attachments look like for dynamic rendering:
 
 ```C++
