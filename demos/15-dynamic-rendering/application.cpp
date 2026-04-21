@@ -515,7 +515,7 @@ main() {
             .clear_values = clear_color
         };
 
-        vk::rendering_attachment depth_render_attachment = {
+        vk::rendering_attachment depth_stencil_attachment = {
             .image_view = swapchain_depth_images[current_frame].image_view(),
             .layout = vk::image_layout::depth_stencil_optimal,
             .resolve_mode = vk::resolved_mode_flags::none,
@@ -535,8 +535,8 @@ main() {
             .layer_count = 1,
             .color_attachments = std::span<const vk::rendering_attachment>(
               &color_render_attachment, 1),
-            .depth_attachment = depth_render_attachment,
-            .stencil_attachment = depth_render_attachment,
+            .depth_attachment = depth_stencil_attachment,
+            .stencil_attachment = depth_stencil_attachment,
         };
 
         vk::viewport_params viewport = {

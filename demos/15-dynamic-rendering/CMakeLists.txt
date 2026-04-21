@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.27)
-project(model-loading CXX)
+cmake_minimum_required(VERSION 4.0)
+project(dynamic-rendering CXX)
 
 build_application(
     SOURCES
