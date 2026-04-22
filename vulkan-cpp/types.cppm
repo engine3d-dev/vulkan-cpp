@@ -1465,6 +1465,10 @@ export namespace vk {
                                                                  // VK_DESCRIPTOR_SET_LAYOUT_CREATE_FLAG_BITS_MAX_ENUM
         };
 
+        enum class descriptor_layout_flags : uint32_t {
+            none = 0x00000000,
+            update_after_bind_pool = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT,
+        };
 
         enum class descriptor_bind_flags : uint32_t {
             update_after_bind = VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT, // represents VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT
