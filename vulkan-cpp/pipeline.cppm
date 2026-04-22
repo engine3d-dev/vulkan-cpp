@@ -99,6 +99,10 @@ export namespace vk {
          * and scissor to configure for this graphics pipeline
          */
         struct pipeline_params {
+            bool use_render_pipeline = false;
+            std::span<const uint32_t> color_attachment_formats = {};
+            const uint32_t depth_format;
+            const uint32_t stencil_format;
             VkRenderPass renderpass = nullptr;
             std::span<const shader_handle> shader_modules{};
             std::span<const VkVertexInputAttributeDescription>
@@ -129,11 +133,12 @@ export namespace vk {
              *
              * @param p_device is logical device to create the graphics pipeline
              * handles
-             * @param p_info are the parameters for creating the pipelines with
+             * @param p_params are the parameters for creating the pipelines
+             * with
              */
-            pipeline(const VkDevice& p_device, const pipeline_params& p_info)
+            pipeline(const VkDevice& p_device, const pipeline_params& p_params)
               : m_device(p_device) {
-                configure(p_info);
+                configure(p_params);
             }
 
             /**
@@ -160,28 +165,28 @@ export namespace vk {
              *
              * ```
              *
-             * @param p_info is the parameters required to set the graphics
+             * @param p_params is the parameters required to set the graphics
              * pipeline handles
              *
              * More info on vulkan's official
              * [docs](https://docs.vulkan.org/refpages/latest/refpages/source/vkCreateGraphicsPipelines.html)
              */
-            void configure(const pipeline_params& p_info) {
+            void configure(const pipeline_params& p_params) {
                 std::vector<VkPipelineShaderStageCreateInfo>
-                  pipeline_shader_stages(p_info.shader_modules.size());
+                  pipeline_shader_stages(p_params.shader_modules.size());
 
                 uint32_t shader_src_index = 0;
 
                 // 1. Load in and setup the VKShaderModule handlers for
                 // VkPipeline
-                for (const shader_handle& src : p_info.shader_modules) {
+                for (const shader_handle& src : p_params.shader_modules) {
                     VkShaderStageFlags stage =
                       static_cast<VkShaderStageFlags>(src.stage);
                     pipeline_shader_stages[shader_src_index] =
                       VkPipelineShaderStageCreateInfo{
                           .sType =
                             VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-                          .stage = (VkShaderStageFlagBits)stage,
+                          .stage = static_cast<VkShaderStageFlagBits>(stage),
                           .module = src.module,
                           .pName = "main"
                       };
@@ -191,9 +196,9 @@ export namespace vk {
 
                 // 2. Setting up the vertex attribute details for VkPipeline
                 std::span<const VkVertexInputBindingDescription>
-                  bind_attributes = p_info.vertex_bind_attributes;
+                  bind_attributes = p_params.vertex_bind_attributes;
                 std::span<const VkVertexInputAttributeDescription> attributes =
-                  p_info.vertex_attributes;
+                  p_params.vertex_attributes;
 
                 VkPipelineVertexInputStateCreateInfo vertex_input_info = {
                     .sType =
@@ -210,16 +215,16 @@ export namespace vk {
                     .sType =
                       VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
                     .topology = static_cast<VkPrimitiveTopology>(
-                      p_info.input_assembly.topology),
+                      p_params.input_assembly.topology),
                     .primitiveRestartEnable =
-                      p_info.input_assembly.primitive_restart_enable,
+                      p_params.input_assembly.primitive_restart_enable,
                 };
 
                 VkPipelineViewportStateCreateInfo viewport_state = {
                     .sType =
                       VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
-                    .viewportCount = p_info.viewport.viewport_count,
-                    .scissorCount = p_info.viewport.scissor_count,
+                    .viewportCount = p_params.viewport.viewport_count,
+                    .scissorCount = p_params.viewport.scissor_count,
                 };
 
                 // if lineWidth is zero, validation layers will occur
@@ -228,74 +233,76 @@ export namespace vk {
                     .sType =
                       VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
                     .depthClampEnable =
-                      p_info.rasterization.depth_clamp_enabled,
+                      p_params.rasterization.depth_clamp_enabled,
                     .rasterizerDiscardEnable =
-                      p_info.rasterization.rasterizer_discard_enabled,
+                      p_params.rasterization.rasterizer_discard_enabled,
                     .polygonMode = static_cast<VkPolygonMode>(
-                      p_info.rasterization.polygon_mode),
+                      p_params.rasterization.polygon_mode),
                     .cullMode = static_cast<VkCullModeFlags>(
-                      p_info.rasterization.cull_mode),
-                    .frontFace =
-                      static_cast<VkFrontFace>(p_info.rasterization.front_face),
-                    .depthBiasEnable = p_info.rasterization.depth_bias_enabled,
+                      p_params.rasterization.cull_mode),
+                    .frontFace = static_cast<VkFrontFace>(
+                      p_params.rasterization.front_face),
+                    .depthBiasEnable =
+                      p_params.rasterization.depth_bias_enabled,
                     .depthBiasConstantFactor =
-                      p_info.rasterization.depth_bias_constant,
-                    .depthBiasClamp = p_info.rasterization.depth_bias_clamp,
+                      p_params.rasterization.depth_bias_constant,
+                    .depthBiasClamp = p_params.rasterization.depth_bias_clamp,
                     .depthBiasSlopeFactor =
-                      p_info.rasterization.depth_bias_slope,
-                    .lineWidth = p_info.rasterization.line_width
+                      p_params.rasterization.depth_bias_slope,
+                    .lineWidth = p_params.rasterization.line_width
                 };
 
                 VkPipelineMultisampleStateCreateInfo multisampling_ci = {
                     .sType =
                       VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
                     .rasterizationSamples = static_cast<VkSampleCountFlagBits>(
-                      p_info.multisample.rasterization_samples),
-                    .sampleShadingEnable = p_info.multisample.shading_enabled,
-                    .minSampleShading = p_info.multisample.min_shading,
-                    .pSampleMask = p_info.multisample.p_sample_masks.data(),
+                      p_params.multisample.rasterization_samples),
+                    .sampleShadingEnable = p_params.multisample.shading_enabled,
+                    .minSampleShading = p_params.multisample.min_shading,
+                    .pSampleMask = p_params.multisample.p_sample_masks.data(),
                     .alphaToCoverageEnable =
-                      p_info.multisample.alpha_to_coverage_enable,
-                    .alphaToOneEnable = p_info.multisample.alpha_to_one_enable,
+                      p_params.multisample.alpha_to_coverage_enable,
+                    .alphaToOneEnable =
+                      p_params.multisample.alpha_to_one_enable,
                 };
 
                 std::vector<VkPipelineColorBlendAttachmentState>
                   color_blend_attachments(
-                    p_info.color_blend.attachments.size());
+                    p_params.color_blend.attachments.size());
 
                 for (size_t i = 0; i < color_blend_attachments.size(); i++) {
                     color_blend_attachments[i] = {
                         .blendEnable =
-                          p_info.color_blend.attachments[i].blend_enabled,
+                          p_params.color_blend.attachments[i].blend_enabled,
                         .srcColorBlendFactor = static_cast<VkBlendFactor>(
-                          p_info.color_blend.attachments[i]
+                          p_params.color_blend.attachments[i]
                             .src_color_blend_factor), // Enabled: alpha blending
                         .dstColorBlendFactor = static_cast<VkBlendFactor>(
-                          p_info.color_blend.attachments[i]
+                          p_params.color_blend.attachments[i]
                             .dst_color_blend_factor), // Enabled: alpha blending
                         .colorBlendOp = static_cast<VkBlendOp>(
-                          p_info.color_blend.attachments[i]
+                          p_params.color_blend.attachments[i]
                             .color_blend_op), // Enabled: alpha blending
                         .srcAlphaBlendFactor = static_cast<VkBlendFactor>(
-                          p_info.color_blend.attachments[i]
+                          p_params.color_blend.attachments[i]
                             .src_alpha_blend_factor), // Enabled: alpha blending
                         .dstAlphaBlendFactor = static_cast<VkBlendFactor>(
-                          p_info.color_blend.attachments[i]
+                          p_params.color_blend.attachments[i]
                             .dst_alpha_blend_factor), // Enabled: alpha blending
                         .alphaBlendOp = static_cast<VkBlendOp>(
-                          p_info.color_blend.attachments[i]
+                          p_params.color_blend.attachments[i]
                             .alpha_blend_op), // Enabled: alpha blending
                         .colorWriteMask = static_cast<VkColorComponentFlags>(
-                          p_info.color_blend.attachments[i].color_write_mask),
+                          p_params.color_blend.attachments[i].color_write_mask),
                     };
                 }
 
                 VkPipelineColorBlendStateCreateInfo color_blending_ci = {
                     .sType =
                       VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-                    .logicOpEnable = p_info.color_blend.logic_op_enable,
+                    .logicOpEnable = p_params.color_blend.logic_op_enable,
                     .logicOp = static_cast<VkLogicOp>(
-                      p_info.color_blend.logical_op), // Optional
+                      p_params.color_blend.logical_op), // Optional
                     .attachmentCount =
                       static_cast<uint32_t>(color_blend_attachments.size()),
                     .pAttachments = color_blend_attachments.data(),
@@ -307,13 +314,13 @@ export namespace vk {
                 // Using ranges to load in the floats from an arbitrary array
                 // into this. Though it should only be valid to accept only 4
                 // floats rather then N arbitrary floats in this buffer.
-                if (!p_info.color_blend.blend_constants.empty()) {
+                if (!p_params.color_blend.blend_constants.empty()) {
                     // Get the first 4 elements in the span as those are
                     // the data we are to set the .blendConstants to.
                     // As .blendConstants only take up to 4 elements in the
                     // array.
                     std::span<float, 4> color_blend_constants =
-                      p_info.color_blend.blend_constants.first<4>();
+                      p_params.color_blend.blend_constants.first<4>();
                     std::ranges::copy(color_blend_constants.begin(),
                                       color_blend_constants.end(),
                                       color_blending_ci.blendConstants);
@@ -323,15 +330,16 @@ export namespace vk {
                   pipeline_deth_stencil_state_ci = {
                       .sType =
                         VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-                      .depthTestEnable = p_info.depth_stencil.depth_test_enable,
+                      .depthTestEnable =
+                        p_params.depth_stencil.depth_test_enable,
                       .depthWriteEnable =
-                        p_info.depth_stencil.depth_write_enable,
+                        p_params.depth_stencil.depth_write_enable,
                       .depthCompareOp = static_cast<VkCompareOp>(
-                        p_info.depth_stencil.depth_compare_op),
+                        p_params.depth_stencil.depth_compare_op),
                       .depthBoundsTestEnable =
-                        p_info.depth_stencil.depth_bounds_test_enable,
+                        p_params.depth_stencil.depth_bounds_test_enable,
                       .stencilTestEnable =
-                        p_info.depth_stencil.stencil_test_enable,
+                        p_params.depth_stencil.stencil_test_enable,
                   };
 
                 //! @note -- pipeline states needs to be baked into the pipeline
@@ -340,9 +348,9 @@ export namespace vk {
                     .sType =
                       VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
                     .dynamicStateCount =
-                      static_cast<uint32_t>(p_info.dynamic_states.size()),
+                      static_cast<uint32_t>(p_params.dynamic_states.size()),
                     .pDynamicStates = reinterpret_cast<const VkDynamicState*>(
-                      p_info.dynamic_states.data())
+                      p_params.dynamic_states.data())
                 };
 
                 // Specifies layout of the uniforms (data resources) to be used
@@ -350,8 +358,8 @@ export namespace vk {
                 VkPipelineLayoutCreateInfo pipeline_layout_ci = {
                     .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
                     .setLayoutCount =
-                      static_cast<uint32_t>(p_info.descriptor_layouts.size()),
-                    .pSetLayouts = p_info.descriptor_layouts.data(),
+                      static_cast<uint32_t>(p_params.descriptor_layouts.size()),
+                    .pSetLayouts = p_params.descriptor_layouts.data(),
                 };
 
                 vk_check(
@@ -359,9 +367,26 @@ export namespace vk {
                     m_device, &pipeline_layout_ci, nullptr, &m_pipeline_layout),
                   "vkCreatePipelineLayout");
 
+                VkPipelineRenderingCreateInfo rendering_ci = {
+                    // .sType = VK_STRUCTURE_TYPE_PIPELINE_CREATE_INFO_KHR,
+                    .sType =
+                      VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR,
+                    .pNext = nullptr,
+                    .colorAttachmentCount = static_cast<uint32_t>(
+                      p_params.color_attachment_formats.size()),
+                    .pColorAttachmentFormats =
+                      reinterpret_cast<const VkFormat*>(
+                        p_params.color_attachment_formats.data()),
+                    .depthAttachmentFormat =
+                      static_cast<VkFormat>(p_params.depth_format),
+                    .stencilAttachmentFormat =
+                      static_cast<VkFormat>(p_params.stencil_format),
+                };
+
                 VkGraphicsPipelineCreateInfo graphics_pipeline_ci = {
                     .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-                    .pNext = nullptr,
+                    .pNext =
+                      p_params.use_render_pipeline ? &rendering_ci : nullptr,
                     .flags = 0,
                     .stageCount =
                       static_cast<uint32_t>(pipeline_shader_stages.size()),
@@ -373,11 +398,11 @@ export namespace vk {
                     .pMultisampleState = &multisampling_ci,
                     .pDepthStencilState = &pipeline_deth_stencil_state_ci,
                     .pColorBlendState = &color_blending_ci,
-                    .pDynamicState = (p_info.depth_stencil_enabled)
+                    .pDynamicState = (p_params.depth_stencil_enabled)
                                        ? &dynamic_state_ci
                                        : nullptr,
                     .layout = m_pipeline_layout,
-                    .renderPass = p_info.renderpass,
+                    .renderPass = p_params.renderpass,
                     .subpass = 0,
                     .basePipelineHandle = nullptr,
                     .basePipelineIndex = -1

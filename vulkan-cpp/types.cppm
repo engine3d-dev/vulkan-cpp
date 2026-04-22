@@ -722,6 +722,25 @@ export namespace vk {
             shader_read_only_optimal = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
         };
 
+        enum class resolved_mode_flags : uint32_t {
+            none = VK_RESOLVE_MODE_NONE,
+            sample_zero_bit = VK_RESOLVE_MODE_SAMPLE_ZERO_BIT,
+            average_bit = VK_RESOLVE_MODE_AVERAGE_BIT,
+            min_bit = VK_RESOLVE_MODE_MIN_BIT,
+            max_bit = VK_RESOLVE_MODE_MAX_BIT,
+            // external_format_downsample_bit =
+            //   VK_RESOLVE_MODE_EXTERNAL_FORMAT_DOWNSAMPLE_BIT_ANDROID,
+            // custom_bit = VK_RESOLVE_MODE_CUSTOM_BIT_EXT,
+            none_khr = VK_RESOLVE_MODE_NONE_KHR,
+            sample_zero_bit_khr = VK_RESOLVE_MODE_SAMPLE_ZERO_BIT_KHR,
+            average_bit_khr = VK_RESOLVE_MODE_AVERAGE_BIT_KHR,
+            min_bit_khr = VK_RESOLVE_MODE_MIN_BIT_KHR,
+            max_bit_khr = VK_RESOLVE_MODE_MAX_BIT_KHR,
+
+            external_format_downsample_android =
+              VK_RESOLVE_MODE_EXTERNAL_FORMAT_DOWNSAMPLE_ANDROID
+        };
+
         enum primitive_topology : uint8_t {
             point_light = VK_PRIMITIVE_TOPOLOGY_POINT_LIST,
             line_light = VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
@@ -1211,6 +1230,20 @@ export namespace vk {
               VK_PIPELINE_BIND_POINT_MAX_ENUM // VK_PIPELINE_BIND_POINT_MAX_ENUM
         };
 
+        struct viewport_params {
+            float x = 0.f;
+            float y = 0.f;
+            float width = 0.f;
+            float height = 0.f;
+            float min_depth = 0.f;
+            float max_depth = 1.f;
+        };
+
+        struct scissor_params {
+            VkOffset2D offset;
+            VkExtent2D extent;
+        };
+
         /**
          * @brief Specifies a specific attachment that a renderpass may operate
          * using
@@ -1229,6 +1262,40 @@ export namespace vk {
             attachment_store stencil_store;
             image_layout initial_layout;
             image_layout final_layout;
+        };
+
+        /**
+         *
+         * @brief Rendering attachment specifically used for performing
+         * attachments specifically for dynamic rendering.
+         *
+         */
+        struct rendering_attachment {
+            VkImageView image_view = nullptr;
+            image_layout layout;
+            resolved_mode_flags resolve_mode;
+            VkImageView resolve_image_view = nullptr;
+            image_layout resolve_image_layout;
+            attachment_load load;
+            attachment_store store;
+            VkClearValue clear_values;
+            VkClearValue depth_values;
+        };
+
+        /**
+         *
+         * @brief Performing begin/end semantics for rendering specifically when
+         * dynamic rendering has been enabled.
+         *
+         */
+        struct rendering_begin_parameters {
+            uint32_t rendering_flags = 0;
+            VkRect2D render_area{};
+            uint32_t layer_count = 1;
+            uint32_t view_mask = 0;
+            std::span<const rendering_attachment> color_attachments{};
+            const rendering_attachment depth_attachment{};
+            const rendering_attachment stencil_attachment{};
         };
 
         struct renderpass_begin_params {

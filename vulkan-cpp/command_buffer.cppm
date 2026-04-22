@@ -3,6 +3,7 @@ module;
 #include <span>
 #include <vulkan/vulkan.h>
 #include <vector>
+#include <print>
 
 export module vk:command_buffer;
 
@@ -164,6 +165,144 @@ export namespace vk {
                 m_begin_end_count++;
                 vkEndCommandBuffer(m_command_buffer);
             }
+
+            /**
+             * @brief Begin recording dynamic rendering pass instance
+             *
+             * Example Usage:
+             * ```C++
+             *
+             * vk::command_buffer current_command = ...;
+             *
+             * std::array<vk::rendering_attachment, 1> color_attachments = {
+             *      vk::rendering_attachment{
+             *          .image_view = ...,
+             *          .image_layout = ...,
+             *          .resolve_mode = ...,
+             *          .resolve_image_layout = ...,
+             *          .load = ...,
+             *          .store = ...,
+             *          .clear_values = {...},
+             *      }
+             * };
+             *
+             * std::array<vk::rendering_attachment, 1> depth_attachments = {
+             *      vk::rendering_attachment{
+             *          .image_view = ...,
+             *          .image_layout = ...,
+             *          .resolve_mode = ...,
+             *          .resolve_image_layout = ...,
+             *          .load = ...,
+             *          .store = ...,
+             *          .clear_values = {...},
+             *      }
+             * };
+             *
+             * vk;:rendering_begin_parameters begin_params = {
+             *      .render_area = {x, y},
+             *      .color_attachments = color_attachments,
+             *      .depth_attachments = depth_attachments,
+             * };
+             * current_command.begin_rendering(begin_params);
+             *
+             * current_command.end();
+             *
+             * ```
+             *
+             */
+            void begin_rendering(
+              const rendering_begin_parameters& p_parameters) {
+                std::vector<VkRenderingAttachmentInfo> color_attachments(
+                  p_parameters.color_attachments.size());
+
+                // Loading and setting color attachments (if any are set)
+                for (size_t i = 0; i < color_attachments.size(); i++) {
+                    rendering_attachment color_attach =
+                      p_parameters.color_attachments[i];
+                    color_attachments[i] = {
+                        .sType =
+                          VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR,
+                        .pNext = nullptr,
+                        .imageView = color_attach.image_view,
+                        .imageLayout =
+                          static_cast<VkImageLayout>(color_attach.layout),
+                        .resolveMode = static_cast<VkResolveModeFlagBits>(
+                          color_attach.resolve_mode),
+                        .resolveImageView = color_attach.resolve_image_view,
+                        .resolveImageLayout = static_cast<VkImageLayout>(
+                          color_attach.resolve_image_layout),
+                        .loadOp =
+                          static_cast<VkAttachmentLoadOp>(color_attach.load),
+                        .storeOp =
+                          static_cast<VkAttachmentStoreOp>(color_attach.store),
+                        .clearValue = color_attach.clear_values,
+                    };
+                }
+
+                // Loading and setting depth attachments (if any are set)
+                rendering_attachment depth_attach =
+                  p_parameters.depth_attachment;
+                VkRenderingAttachmentInfo depth_attachment = {
+                    .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+                    .pNext = nullptr,
+                    .imageView = depth_attach.image_view,
+                    .imageLayout =
+                      static_cast<VkImageLayout>(depth_attach.layout),
+                    .resolveMode = static_cast<VkResolveModeFlagBits>(
+                      depth_attach.resolve_mode),
+                    .resolveImageView = depth_attach.resolve_image_view,
+                    .resolveImageLayout = static_cast<VkImageLayout>(
+                      depth_attach.resolve_image_layout),
+                    .loadOp =
+                      static_cast<VkAttachmentLoadOp>(depth_attach.load),
+                    .storeOp =
+                      static_cast<VkAttachmentStoreOp>(depth_attach.store),
+                    .clearValue = depth_attach.depth_values,
+                };
+
+                // Loading and setting stencil attachments (if any are set)
+                rendering_attachment stencil_attach =
+                  p_parameters.stencil_attachment;
+                VkRenderingAttachmentInfo stencil_attachment = {
+                    .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+                    .pNext = nullptr,
+                    .imageView = stencil_attach.image_view,
+                    .imageLayout =
+                      static_cast<VkImageLayout>(stencil_attach.layout),
+                    .resolveMode = static_cast<VkResolveModeFlagBits>(
+                      stencil_attach.resolve_mode),
+                    .resolveImageView = stencil_attach.resolve_image_view,
+                    .resolveImageLayout = static_cast<VkImageLayout>(
+                      stencil_attach.resolve_image_layout),
+                    .loadOp =
+                      static_cast<VkAttachmentLoadOp>(stencil_attach.load),
+                    .storeOp =
+                      static_cast<VkAttachmentStoreOp>(stencil_attach.store),
+                    .clearValue = stencil_attach.depth_values,
+                };
+
+                VkRenderingInfo rendering_begin_info = {
+                    .sType = VK_STRUCTURE_TYPE_RENDERING_INFO_KHR,
+                    .pNext = nullptr,
+                    .flags = static_cast<VkRenderingFlags>(
+                      p_parameters.rendering_flags),
+                    .renderArea = p_parameters.render_area,
+                    .layerCount = p_parameters.layer_count,
+                    .viewMask = p_parameters.view_mask,
+                    .colorAttachmentCount =
+                      static_cast<uint32_t>(color_attachments.size()),
+                    .pColorAttachments = color_attachments.data(),
+                    .pDepthAttachment = &depth_attachment,
+                    .pStencilAttachment = &stencil_attachment,
+                };
+
+                vkCmdBeginRendering(m_command_buffer, &rendering_begin_info);
+            }
+
+            /**
+             * @brief End recording for dynamic rendering pass
+             */
+            void end_rendering() { vkCmdEndRendering(m_command_buffer); }
 
             /**
              * @brief Transferring the raw geomtric data of vertices to the
@@ -461,6 +600,47 @@ export namespace vk {
                 vkCmdExecuteCommands(m_command_buffer,
                                      static_cast<uint32_t>(p_commands.size()),
                                      p_commands.data());
+            }
+
+            void set_viewport(uint32_t p_first_viewport,
+                              uint32_t p_viewport_count,
+                              std::span<const viewport_params> p_params) {
+                std::vector<VkViewport> viewports(p_params.size());
+
+                for (uint32_t i = 0; i < viewports.size(); i++) {
+                    const auto viewport = p_params[i];
+                    viewports[i] = {
+                        .x = viewport.x,
+                        .y = viewport.x,
+                        .width = viewport.width,
+                        .height = viewport.height,
+                        .minDepth = viewport.min_depth,
+                        .maxDepth = viewport.max_depth,
+                    };
+                }
+                vkCmdSetViewport(m_command_buffer,
+                                 p_first_viewport,
+                                 p_viewport_count,
+                                 viewports.data());
+            }
+
+            void set_scissor(uint32_t p_first_scissor,
+                             uint32_t p_scissor_count,
+                             std::span<const scissor_params> p_params) {
+                std::vector<VkRect2D> scissors(p_params.size());
+
+                for (uint32_t i = 0; i < scissors.size(); i++) {
+                    const auto scissor = p_params[i];
+                    scissors[i] = {
+                        .offset = scissor.offset,
+                        .extent = scissor.extent,
+                    };
+                }
+
+                vkCmdSetScissor(m_command_buffer,
+                                p_first_scissor,
+                                p_scissor_count,
+                                scissors.data());
             }
 
             /**

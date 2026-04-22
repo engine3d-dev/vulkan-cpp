@@ -251,10 +251,12 @@ export namespace vk {
              * ```
              *
              */
-            void memory_barrier(const VkCommandBuffer& p_command,
-                                VkFormat p_format,
-                                VkImageLayout p_old,
-                                VkImageLayout p_new) {
+            void memory_barrier(
+              const VkCommandBuffer& p_command,
+              VkFormat p_format,
+              VkImageLayout p_old,
+              VkImageLayout p_new,
+              uint32_t p_aspect_mask = VK_IMAGE_ASPECT_COLOR_BIT) {
 
                 // 1. Image Memory Barrier Initialization (using C++ Designated
                 // Initializers - C++20)
@@ -269,7 +271,8 @@ export namespace vk {
                     .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                     .image = m_image,
                     .subresourceRange = { .aspectMask =
-                                            VK_IMAGE_ASPECT_COLOR_BIT,
+                                            static_cast<VkImageAspectFlags>(
+                                              p_aspect_mask),
                                           .baseMipLevel = 0,
                                           .levelCount = 1,
                                           .baseArrayLayer = 0,
@@ -459,6 +462,34 @@ export namespace vk {
                           VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
                         dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
                         break;
+                    }
+
+                    // LAYOUT_UNDEFINED -> COLOR_ATTACHMENT_OPTIMAL
+                    // Transition to a color attachment
+                    case image_layout(
+                      VK_IMAGE_LAYOUT_UNDEFINED,
+                      VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL): {
+                        image_memory_barrier.srcAccessMask = 0;
+                        image_memory_barrier.dstAccessMask =
+                          VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+                        source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+                        dst_stages =
+                          VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+                    }
+
+                    // COLOR_ATTACHMENT_OPTIMAL -> PRESENT_SRC_KHR
+                    // Transition from being a color attachment to being a
+                    // presentable operation
+                    case image_layout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                                      VK_IMAGE_LAYOUT_PRESENT_SRC_KHR): {
+                        image_memory_barrier.srcAccessMask =
+                          VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+                        image_memory_barrier.dstAccessMask = 0;
+
+                        source_stage =
+                          VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+                        dst_stages = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
                     }
 
                     default: {
