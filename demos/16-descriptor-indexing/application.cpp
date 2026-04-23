@@ -336,11 +336,11 @@ main() {
           .dynamicRendering = true,
         } },
         vk::descriptor_indexing_feature{ {
-          .descriptorBindingPartiallyBound = true,
-          .runtimeDescriptorArray = true,
-          .descriptorBindingVariableDescriptorCount = true,
-          .descriptorBindingSampledImageUpdateAfterBind = true,
           .shaderSampledImageArrayNonUniformIndexing = true,
+          .descriptorBindingSampledImageUpdateAfterBind = true,
+          .descriptorBindingPartiallyBound = true,
+          .descriptorBindingVariableDescriptorCount = true,
+          .runtimeDescriptorArray = true,
         } },
     };
 
