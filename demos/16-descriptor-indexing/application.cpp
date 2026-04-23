@@ -519,7 +519,7 @@ main() {
     // Set 1 = For Textures
     std::vector<vk::descriptor_entry> entries_set1 = {
         vk::descriptor_entry{
-            // layout (set = 1, binding = 0) uniform sampler2D
+            // layout (set = 1, binding = 0) uniform sampler2D textures[];
             .type = vk::buffer::combined_image_sampler,
             .binding_point = {
                 .binding = 0,
