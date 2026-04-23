@@ -337,6 +337,7 @@ main() {
             .descriptorBindingPartiallyBound = true,
             .runtimeDescriptorArray = true,
             .descriptorBindingVariableDescriptorCount = true,
+            .descriptorBindingSampledImageUpdateAfterBind = true,
         } },
     };
 
@@ -520,15 +521,21 @@ main() {
                 .stage = vk::shader_stage::fragment,
             },
             .descriptor_count = 1,
+            .flags = vk::descriptor_bind_flags::partially_bound_bit |
+                     vk::descriptor_bind_flags::variable_descriptor_count_bit |
+                     vk::descriptor_bind_flags::update_after_bind,
         }
     };
+
+    uint32_t max_descriptor = 1;
     vk::descriptor_layout set1_layout = {
         .slot = 1,               // indicate specific descriptor slot 0
         .max_sets = image_count, // max descriptors to allocate
         .entries = entries_set1, // descriptor layout entries description
+        .descriptor_counts = std::span<const uint32_t>(&max_descriptor, 1),
     };
 
-    vk::descriptor_resource set1_resource(logical_device, set1_layout);
+    vk::descriptor_resource set1_resource(logical_device, set1_layout, vk::descriptor_layout_flags::update_after_bind_pool);
 
 
     std::array<VkDescriptorSetLayout, 2> layouts = {

@@ -22,6 +22,7 @@ export namespace vk {
             uint32_t slot = 0;
             uint32_t max_sets = 0;
             std::span<descriptor_entry> entries;
+            std::span<const uint32_t> descriptor_counts={};
         };
 
         /**
@@ -190,9 +191,15 @@ export namespace vk {
                                                      nullptr,
                                                      &m_descriptor_layout),
                          "vkCreateDescriptorSetLayout");
+
+                VkDescriptorSetVariableDescriptorCountAllocateInfo descriptor_variable_cound_info = {
+                    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO,
+                    .descriptorSetCount = static_cast<uint32_t>(p_info.descriptor_counts.size()),
+                    .pDescriptorCounts = p_info.descriptor_counts.data(),
+                };
                 VkDescriptorSetAllocateInfo descriptor_set_alloc_info = {
                     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-                    .pNext = nullptr,
+                    .pNext = (p_info.descriptor_counts.size() == 0) ? nullptr : &descriptor_variable_cound_info,
                     .descriptorPool = m_descriptor_pool,
                     .descriptorSetCount = 1,
                     .pSetLayouts = &m_descriptor_layout
