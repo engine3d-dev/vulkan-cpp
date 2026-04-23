@@ -532,10 +532,12 @@ export namespace vk {
                                shader_stage p_stage,
                                uint32_t p_offset,
                                uint32_t p_range) {
-                // Perform compile-time checks
-                // Should only accept 128 bytes of data to send over push
-                // constants
-                static_assert(sizeof(T) != max_size);
+
+                // Perform compile-time checks if push constant data exceeds
+                // maximum size of data to be transferred via push constant
+                static_assert(sizeof(T) <= max_size,
+                              "Type T exceeds max allowed size of bytes for "
+                              "push constants.");
 
                 vkCmdPushConstants(p_current,
                                    m_pipeline_layout,
