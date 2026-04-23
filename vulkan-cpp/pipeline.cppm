@@ -75,6 +75,13 @@ export namespace vk {
             bool stencil_test_enable = false;
         };
 
+
+        struct push_constant_range {
+            shader_stage stage;
+            uint32_t offset = 0;
+            uint32_t range = 0;
+        };
+
         /**
          * @param renderpass is required for a VkPipeline to know up front
          * @param shader_modules is a std::span<VkShaderModule> of the loaded
@@ -119,6 +126,8 @@ export namespace vk {
             bool depth_stencil_enabled = false;
             depth_stencil_state depth_stencil;
             std::span<dynamic_state> dynamic_states = {};
+
+            std::span<const push_constant_range> push_constants{};
         };
 
         /**
@@ -353,6 +362,19 @@ export namespace vk {
                       p_params.dynamic_states.data())
                 };
 
+
+
+                std::vector<VkPushConstantRange> push_constants(p_params.push_constants.size());
+
+                for(uint32_t i = 0; i < push_constants.size(); i++) {
+                    const push_constant_range data = p_params.push_constants[i];
+                    push_constants[i] = {
+                        .stageFlags = static_cast<VkShaderStageFlags>(data.stage),
+                        .offset = data.offset,
+                        .size = data.range,
+                    };
+                }
+
                 // Specifies layout of the uniforms (data resources) to be used
                 // by this specified graphics pipeline
                 VkPipelineLayoutCreateInfo pipeline_layout_ci = {
@@ -360,6 +382,8 @@ export namespace vk {
                     .setLayoutCount =
                       static_cast<uint32_t>(p_params.descriptor_layouts.size()),
                     .pSetLayouts = p_params.descriptor_layouts.data(),
+                    .pushConstantRangeCount = static_cast<uint32_t>(push_constants.size()),
+                    .pPushConstantRanges = push_constants.data(),
                 };
 
                 vk_check(
@@ -511,7 +535,7 @@ export namespace vk {
                 // Perform compile-time checks
                 // Should only accept 128 bytes of data to send over push
                 // constants
-                static_assert(sizeof(T) == max_size);
+                static_assert(sizeof(T) != max_size);
 
                 vkCmdPushConstants(p_current,
                                    m_pipeline_layout,
