@@ -236,7 +236,7 @@ get_instance_extensions() {
 }
 
 struct push_constant_data {
-    uint32_t texture_index=0;
+    uint32_t texture_index = 0;
 };
 
 int
@@ -336,11 +336,11 @@ main() {
           .dynamicRendering = true,
         } },
         vk::descriptor_indexing_feature{ {
-            .descriptorBindingPartiallyBound = true,
-            .runtimeDescriptorArray = true,
-            .descriptorBindingVariableDescriptorCount = true,
-            .descriptorBindingSampledImageUpdateAfterBind = true,
-            .shaderSampledImageArrayNonUniformIndexing = true,
+          .descriptorBindingPartiallyBound = true,
+          .runtimeDescriptorArray = true,
+          .descriptorBindingVariableDescriptorCount = true,
+          .descriptorBindingSampledImageUpdateAfterBind = true,
+          .shaderSampledImageArrayNonUniformIndexing = true,
         } },
     };
 
@@ -443,11 +443,13 @@ main() {
     // Loading graphics pipeline
     std::array<vk::shader_source, 2> shader_sources = {
         vk::shader_source{
-          .filename = "shader_samples/sample8-descriptor-indexing/test.vert.spv",
+          .filename =
+            "shader_samples/sample8-descriptor-indexing/test.vert.spv",
           .stage = vk::shader_stage::vertex,
         },
         vk::shader_source{
-          .filename = "shader_samples/sample8-descriptor-indexing/test.frag.spv",
+          .filename =
+            "shader_samples/sample8-descriptor-indexing/test.frag.spv",
           .stage = vk::shader_stage::fragment,
         },
     };
@@ -538,8 +540,10 @@ main() {
         .descriptor_counts = std::span<const uint32_t>(&max_descriptor, 1),
     };
 
-    vk::descriptor_resource set1_resource(logical_device, set1_layout, vk::descriptor_layout_flags::update_after_bind_pool);
-
+    vk::descriptor_resource set1_resource(
+      logical_device,
+      set1_layout,
+      vk::descriptor_layout_flags::update_after_bind_pool);
 
     std::array<VkDescriptorSetLayout, 2> layouts = {
         set0_resource.layout(),
@@ -749,7 +753,8 @@ main() {
         push_constant_data push = {
             .texture_index = 0,
         };
-        main_graphics_pipeline.push_constant<push_constant_data>(current, push, stage, 0, sizeof(push_constant_data));
+        main_graphics_pipeline.push_constant<push_constant_data>(
+          current, push, stage, 0, sizeof(push_constant_data));
 
         // We set the uniforms and then we offload that to the GPU
         global_uniform ubo = {
