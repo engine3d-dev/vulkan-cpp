@@ -1467,14 +1467,23 @@ export namespace vk {
 
         enum class descriptor_layout_flags : uint32_t {
             none = 0x00000000,
-            update_after_bind_pool = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT,
+            update_after_bind_pool =
+              VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT,
         };
 
         enum class descriptor_bind_flags : uint32_t {
-            update_after_bind = VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT, // represents VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT
-            update_unused_while_pending = VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT, // represents VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT
-            partially_bound_bit = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT, // represents VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT
-            variable_descriptor_count_bit = VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT, // represents VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT
+            update_after_bind =
+              VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT, // represents
+                                                           // VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT
+            update_unused_while_pending =
+              VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT, // represents
+                                                                     // VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT
+            partially_bound_bit =
+              VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT, // represents
+                                                         // VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT
+            variable_descriptor_count_bit =
+              VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT, // represents
+                                                                   // VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT
         };
 
         //! @brief high-level specification for a shader source

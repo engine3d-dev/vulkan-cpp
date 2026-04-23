@@ -75,7 +75,6 @@ export namespace vk {
             bool stencil_test_enable = false;
         };
 
-
         struct push_constant_range {
             shader_stage stage;
             uint32_t offset = 0;
@@ -362,14 +361,14 @@ export namespace vk {
                       p_params.dynamic_states.data())
                 };
 
+                std::vector<VkPushConstantRange> push_constants(
+                  p_params.push_constants.size());
 
-
-                std::vector<VkPushConstantRange> push_constants(p_params.push_constants.size());
-
-                for(uint32_t i = 0; i < push_constants.size(); i++) {
+                for (uint32_t i = 0; i < push_constants.size(); i++) {
                     const push_constant_range data = p_params.push_constants[i];
                     push_constants[i] = {
-                        .stageFlags = static_cast<VkShaderStageFlags>(data.stage),
+                        .stageFlags =
+                          static_cast<VkShaderStageFlags>(data.stage),
                         .offset = data.offset,
                         .size = data.range,
                     };
@@ -382,7 +381,8 @@ export namespace vk {
                     .setLayoutCount =
                       static_cast<uint32_t>(p_params.descriptor_layouts.size()),
                     .pSetLayouts = p_params.descriptor_layouts.data(),
-                    .pushConstantRangeCount = static_cast<uint32_t>(push_constants.size()),
+                    .pushConstantRangeCount =
+                      static_cast<uint32_t>(push_constants.size()),
                     .pPushConstantRanges = push_constants.data(),
                 };
 
