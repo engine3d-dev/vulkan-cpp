@@ -235,6 +235,10 @@ get_instance_extensions() {
     return extension_names;
 }
 
+struct push_constant_data {
+    uint32_t texture_index=0;
+};
+
 int
 main() {
     //! @note Just added the some test code to test the conan-starter setup code
@@ -324,8 +328,6 @@ main() {
 
     // We provide a selection of format support that we want to check is
     // supported on current hardware device.
-    // VkFormat depth_format =
-    //   vk::select_depth_format(physical_device, format_support);
     VkFormat depth_format =
       physical_device.request_depth_format(format_support);
 
@@ -338,6 +340,7 @@ main() {
             .runtimeDescriptorArray = true,
             .descriptorBindingVariableDescriptorCount = true,
             .descriptorBindingSampledImageUpdateAfterBind = true,
+            .shaderSampledImageArrayNonUniformIndexing = true,
         } },
     };
 
@@ -440,11 +443,11 @@ main() {
     // Loading graphics pipeline
     std::array<vk::shader_source, 2> shader_sources = {
         vk::shader_source{
-          .filename = "shader_samples/sample5/test.vert.spv",
+          .filename = "shader_samples/sample8-descriptor-indexing/test.vert.spv",
           .stage = vk::shader_stage::vertex,
         },
         vk::shader_source{
-          .filename = "shader_samples/sample5/test.frag.spv",
+          .filename = "shader_samples/sample8-descriptor-indexing/test.frag.spv",
           .stage = vk::shader_stage::fragment,
         },
     };
@@ -552,6 +555,15 @@ main() {
     };
 
     uint32_t format = static_cast<uint32_t>(surface_properties.format.format);
+    uint32_t vertex_mask = static_cast<uint32_t>(vk::shader_stage::vertex);
+    uint32_t fragment_mask = static_cast<uint32_t>(vk::shader_stage::fragment);
+    uint32_t stage_mask = vertex_mask | fragment_mask;
+    vk::shader_stage stage = static_cast<vk::shader_stage>(stage_mask);
+    vk::push_constant_range range = {
+        .stage = stage,
+        .offset = 0,
+        .range = sizeof(push_constant_data),
+    };
     vk::pipeline_params pipeline_configuration = {
         .use_render_pipeline = true,
         .color_attachment_formats = std::span<const uint32_t>(&format, 1),
@@ -567,6 +579,7 @@ main() {
         },
         .depth_stencil_enabled = true,
         .dynamic_states = dynamic_states,
+        .push_constants = std::span<const vk::push_constant_range>(&range, 1),
     };
     vk::pipeline main_graphics_pipeline(logical_device, pipeline_configuration);
 
@@ -732,6 +745,11 @@ main() {
         float time = std::chrono::duration<float, std::chrono::seconds::period>(
                        current_time - start_time)
                        .count();
+
+        push_constant_data push = {
+            .texture_index = 0,
+        };
+        main_graphics_pipeline.push_constant<push_constant_data>(current, push, stage, 0, sizeof(push_constant_data));
 
         // We set the uniforms and then we offload that to the GPU
         global_uniform ubo = {
