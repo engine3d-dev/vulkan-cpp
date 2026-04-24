@@ -140,6 +140,13 @@ export namespace vk {
                                                    static_cast<T>(p_rhs));
         }
 
+        inline descriptor_bind_flags operator|(descriptor_bind_flags p_lhs,
+                                               descriptor_bind_flags p_rhs) {
+            using T = std::underlying_type_t<descriptor_bind_flags>;
+            return static_cast<descriptor_bind_flags>(static_cast<T>(p_lhs) |
+                                                      static_cast<T>(p_rhs));
+        }
+
         /**
          * @brief GPU memory is optimized differently for different tasks. An
          * image optimized for 'Transfer Destination' (filling with bytes) can

@@ -22,6 +22,7 @@ export namespace vk {
             uint32_t slot = 0;
             uint32_t max_sets = 0;
             std::span<descriptor_entry> entries;
+            std::span<const uint32_t> descriptor_counts = {};
         };
 
         /**
@@ -108,8 +109,10 @@ export namespace vk {
              * ```
              *
              */
-            descriptor_resource(const VkDevice& p_device,
-                                const descriptor_layout& p_info)
+            descriptor_resource(
+              const VkDevice& p_device,
+              const descriptor_layout& p_info,
+              descriptor_layout_flags p_flags = descriptor_layout_flags::none)
               : m_device(p_device)
               , m_slot(p_info.slot) {
                 std::vector<VkDescriptorPoolSize> pool_sizes(
@@ -148,7 +151,11 @@ export namespace vk {
                 VkDescriptorPoolCreateInfo pool_ci = {
                     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
                     .pNext = nullptr,
-                    .flags = 0,
+                    .flags = static_cast<VkDescriptorPoolCreateFlags>(
+                      (p_flags ==
+                       descriptor_layout_flags::update_after_bind_pool)
+                        ? VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT
+                        : 0),
                     .maxSets = p_info.max_sets,
                     .poolSizeCount = static_cast<uint32_t>(pool_sizes.size()),
                     .pPoolSizes = pool_sizes.data()
@@ -158,11 +165,32 @@ export namespace vk {
                            m_device, &pool_ci, nullptr, &m_descriptor_pool),
                          "vkCreateDescriptorPool");
 
+                // For Descriptor Indexing
+                // Enable binding flags
+
+                std::vector<VkDescriptorBindingFlags> binding_flags(
+                  p_info.entries.size());
+
+                for (uint32_t i = 0; i < binding_flags.size(); i++) {
+                    binding_flags[i] = static_cast<VkDescriptorBindingFlags>(
+                      p_info.entries[i].flags);
+                }
+
+                VkDescriptorSetLayoutBindingFlagsCreateInfo
+                  descriptor_layout_binding_flags = {
+                      .sType =
+                        VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO,
+                      .bindingCount =
+                        static_cast<uint32_t>(binding_flags.size()),
+                      .pBindingFlags = binding_flags.data(),
+                  };
+
                 VkDescriptorSetLayoutCreateInfo descriptor_layout_ci = {
                     .sType =
                       VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-                    .pNext = nullptr,
-                    .flags = 0,
+                    .pNext = &descriptor_layout_binding_flags,
+                    .flags =
+                      static_cast<VkDescriptorSetLayoutCreateFlags>(p_flags),
                     .bindingCount =
                       static_cast<uint32_t>(descriptor_layout_bindings.size()),
                     .pBindings = descriptor_layout_bindings.data()
@@ -173,9 +201,21 @@ export namespace vk {
                                                      nullptr,
                                                      &m_descriptor_layout),
                          "vkCreateDescriptorSetLayout");
+
+                VkDescriptorSetVariableDescriptorCountAllocateInfo
+                  descriptor_variable_cound_info = {
+                      .sType =
+                        VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO,
+                      .descriptorSetCount =
+                        static_cast<uint32_t>(p_info.descriptor_counts.size()),
+                      .pDescriptorCounts = p_info.descriptor_counts.data(),
+                  };
+
                 VkDescriptorSetAllocateInfo descriptor_set_alloc_info = {
                     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-                    .pNext = nullptr,
+                    .pNext = (p_info.descriptor_counts.size() == 0)
+                               ? nullptr
+                               : &descriptor_variable_cound_info,
                     .descriptorPool = m_descriptor_pool,
                     .descriptorSetCount = 1,
                     .pSetLayouts = &m_descriptor_layout
