@@ -113,13 +113,6 @@ main() {
     };
     vk::physical_device physical_device(api_instance, enumerate_devices);
 
-    // selecting depth format
-    std::array<vk::format, 3> format_support = {
-        vk::format::d32_sfloat,
-        vk::format::d32_sfloat_s8_uint,
-        vk::format::d24_unorm_s8_uint
-    };
-
     vk::queue_indices queue_indices = physical_device.family_indices();
 
     // setting up logical device
@@ -143,7 +136,7 @@ main() {
     vk::surface window_surface(api_instance, window);
 
     vk::surface_params surface_properties =
-      vk::enumerate_surface(physical_device, window_surface);
+      physical_device.request_surface(window_surface);
 
     vk::swapchain_params enumerate_swapchain_settings = {
         .width = static_cast<uint32_t>(width),
@@ -174,11 +167,12 @@ main() {
             .extent = { .width = swapchain_extent.width,
                         .height = swapchain_extent.height },
             .format = surface_properties.format.format,
+            .memory_mask = physical_device.memory_properties(
+              vk::memory_property::device_local_bit),
             .aspect = vk::image_aspect_flags::color_bit,
             .usage = vk::image_usage::color_attachment_bit,
             .mip_levels = 1,
             .layer_count = 1,
-            .phsyical_memory_properties = physical_device.memory_properties(),
         };
 
         swapchain_images[i] =
@@ -230,9 +224,6 @@ main() {
           vk::framebuffer(logical_device, framebuffer_info);
     }
 
-    std::println("Created VkFramebuffer's with size = {}",
-                 swapchain_framebuffers.size());
-
     // setting up presentation queue to display commands to the screen
     vk::queue_params enumerate_present_queue{
         .family = 0,
@@ -254,13 +245,12 @@ main() {
 
         // renderpass begin/end must be within a recording command buffer
         vk::renderpass_begin_params begin_renderpass = {
-            .current_command = current,
             .extent = swapchain_extent,
             .current_framebuffer = swapchain_framebuffers[current_frame],
             .color = color,
             .subpass = vk::subpass_contents::inline_bit
         };
-        main_renderpass.begin(begin_renderpass);
+        main_renderpass.begin(current, begin_renderpass);
 
         main_renderpass.end(current);
         current.end();
