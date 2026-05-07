@@ -477,13 +477,8 @@ main() {
         };
         main_renderpass.begin(current, begin_renderpass);
 
-        // Binding a graphics pipeline -- before drawing stuff
-        // Inside of this graphics pipeline bind, is where you want to do the
-        // drawing stuff to
         main_graphics_pipeline.bind(current);
 
-        // test_vbo.bind(current);
-        // test_ibo.bind(current);
 
         const VkBuffer vertex = test_vbo;
         uint64_t offset = 0;
