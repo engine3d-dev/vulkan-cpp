@@ -138,7 +138,7 @@ main() {
     // We provide a selection of format support that we want to check is
     // supported on current hardware device.
     VkFormat depth_format =
-      vk::select_depth_format(physical_device, format_support);
+      physical_device.request_depth_format(format_support);
 
     vk::queue_indices queue_indices = physical_device.family_indices();
     std::println("Graphics Queue Family Index = {}", queue_indices.graphics);
@@ -167,15 +167,15 @@ main() {
     std::println("Starting implementation of the swapchain!!!");
 
     vk::surface_params surface_properties =
-      vk::enumerate_surface(physical_device, window_surface);
+      physical_device.request_surface(window_surface);
 
     if (surface_properties.format.format != VK_FORMAT_UNDEFINED) {
         std::println("Surface Format.format is not undefined!!!");
     }
 
     vk::swapchain_params enumerate_swapchain_settings = {
-        .width = (uint32_t)width,
-        .height = (uint32_t)height,
+        .width = static_cast<uint32_t>(width),
+        .height = static_cast<uint32_t>(height),
         .present_index =
           physical_device.family_indices()
             .graphics, // presentation index just uses the graphics index
@@ -203,11 +203,12 @@ main() {
             .extent = { .width = swapchain_extent.width,
                         .height = swapchain_extent.height },
             .format = surface_properties.format.format,
+            .memory_mask = physical_device.memory_properties(
+              vk::memory_property::device_local_bit),
             .aspect = vk::image_aspect_flags::color_bit,
             .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
             .mip_levels = 1,
             .layer_count = 1,
-            .phsyical_memory_properties = physical_device.memory_properties()
         };
 
         swapchain_images[i] =
@@ -217,11 +218,12 @@ main() {
             .extent = { .width = swapchain_extent.width,
                         .height = swapchain_extent.height },
             .format = depth_format,
+            .memory_mask = physical_device.memory_properties(
+              vk::memory_property::device_local_bit),
             .aspect = vk::image_aspect_flags::depth_bit,
             .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
             .mip_levels = 1,
             .layer_count = 1,
-            .phsyical_memory_properties = physical_device.memory_properties()
         };
         swapchain_depth_images[i] =
           vk::sample_image(logical_device, image_config);
@@ -270,10 +272,7 @@ main() {
 
     vk::renderpass main_renderpass(logical_device, renderpass_attachments);
 
-    std::println("renderpass created!!!");
-
     // Setting up swapchain framebuffers
-
     std::vector<vk::framebuffer> swapchain_framebuffers(image_count);
     for (uint32_t i = 0; i < swapchain_framebuffers.size(); i++) {
         // image_view_attachments.push_back(swapchain_images[i].view);
@@ -297,9 +296,6 @@ main() {
           vk::framebuffer(logical_device, framebuffer_info);
     }
 
-    std::println("Created VkFramebuffer's with size = {}",
-                 swapchain_framebuffers.size());
-
     // setting up presentation queue to display commands to the screen
     vk::queue_params enumerate_present_queue{
         .family = 0,
@@ -311,15 +307,17 @@ main() {
     // gets set with the renderpass
     std::array<float, 4> color = { 0.f, 0.5f, 0.5f, 1.f };
 
-    std::println("Start implementing graphics pipeline!!!");
-
     // Now creating a vulkan graphics pipeline for the shader loading
     // We are using sample1 shaders which is just showing a triangle
     std::array<vk::shader_source, 2> shader_sources = {
-        vk::shader_source{ .filename = "shader_samples/sample1/test.vert.spv",
-                           .stage = vk::shader_stage::vertex },
-        vk::shader_source{ .filename = "shader_samples/sample1/test.frag.spv",
-                           .stage = vk::shader_stage::fragment },
+        vk::shader_source{
+          .filename = "shader_samples/sample1/test.vert.spv",
+          .stage = vk::shader_stage::vertex,
+        },
+        vk::shader_source{
+          .filename = "shader_samples/sample1/test.frag.spv",
+          .stage = vk::shader_stage::fragment,
+        },
     };
 
     // To render triangle, we do not need to set any vertex attributes
@@ -329,10 +327,6 @@ main() {
                                 // dont need to set this at all regardless
     };
     vk::shader_resource geometry_resource(logical_device, shader_info);
-
-    if (geometry_resource.is_valid()) {
-        std::println("geometry resource is valid!");
-    }
 
     std::array<vk::color_blend_attachment_state, 1> color_blend_attachments = {
         vk::color_blend_attachment_state{},
@@ -375,15 +369,17 @@ main() {
           .uv = { 1.f, 1.f },
         }
     };
-    vk::vertex_params vertex_info = {
-        .phsyical_memory_properties = physical_device.memory_properties(),
-        .vertices = vertices,
-    };
-    vk::vertex_buffer test_vbo(logical_device, vertex_info);
 
-    if (test_vbo.alive()) {
-        std::println("Vertex Buffer Successfully is valid and working!!!");
-    }
+    const auto property_flags =
+      static_cast<vk::memory_property>(vk::memory_property::host_visible_bit |
+                                       vk::memory_property::host_cached_bit);
+    vk::buffer_parameters vertex_params = {
+        .memory_mask = physical_device.memory_properties(property_flags),
+        .property_flags = vk::memory_property::device_local_bit,
+        .usage = static_cast<uint32_t>(vk::buffer_usage::transfer_dst_bit) |
+                 static_cast<uint32_t>(vk::buffer_usage::vertex_buffer_bit),
+    };
+    vk::vertex_buffer test_vbo(logical_device, vertices, vertex_params);
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -395,13 +391,12 @@ main() {
 
         // renderpass begin/end must be within a recording command buffer
         vk::renderpass_begin_params begin_renderpass = {
-            .current_command = current,
             .extent = swapchain_extent,
             .current_framebuffer = swapchain_framebuffers[current_frame],
             .color = color,
             .subpass = vk::subpass_contents::inline_bit
         };
-        main_renderpass.begin(begin_renderpass);
+        main_renderpass.begin(current, begin_renderpass);
 
         // Binding a graphics pipeline -- before drawing stuff
         // Inside of this graphics pipeline bind, is where you want to do the
