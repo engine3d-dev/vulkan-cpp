@@ -134,7 +134,7 @@ main() {
     // We provide a selection of format support that we want to check is
     // supported on current hardware device.
     VkFormat depth_format =
-      vk::select_depth_format(physical_device, format_support);
+      physical_device.request_depth_format(format_support);
 
     vk::queue_indices queue_indices = physical_device.family_indices();
     std::println("Graphics Queue Family Index = {}", queue_indices.graphics);
@@ -163,15 +163,15 @@ main() {
     std::println("Starting implementation of the swapchain!!!");
 
     vk::surface_params surface_properties =
-      vk::enumerate_surface(physical_device, window_surface);
+      physical_device.request_surface(window_surface);
 
     if (surface_properties.format.format != VK_FORMAT_UNDEFINED) {
         std::println("Surface Format.format is not undefined!!!");
     }
 
     vk::swapchain_params enumerate_swapchain_settings = {
-        .width = (uint32_t)width,
-        .height = (uint32_t)height,
+        .width = static_cast<uint32_t>(width),
+        .height = static_cast<uint32_t>(height),
         .present_index =
           physical_device.family_indices()
             .graphics, // presentation index just uses the graphics index
@@ -199,12 +199,12 @@ main() {
             .extent = { .width = swapchain_extent.width,
                         .height = swapchain_extent.height },
             .format = surface_properties.format.format,
+            .memory_mask = physical_device.memory_properties(
+              vk::memory_property::device_local_bit),
             .aspect = vk::image_aspect_flags::color_bit,
             .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
             .mip_levels = 1,
             .layer_count = 1,
-            // .physical_device = physical_device
-            .phsyical_memory_properties = physical_device.memory_properties()
         };
 
         swapchain_images[i] =
@@ -214,11 +214,12 @@ main() {
             .extent = { .width = swapchain_extent.width,
                         .height = swapchain_extent.height },
             .format = depth_format,
+            .memory_mask = physical_device.memory_properties(
+              vk::memory_property::device_local_bit),
             .aspect = vk::image_aspect_flags::depth_bit,
             .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
             .mip_levels = 1,
             .layer_count = 1,
-            .phsyical_memory_properties = physical_device.memory_properties()
         };
         swapchain_depth_images[i] =
           vk::sample_image(logical_device, image_config);
@@ -318,14 +319,16 @@ main() {
 
     // Setting up vertex attributes in the test shaders
     std::array<vk::vertex_attribute_entry, 2> attribute_entries = {
-        vk::vertex_attribute_entry{ .location = 0,
-                                    .format = vk::format::rg32_sfloat,
-                                    .stride =
-                                      offsetof(vk::vertex_input, position) },
-        vk::vertex_attribute_entry{ .location = 1,
-                                    .format = vk::format::rgb32_sfloat,
-                                    .stride =
-                                      offsetof(vk::vertex_input, color) }
+        vk::vertex_attribute_entry{
+          .location = 0,
+          .format = vk::format::rg32_sfloat,
+          .stride = offsetof(vk::vertex_input, position),
+        },
+        vk::vertex_attribute_entry{
+          .location = 1,
+          .format = vk::format::rgb32_sfloat,
+          .stride = offsetof(vk::vertex_input, color),
+        },
     };
 
     std::array<vk::vertex_attribute, 1> attributes = {
@@ -371,22 +374,10 @@ main() {
         .max_sets = image_count, // max of descriptor sets able to allocate
         .entries = entries,      // specifies pool sizes and descriptor layout
     };
-
-    // Setting up the actual descriptor set 0 and array to pass into the
-    // graphics pipeline since graphics pipeline requires the descriptor layouts
-    // to be known upfront
     vk::descriptor_resource set0_resource(logical_device, set0_layout);
 
-    // Array of descriptor layouts to give the graphics pipeline
     std::array<VkDescriptorSetLayout, 1> layouts = { set0_resource.layout() };
 
-    /*
-        This get_pipeline_configuration can work as an easy way for specfying
-       the vulkan configurations as an ease of setting things up
-        // TODO: Probably provide a shorthand - which could work as this:
-        vk::pipeline_settings pipeline_configuration =
-       vk::get_pipeline_configuration(main_renderpass, geometry_resource);
-    */
     std::array<vk::color_blend_attachment_state, 1> color_blend_attachments = {
         vk::color_blend_attachment_state{},
     };
@@ -409,11 +400,6 @@ main() {
     };
     vk::pipeline main_graphics_pipeline(logical_device, pipeline_configuration);
 
-    if (main_graphics_pipeline.alive()) {
-        std::println("Main graphics pipeline alive() = {}",
-                     main_graphics_pipeline.alive());
-    }
-
     // Setting up vertex buffer
     std::array<vk::vertex_input, 4> vertices = {
         vk::vertex_input{ .position = { -0.5f, -0.5f, 0.f },
@@ -425,40 +411,49 @@ main() {
         vk::vertex_input{ .position = { -0.5f, 0.5f, 0.f },
                           .color = { 1.0f, 1.0f, 1.0f } }
     };
-    vk::vertex_params vertex_info = {
-        // .physical_handle = physical_device,
-        .phsyical_memory_properties = physical_device.memory_properties(),
-        .vertices = vertices,
-    };
-    vk::vertex_buffer test_vbo(logical_device, vertex_info);
-    std::println("vertex_buffer.alive() = {}", test_vbo.alive());
+    const auto property_flags =
+      static_cast<vk::memory_property>(vk::memory_property::host_visible_bit |
+                                       vk::memory_property::host_cached_bit);
 
+    // Creating vertex buffer
+    vk::buffer_parameters vertex_params = {
+        .memory_mask = physical_device.memory_properties(property_flags),
+        .property_flags = vk::memory_property::device_local_bit,
+        .usage = static_cast<uint32_t>(vk::buffer_usage::transfer_dst_bit) |
+                 static_cast<uint32_t>(vk::buffer_usage::vertex_buffer_bit),
+    };
+    vk::vertex_buffer test_vbo(logical_device, vertices, vertex_params);
+
+    // Creating index buffer
     std::array<uint32_t, 6> indices = { 0, 1, 2, 2, 3, 0 };
-
-    vk::index_params index_info = {
-        .phsyical_memory_properties = physical_device.memory_properties(),
-        .indices = indices,
+    vk::buffer_parameters index_params = {
+        .memory_mask = physical_device.memory_properties(property_flags),
+        .property_flags = static_cast<vk::memory_property>(
+          vk::memory_property::host_visible_bit |
+          vk::memory_property::host_cached_bit),
+        .usage = static_cast<uint32_t>(vk::buffer_usage::index_buffer_bit),
     };
-    vk::index_buffer test_ibo(logical_device, index_info);
-    std::println("index_buffer.alive() = {}", test_ibo.alive());
+    vk::index_buffer test_ibo(logical_device, indices, index_params);
 
-    // Setting up our uniformss specifications and updating descriptor set 0 --
-    // with our global uniform data before we bind This has to be done before we
-    // bind so the shader resource knows how to look up our data layout and see
-    // if they match Will get validation layer error messages if the data layout
-    // does not match (meaning size_bytes doesn't match)
-    vk::uniform_params test_ubo_info = { // .physical_handle = physical_device,
-                                         .phsyical_memory_properties =
-                                           physical_device.memory_properties(),
-                                         .size_bytes = sizeof(global_uniform)
+    // Creating uniform buffer
+    vk::buffer_parameters uniform_params = {
+        .memory_mask =
+          physical_device.memory_properties(static_cast<vk::memory_property>(
+            vk::memory_property::host_visible_bit |
+            vk::memory_property::host_cached_bit)),
+        .usage = static_cast<uint32_t>(vk::buffer_usage::uniform_buffer_bit),
     };
-    vk::uniform_buffer test_ubo =
-      vk::uniform_buffer(logical_device, test_ubo_info);
-    std::println("uniform_buffer.alive() = {}", test_ubo.alive());
+    vk::uniform_buffer test_ubo = vk::uniform_buffer(
+      logical_device, sizeof(global_uniform), uniform_params);
 
     // vk::write_buffer_descriptor
-    std::array<vk::write_buffer, 1> uniforms0 = { vk::write_buffer{
-      .buffer = test_ubo, .offset = 0, .range = test_ubo.size_bytes() } };
+    std::array<vk::write_buffer, 1> uniforms0 = {
+        vk::write_buffer{
+          .buffer = test_ubo,
+          .offset = 0,
+          .range = static_cast<uint32_t>(test_ubo.size_bytes()),
+        },
+    };
 
     std::array<vk::write_buffer_descriptor, 1> uniforms = {
         vk::write_buffer_descriptor{ .dst_binding = 0, .uniforms = uniforms0 }
@@ -475,21 +470,29 @@ main() {
 
         // renderpass begin/end must be within a recording command buffer
         vk::renderpass_begin_params begin_renderpass = {
-            .current_command = current,
             .extent = swapchain_extent,
             .current_framebuffer = swapchain_framebuffers[current_frame],
             .color = color,
             .subpass = vk::subpass_contents::inline_bit
         };
-        main_renderpass.begin(begin_renderpass);
+        main_renderpass.begin(current, begin_renderpass);
 
         // Binding a graphics pipeline -- before drawing stuff
         // Inside of this graphics pipeline bind, is where you want to do the
         // drawing stuff to
         main_graphics_pipeline.bind(current);
 
-        test_vbo.bind(current);
-        test_ibo.bind(current);
+        // test_vbo.bind(current);
+        // test_ibo.bind(current);
+
+        const VkBuffer vertex = test_vbo;
+        uint64_t offset = 0;
+        current.bind_vertex_buffers(std::span<const VkBuffer>(&vertex, 1),
+                                    std::span<uint64_t>(&offset, 1));
+
+        if (!indices.empty()) {
+            current.bind_index_buffers32(test_ibo);
+        }
 
         static auto start_time = std::chrono::high_resolution_clock::now();
 
@@ -513,14 +516,21 @@ main() {
                                      10.0f)
         };
         ubo.proj[1][1] *= -1;
-        test_ubo.update(&ubo);
+        test_ubo.transfer<global_uniform>(
+          std::span<const global_uniform>(&ubo, 1));
 
         // Before we can send stuff to the GPU, since we already updated the
         // descriptor set 0 beforehand, we must bind that descriptor resource
         // before making any of the draw calls Something to note: You cannot
         // update descriptor sets in the process of a current-recording command
         // buffers or else that becomes undefined behavior
-        set0_resource.bind(current, main_graphics_pipeline.layout());
+        // set0_resource.bind(current, main_graphics_pipeline.layout());
+        std::array<const VkDescriptorSet, 1> descriptors = {
+            set0_resource,
+        };
+        current.bind_descriptors(main_graphics_pipeline.layout(),
+                                 VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                 descriptors);
 
         // Drawing-call to render actual triangle to the screen
         // vkCmdDraw(current, 3, 1, 0, 0);
