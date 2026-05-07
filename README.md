@@ -2,7 +2,7 @@
 
 Custom open-source Vulkan abstraction layer with native C++20 modules support.
 
-> [!NOTE]
+> [!TIP]
 > vulkan-cpp assumes you have some knowledge of graphics APIs such as OpenGL or Direct3D
 
 ## Getting Started
