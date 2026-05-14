@@ -479,7 +479,6 @@ main() {
 
         main_graphics_pipeline.bind(current);
 
-
         const VkBuffer vertex = test_vbo;
         uint64_t offset = 0;
         current.bind_vertex_buffers(std::span<const VkBuffer>(&vertex, 1),

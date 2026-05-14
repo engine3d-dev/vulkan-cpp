@@ -390,16 +390,16 @@ main() {
                           .color = { 1.0f, 1.0f, 1.0f } }
     };
 
-    const auto property_flags = static_cast<vk::memory_property>(
-        vk::memory_property::host_visible_bit |
-        vk::memory_property::host_cached_bit);
+    const auto property_flags =
+      static_cast<vk::memory_property>(vk::memory_property::host_visible_bit |
+                                       vk::memory_property::host_cached_bit);
 
     // Creating vertex buffers
     vk::buffer_parameters vertex_params = {
         .memory_mask = physical_device.memory_properties(property_flags),
         .property_flags = vk::memory_property::device_local_bit,
         .usage = static_cast<uint32_t>(vk::buffer_usage::transfer_dst_bit) |
-                    static_cast<uint32_t>(vk::buffer_usage::vertex_buffer_bit),
+                 static_cast<uint32_t>(vk::buffer_usage::vertex_buffer_bit),
     };
     vk::vertex_buffer test_vbo(logical_device, vertices, vertex_params);
     std::println("vertex_buffer.alive() = {}", test_vbo.alive());
@@ -409,8 +409,8 @@ main() {
     vk::buffer_parameters index_params = {
         .memory_mask = physical_device.memory_properties(property_flags),
         .property_flags = static_cast<vk::memory_property>(
-            vk::memory_property::host_visible_bit |
-            vk::memory_property::host_cached_bit),
+          vk::memory_property::host_visible_bit |
+          vk::memory_property::host_cached_bit),
         .usage = static_cast<uint32_t>(vk::buffer_usage::index_buffer_bit),
     };
     vk::index_buffer test_ibo(logical_device, indices, index_params);
@@ -422,7 +422,8 @@ main() {
             vk::memory_property::host_cached_bit)),
         .usage = static_cast<uint32_t>(vk::buffer_usage::uniform_buffer_bit),
     };
-    vk::uniform_buffer test_ubo(logical_device, sizeof(vk::vertex_input), uniform_params);
+    vk::uniform_buffer test_ubo(
+      logical_device, sizeof(vk::vertex_input), uniform_params);
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
