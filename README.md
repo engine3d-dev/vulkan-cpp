@@ -11,18 +11,18 @@ Before buidling the demos, make sure to check the [getting started](https://engi
 
 ## Building Demos
 
-These demos are isolated and follow the Vulkan tutorial, just using the vulkan-cpp APIs. Building the demo is quite easy, assuming you already setup the development environment in the getting started page.
+These demos are isolated and attempt at following the Vulkan tutorial, specifically to using the vulkan-cpp APIs. Building the demo is quite easy, assuming you already setup the development environment from the getting started page linked above.
 
-To build any demo, do the following:
+Here is how to build any of the demos:
 
 > [!NOTE]
-> `-s build_type=Debug` to build in debug mode is optional
+> `-s build_type=Debug` to build in debug mode
 
 ```bash
 conan atlas build demos/<demo-dir> -s build_type=Debug
 ```
 
-For example, to build demo 6:
+Example for building demo 6:
 
 ```bash
 conan atlas build demos/6-graphics-pipeline -s build_type=Debug
@@ -38,7 +38,7 @@ Executable path will be as the following:
 ./demo/<demo-dir>/build/Debug/<executable>
 ```
 
-It is because we built demo 6, it would be:
+For demo 6 this is where the executable is located:
 
 ```bash
 ./demo/6-graphics-pipeline/build/Debug/graphics-pipeline
