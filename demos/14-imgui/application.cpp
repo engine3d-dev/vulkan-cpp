@@ -326,7 +326,7 @@ main() {
     std::println("Starting implementation of the swapchain!!!");
 
     vk::surface_params surface_properties =
-      vk::enumerate_surface(physical_device, window_surface);
+      physical_device.request_surface(window_surface);
 
     if (surface_properties.format.format != VK_FORMAT_UNDEFINED) {
         std::println("Surface Format.format is not undefined!!!");

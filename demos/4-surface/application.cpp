@@ -109,18 +109,6 @@ main() {
     };
     vk::physical_device physical_device(api_instance, enumerate_devices);
 
-    // selecting depth format
-    std::array<vk::format, 3> format_support = {
-        vk::format::d32_sfloat,
-        vk::format::d32_sfloat_s8_uint,
-        vk::format::d24_unorm_s8_uint
-    };
-
-    // We provide a selection of format support that we want to check is
-    // supported on current hardware device.
-    VkFormat depth_format =
-      vk::select_depth_format(physical_device, format_support);
-
     vk::queue_indices queue_indices = physical_device.family_indices();
 
     // setting up logical device
