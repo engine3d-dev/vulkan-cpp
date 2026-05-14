@@ -109,7 +109,6 @@ main() {
     };
     vk::physical_device physical_device(api_instance, enumerate_devices);
 
-
     vk::queue_indices queue_indices = physical_device.family_indices();
 
     // setting up logical device
