@@ -1,0 +1,899 @@
+#define GLFW_INCLUDE_VULKAN
+#if _WIN32
+#define VK_USE_PLATFORM_WIN32_KHR
+#include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
+#include <vulkan/vulkan.h>
+#else
+#include <GLFW/glfw3.h>
+#include <vulkan/vulkan.h>
+#endif
+
+#include <array>
+#include <print>
+#include <span>
+#include <filesystem>
+import vk;
+
+#include <chrono>
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/hash.hpp>
+
+#include <stdio.h>
+
+#include <tiny_obj_loader.h>
+
+namespace vk {
+    using buffer_device_address = feature_trait<VkPhysicalDeviceBufferDeviceAddressFeatures, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES>;
+};
+
+static VKAPI_ATTR VkBool32 VKAPI_CALL
+debug_callback(
+  [[maybe_unused]] VkDebugUtilsMessageSeverityFlagBitsEXT p_message_severity,
+  [[maybe_unused]] VkDebugUtilsMessageTypeFlagsEXT p_message_type,
+  const VkDebugUtilsMessengerCallbackDataEXT* p_callback_data,
+  [[maybe_unused]] void* p_user_data) {
+
+    std::print("validation layer:\t\t{}\n\n", p_callback_data->pMessage);
+    // std::print(core_dump_file, "Validation Layer:\t\t{}\n\n", p_callback_data->pMessage);
+    return false;
+}
+
+struct global_uniform {
+    glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 proj;
+};
+
+template<typename T, typename... Rest>
+void
+hash_combine(size_t& seed, const T& v, const Rest&... rest) {
+    seed ^= std::hash<T>()(v) + 0x9e3779b9 + (seed << 6) + (seed << 2);
+    (hash_combine(seed, rest), ...);
+}
+
+namespace std {
+
+    template<>
+    struct hash<vk::vertex_input> {
+        size_t operator()(const vk::vertex_input& vertex) const {
+            size_t seed = 0;
+            hash_combine(
+              seed, vertex.position, vertex.color, vertex.normals, vertex.uv);
+            return seed;
+        }
+    };
+}
+
+// Part of this demo for loading a 3D .obj model
+class obj_model {
+public:
+    obj_model() = default;
+    obj_model(const std::filesystem::path& p_filename,
+              const VkDevice& p_device,
+              const vk::physical_device& p_physical) {
+        tinyobj::attrib_t attrib;
+        std::vector<tinyobj::shape_t> shapes;
+        std::vector<tinyobj::material_t> materials;
+        std::string warn, err;
+
+        //! @note If we return the constructor then we can check if the mesh
+        //! loaded successfully
+        //! @note We also receive hints if the loading is successful!
+        //! @note Return default constructor automatically returns false means
+        //! that mesh will return the boolean as false because it wasnt
+        //! successful
+        if (!tinyobj::LoadObj(&attrib,
+                              &shapes,
+                              &materials,
+                              &warn,
+                              &err,
+                              p_filename.string().c_str())) {
+            std::println("Could not load model from path {}",
+                         p_filename.string());
+            m_is_loaded = false;
+            return;
+        }
+
+        std::vector<vk::vertex_input> vertices;
+        std::vector<uint32_t> indices;
+        std::unordered_map<vk::vertex_input, uint32_t> unique_vertices{};
+
+        for (const auto& shape : shapes) {
+            for (const auto& index : shape.mesh.indices) {
+                vk::vertex_input vertex{};
+
+                // vertices.push_back(vertex);
+                if (!unique_vertices.contains(vertex)) {
+                    unique_vertices[vertex] =
+                      static_cast<uint32_t>(vertices.size());
+                    vertices.push_back(vertex);
+                }
+
+                if (index.vertex_index >= 0) {
+                    vertex.position = {
+                        attrib.vertices[3 * index.vertex_index + 0],
+                        attrib.vertices[3 * index.vertex_index + 1],
+                        attrib.vertices[3 * index.vertex_index + 2]
+                    };
+
+                    vertex.color = {
+                        attrib.colors[3 * index.vertex_index + 0],
+                        attrib.colors[3 * index.vertex_index + 1],
+                        attrib.colors[3 * index.vertex_index + 2]
+                    };
+                }
+
+                if (index.normal_index >= 0) {
+                    vertex.normals = {
+                        attrib.normals[3 * index.normal_index + 0],
+                        attrib.normals[3 * index.normal_index + 1],
+                        attrib.normals[3 * index.normal_index + 2]
+                    };
+                }
+
+                if (index.texcoord_index >= 0) {
+                    vertex.uv = {
+                        attrib.texcoords[2 * index.texcoord_index + 0],
+                        1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
+                    };
+                }
+
+                if (!unique_vertices.contains(vertex)) {
+                    unique_vertices[vertex] =
+                      static_cast<uint32_t>(vertices.size());
+                    vertices.push_back(vertex);
+                }
+
+                indices.push_back(unique_vertices[vertex]);
+            }
+        }
+
+        m_has_indices = (indices.size() > 0) ? true : false;
+
+        if (m_has_indices) {
+            m_indices_size = indices.size();
+        }
+        m_indices_size = vertices.size();
+        m_indices_size = indices.size();
+
+        //! @brief Creating vertex/index buffers with host visibility flags
+        const auto property_flags = static_cast<vk::memory_property>(
+          vk::memory_property::host_visible_bit |
+          vk::memory_property::host_cached_bit);
+
+        vk::buffer_parameters vertex_params = {
+            .memory_mask = p_physical.memory_properties(property_flags),
+            .property_flags = vk::memory_property::device_local_bit,
+            .usage = static_cast<uint32_t>(vk::buffer_usage::transfer_dst_bit) |
+                     static_cast<uint32_t>(vk::buffer_usage::vertex_buffer_bit),
+        };
+
+        vk::buffer_parameters index_params = {
+            .memory_mask = p_physical.memory_properties(property_flags),
+            .property_flags = static_cast<vk::memory_property>(
+              vk::memory_property::host_visible_bit |
+              vk::memory_property::host_cached_bit),
+            .usage = static_cast<uint32_t>(vk::buffer_usage::index_buffer_bit),
+        };
+
+        m_vertex_buffer = vk::vertex_buffer(p_device, vertices, vertex_params);
+        m_index_buffer = vk::index_buffer(p_device, indices, index_params);
+        m_is_loaded = true;
+    }
+
+    [[nodiscard]] bool loaded() const { return m_is_loaded; }
+
+    [[nodiscard]] VkBuffer vertex_handle() const { return m_vertex_buffer; }
+
+    [[nodiscard]] VkBuffer index_handle() const { return m_index_buffer; }
+
+    [[nodiscard]] bool has_indices() const { return m_has_indices; }
+
+    [[nodiscard]] uint32_t indices_size() const { return m_indices_size; }
+
+    void draw(const VkCommandBuffer& p_command) {
+        if (m_has_indices) {
+            vkCmdDrawIndexed(p_command, m_indices_size, 1, 0, 0, 0);
+        }
+        else {
+            vkCmdDraw(p_command, m_indices_size, 1, 0, 0);
+        }
+    }
+
+    void destroy() {
+        m_vertex_buffer.destroy();
+        m_index_buffer.destroy();
+    }
+
+private:
+    bool m_is_loaded = false;
+    bool m_has_indices = false;
+    uint32_t m_indices_size = 0;
+    vk::vertex_buffer m_vertex_buffer{};
+    vk::index_buffer m_index_buffer{};
+};
+
+std::vector<const char*>
+get_instance_extensions() {
+    std::vector<const char*> extension_names;
+    uint32_t extension_count = 0;
+    const char** required_extensions =
+      glfwGetRequiredInstanceExtensions(&extension_count);
+
+    for (uint32_t i = 0; i < extension_count; i++) {
+        std::println("Required Extension = {}", required_extensions[i]);
+        extension_names.emplace_back(required_extensions[i]);
+    }
+
+    extension_names.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+
+#if defined(__APPLE__)
+    extension_names.emplace_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+    extension_names.emplace_back(
+      VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+#endif
+
+    return extension_names;
+}
+
+struct push_constant_data {
+    uint32_t texture_index = 0;
+};
+
+int
+main() {
+    //! @note Just added the some test code to test the conan-starter setup code
+    if (!glfwInit()) {
+        std::print("glfwInit could not be initialized!\n");
+        return -1;
+    }
+
+    if (!glfwVulkanSupported()) {
+        std::print("GLFW: Vulkan is not supported!");
+        return -1;
+    }
+
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+
+    int width = 800;
+    int height = 600;
+    std::string title = "Hello Window";
+    GLFWwindow* window =
+      glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+
+    glfwMakeContextCurrent(window);
+
+    std::array<const char*, 1> validation_layers = {
+        "VK_LAYER_KHRONOS_validation",
+    };
+
+    // setting up extensions
+    std::vector<const char*> global_extensions = get_instance_extensions();
+
+    vk::debug_message_utility debug_callback_info = {
+        // .severity essentially takes in vk::message::verbose,
+        // vk::message::warning, vk::message::error
+        .severity =
+          vk::message::verbose | vk::message::warning | vk::message::error,
+        // .message_type essentially takes in vk::debug. Like:
+        // vk::debug::general, vk::debug::validation, vk::debug::performance
+        .message_type =
+          vk::debug::general | vk::debug::validation | vk::debug::performance,
+        .callback = debug_callback
+    };
+
+    vk::application_params config = {
+        .name = "vulkan instance",
+        .version = vk::api_version::vk_1_3, // specify to using vulkan 1.3
+        .validations =
+          validation_layers, // .validation takes in a std::span<const char*>
+        .extensions =
+          global_extensions // .extensions also takes in std::span<const char*>
+    };
+
+    // 1. Setting up vk instance
+    vk::instance api_instance(config, debug_callback_info);
+
+    if (api_instance.alive()) {
+        std::println("\napi_instance alive and initiated!!!");
+    }
+
+    std::span<const vk::layer_properties> properties =
+      api_instance.validation();
+    for (vk::layer_properties property : properties) {
+        std::println("Validation Layer Name:\t\t{}", property.name);
+        std::println("Validation Layer Description: {}", property.description);
+    }
+
+    // setting up physical device
+    vk::physical_enumeration enumerate_devices{
+        .device_type = vk::physical_gpu::integrated,
+    };
+    vk::physical_device physical_device(api_instance, enumerate_devices);
+
+    vk::queue_indices queue_indices = physical_device.family_indices();
+
+    // setting up logical device
+    std::array<float, 1> priorities = { 0.f };
+
+#if defined(__APPLE__)
+    std::array<const char*, 2> extensions = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        "VK_KHR_portability_subset",
+    };
+#else
+    std::array<const char*, 1> extensions = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+    };
+#endif
+
+    std::array<vk::format, 3> format_support = {
+        vk::format::d32_sfloat,
+        vk::format::d32_sfloat_s8_uint,
+        vk::format::d24_unorm_s8_uint
+    };
+
+    // We provide a selection of format support that we want to check is
+    // supported on current hardware device.
+    VkFormat depth_format =
+      physical_device.request_depth_format(format_support);
+
+    vk::device_features device_features{
+        vk::dynamic_rendering_feature{ {
+          .dynamicRendering = true,
+        } },
+        vk::descriptor_indexing_feature{ {
+          .shaderSampledImageArrayNonUniformIndexing = true,
+          .descriptorBindingSampledImageUpdateAfterBind = true,
+          .descriptorBindingPartiallyBound = true,
+          .descriptorBindingVariableDescriptorCount = true,
+          .runtimeDescriptorArray = true,
+        } },
+        vk::buffer_device_address{ {
+            .bufferDeviceAddress = true,
+        } },
+    };
+
+    vk::device_params logical_device_params = {
+        .features = device_features.data(),
+        .queue_priorities = priorities,
+        .extensions = extensions,
+        .queue_family_index = queue_indices.graphics,
+    };
+
+
+    vk::device logical_device(physical_device, logical_device_params);
+
+    vk::surface window_surface(api_instance, window);
+
+    vk::surface_params surface_properties =
+      physical_device.request_surface(window_surface);
+
+    VkBool32 presentation_supported = false;
+    vkGetPhysicalDeviceSurfaceSupportKHR(physical_device, 0, window_surface, &presentation_supported);
+
+    VkPhysicalDeviceProperties device_properties;
+    vkGetPhysicalDeviceProperties(physical_device, &device_properties);
+
+    VkPhysicalDeviceType currently_selected_physical_gpu = device_properties.deviceType;
+
+    std::println("External Monitor Physical Device Type: VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU ");
+    std::println("External Monitor Physical Device Type (take 2): VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU ");
+    std::println("Selected Physical GPU: {}", static_cast<int>(currently_selected_physical_gpu));
+
+    // m_surface_params.format.format,
+    //                 .imageColorSpace = m_surface_params.format.colorSpace
+
+    std::println("Laptop VkFormat = VK_FORMAT_B8G8R8A8_SRGB , VkColorSpaceKHR = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR ");
+    std::println("VkFormat = {}\nColor Space = {}", static_cast<int>(surface_properties.format.format), static_cast<int>(surface_properties.format.colorSpace));
+
+    // if (presentation_supported] == VK_TRUE) {
+    //     // The surface is presentable by this queue family
+    // }
+
+    std::println("Presentation Supported = {}", static_cast<bool>(presentation_supported));
+
+    vk::swapchain_params enumerate_swapchain_settings = {
+        .width = static_cast<uint32_t>(width),
+        .height = static_cast<uint32_t>(height),
+        .present_index =
+          physical_device.family_indices()
+            .graphics, // presentation index just uses the graphics index
+    };
+
+    std::println("Surface Extent (w, h) = ({}, {})", surface_properties.capabilities.currentExtent.width, surface_properties.capabilities.currentExtent.height);
+
+    std::println("Presentation Index: {}",
+                 physical_device.family_indices().graphics);
+
+    // m_surface_params.capabilities.currentExtent
+    
+    vk::swapchain main_swapchain(logical_device,
+                                 window_surface,
+                                 enumerate_swapchain_settings,
+                                 surface_properties);
+
+
+    if(!main_swapchain.alive()) {
+        std::println("main_swapchain is nullptr!!!");
+        return -1;
+    }
+
+    // querying presentable images
+    std::span<const VkImage> images = main_swapchain.get_images();
+
+    std::println("span<const VkImage>::size() = {}", images.size());
+    uint32_t image_count = static_cast<uint32_t>(images.size());
+
+    // Creating Images
+    std::vector<vk::sample_image> swapchain_images(image_count);
+    std::vector<vk::sample_image> swapchain_depth_images(image_count);
+
+    VkExtent2D swapchain_extent = surface_properties.capabilities.currentExtent;
+
+    // Setting up the images
+    uint32_t layer_count = 1;
+    uint32_t mip_levels = 1;
+    for (uint32_t i = 0; i < swapchain_images.size(); i++) {
+        vk::image_params swapchain_image_config = {
+            .extent = { .width = swapchain_extent.width,
+                        .height = swapchain_extent.height, },
+            .format = surface_properties.format.format,
+            .memory_mask = physical_device.memory_properties(
+              vk::memory_property::device_local_bit),
+            .aspect = vk::image_aspect_flags::color_bit,
+            .usage = vk::image_usage::color_attachment_bit,
+            .mip_levels = 1,
+            .layer_count = 1,
+        };
+
+        swapchain_images[i] =
+          vk::sample_image(logical_device, images[i], swapchain_image_config);
+
+        vk::image_params image_config = {
+            .extent = {
+                .width = swapchain_extent.width,
+                .height = swapchain_extent.height,
+            },
+            .format = depth_format,
+            .memory_mask = physical_device.memory_properties(
+              vk::memory_property::device_local_bit),
+            .aspect = vk::image_aspect_flags::depth_bit,
+            .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+            .mip_levels = 1,
+            .layer_count = 1,
+        };
+        swapchain_depth_images[i] =
+          vk::sample_image(logical_device, image_config);
+    }
+
+    // setting up command buffers
+    std::vector<vk::command_buffer> swapchain_command_buffers(image_count);
+    for (size_t i = 0; i < swapchain_command_buffers.size(); i++) {
+        vk::command_params settings = {
+            .levels = vk::command_levels::primary,
+            .queue_index = enumerate_swapchain_settings.present_index,
+            .flags = vk::command_pool_flags::reset,
+        };
+
+        swapchain_command_buffers[i] =
+          vk::command_buffer(logical_device, settings);
+    }
+
+    // setting up presentation queue to display commands to the screen
+    vk::queue_params enumerate_present_queue{
+        .family = 0,
+        .index = 0,
+    };
+    vk::device_present_queue presentation_queue(
+      logical_device, main_swapchain, enumerate_present_queue);
+
+    // gets set with the renderpass
+    std::array<float, 4> color = { 0.f, 0.5f, 0.5f, 1.f };
+
+    // Loading graphics pipeline
+    std::array<vk::shader_source, 2> shader_sources = {
+        vk::shader_source{
+          .filename =
+            "shader_samples/sample9-buffer-device-address/test.vert.spv",
+          .stage = vk::shader_stage::vertex,
+        },
+        vk::shader_source{
+          .filename =
+            "shader_samples/sample9-buffer-device-address/test.frag.spv",
+          .stage = vk::shader_stage::fragment,
+        },
+    };
+
+    // To render triangle, we do not need to set any vertex attributes
+    vk::shader_resource_info shader_info = {
+        .sources = shader_sources,
+        .vertex_attributes = {} // this is to explicitly set to none, but also
+                                // dont need to set this at all regardless
+    };
+    vk::shader_resource geometry_resource(logical_device, shader_info);
+
+    // Setting up vertex attributes in the test shaders
+    std::array<vk::vertex_attribute_entry, 4> attribute_entries = {
+        vk::vertex_attribute_entry{
+          .location = 0,
+          .format = vk::format::rgb32_sfloat,
+          .stride = offsetof(vk::vertex_input, position),
+        },
+        vk::vertex_attribute_entry{
+          .location = 1,
+          .format = vk::format::rgb32_sfloat,
+          .stride = offsetof(vk::vertex_input, color),
+        },
+        vk::vertex_attribute_entry{
+          .location = 2,
+          .format = vk::format::rg32_sfloat,
+          .stride = offsetof(vk::vertex_input, uv),
+        },
+        vk::vertex_attribute_entry{
+          .location = 3,
+          .format = vk::format::rgb32_sfloat,
+          .stride = offsetof(vk::vertex_input, normals),
+        }
+    };
+
+    std::array<vk::vertex_attribute, 1> attributes = {
+        vk::vertex_attribute{
+          // layout (set = 0, binding = 0)
+          .binding = 0,
+          .entries = attribute_entries,
+          .stride = sizeof(vk::vertex_input),
+          .input_rate = vk::input_rate::vertex,
+        },
+    };
+    geometry_resource.vertex_attributes(attributes);
+
+    // Set 0: For Uniform BUffers (or global scene data)
+    std::vector<vk::descriptor_entry> entries = {
+    vk::descriptor_entry{
+            // specifies "layout (set = 0, binding = 0) uniform GlobalUbo"
+            .type = vk::buffer::uniform,
+            .binding_point = {
+                .binding = 0,
+                .stage = vk::shader_stage::vertex,
+            },
+            .descriptor_count = 1,
+        },
+    };
+    vk::descriptor_layout set0_layout = {
+        .slot = 0,               // indicate specific descriptor slot 0
+        .max_sets = image_count, // max descriptors to allocate
+        .entries = entries,      // descriptor layout entries description
+    };
+    vk::descriptor_resource set0_resource(logical_device, set0_layout);
+
+    // Set 1 = For Textures
+    std::vector<vk::descriptor_entry> entries_set1 = {
+        vk::descriptor_entry{
+            // layout (set = 1, binding = 0) uniform sampler2D textures[];
+            .type = vk::buffer::combined_image_sampler,
+            .binding_point = {
+                .binding = 0,
+                .stage = vk::shader_stage::fragment,
+            },
+            .descriptor_count = 1,
+            .flags = vk::descriptor_bind_flags::partially_bound_bit |
+                     vk::descriptor_bind_flags::variable_descriptor_count_bit |
+                     vk::descriptor_bind_flags::update_after_bind,
+        }
+    };
+
+    uint32_t max_descriptor = 1;
+    vk::descriptor_layout set1_layout = {
+        .slot = 1,               // indicate specific descriptor slot 0
+        .max_sets = image_count, // max descriptors to allocate
+        .entries = entries_set1, // descriptor layout entries description
+        .descriptor_counts = std::span<const uint32_t>(&max_descriptor, 1),
+    };
+
+    vk::descriptor_resource set1_resource(
+      logical_device,
+      set1_layout,
+      vk::descriptor_layout_flags::update_after_bind_pool);
+
+    std::array<VkDescriptorSetLayout, 2> layouts = {
+        set0_resource.layout(),
+        set1_resource.layout(),
+    };
+
+    std::array<vk::color_blend_attachment_state, 1> color_blend_attachments = {
+        vk::color_blend_attachment_state{},
+    };
+
+    std::array<vk::dynamic_state, 2> dynamic_states = {
+        vk::dynamic_state::viewport, vk::dynamic_state::scissor
+    };
+
+    uint32_t format = static_cast<uint32_t>(surface_properties.format.format);
+    uint32_t vertex_mask = static_cast<uint32_t>(vk::shader_stage::vertex);
+    uint32_t fragment_mask = static_cast<uint32_t>(vk::shader_stage::fragment);
+    uint32_t stage_mask = vertex_mask | fragment_mask;
+    vk::shader_stage stage = static_cast<vk::shader_stage>(stage_mask);
+    vk::push_constant_range range = {
+        .stage = stage,
+        .offset = 0,
+        .range = sizeof(push_constant_data),
+    };
+    vk::pipeline_params pipeline_configuration = {
+        .use_render_pipeline = true,
+        .color_attachment_formats = std::span<const uint32_t>(&format, 1),
+        .depth_format = static_cast<uint32_t>(depth_format),
+        .stencil_format = static_cast<uint32_t>(depth_format),
+        .renderpass = nullptr,
+        .shader_modules = geometry_resource.handles(),
+        .vertex_attributes = geometry_resource.vertex_attributes(),
+        .vertex_bind_attributes = geometry_resource.vertex_bind_attributes(),
+        .descriptor_layouts = layouts,
+        .color_blend = {
+            .attachments = color_blend_attachments,
+        },
+        .depth_stencil_enabled = true,
+        .dynamic_states = dynamic_states,
+        .push_constants = std::span<const vk::push_constant_range>(&range, 1),
+    };
+    vk::pipeline main_graphics_pipeline(logical_device, pipeline_configuration);
+
+    obj_model test_model(std::filesystem::path("asset_samples/viking_room.obj"),
+                         logical_device,
+                         physical_device);
+
+    vk::buffer_parameters uniform_params = {
+        .memory_mask =
+          physical_device.memory_properties(static_cast<vk::memory_property>(
+            vk::memory_property::host_visible_bit |
+            vk::memory_property::host_cached_bit)),
+        .usage = static_cast<uint32_t>(vk::buffer_usage::uniform_buffer_bit | vk::buffer_usage::shader_device_address_bit),
+        .allocate_flags = vk::memory_allocate_flags::device_address_bit_khr,
+    };
+    vk::dyn::buffer test_ubo = vk::dyn::buffer(
+      logical_device, sizeof(global_uniform), uniform_params);
+
+    std::array<vk::write_buffer, 1> uniforms0 = {
+        vk::write_buffer{
+          .buffer = test_ubo,
+          .offset = 0,
+          .range = static_cast<uint32_t>(test_ubo.size_bytes()),
+        },
+    };
+    std::array<vk::write_buffer_descriptor, 1> uniforms = {
+        vk::write_buffer_descriptor{
+          .dst_binding = 0,
+          .uniforms = uniforms0,
+        },
+    };
+
+    vk::texture_params config_texture = {
+        .memory_mask =
+          physical_device.memory_properties(static_cast<vk::memory_property>(
+            vk::memory_property::host_visible_bit |
+            vk::memory_property::host_cached_bit)),
+    };
+    vk::texture texture1(logical_device,
+                         std::filesystem::path("asset_samples/viking_room.png"),
+                         config_texture);
+
+    std::array<vk::write_image, 1> samplers = {
+        vk::write_image{
+          .sampler = texture1.image().sampler(),
+          .view = texture1.image().image_view(),
+          .layout = vk::image_layout::shader_read_only_optimal,
+        },
+    };
+
+    // Specify image descriptor images/samplers to the descriptor
+    std::array<vk::write_image_descriptor, 1> set1_samples = {
+        vk::write_image_descriptor{
+          .dst_binding = 0,
+          .sample_images = samplers,
+        }
+    };
+    set0_resource.update(uniforms);
+
+    set1_resource.update({}, set1_samples);
+
+    VkClearValue clear_color = {
+        { 0.f, 0.5f, 0.5f, 1.f },
+    };
+
+    VkClearValue depth_value = {
+        .depthStencil = { .depth = 1.f, .stencil = 0 },
+    };
+
+    while (!glfwWindowShouldClose(window)) {
+        glfwPollEvents();
+
+        uint32_t current_frame = presentation_queue.acquire_next_image();
+        vk::command_buffer current = swapchain_command_buffers[current_frame];
+
+        current.begin(vk::command_usage::simulatneous_use_bit);
+
+        swapchain_images[current_frame].memory_barrier(
+          current,
+          surface_properties.format.format,
+          VK_IMAGE_LAYOUT_UNDEFINED,
+          VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+        // Because dynamic rendering does not automatically handle layout
+        // transitions These memory barriers set the color and depth images for
+        // the output
+        swapchain_depth_images[current_frame].memory_barrier(
+          current,
+          depth_format,
+          VK_IMAGE_LAYOUT_UNDEFINED,
+          VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+          VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
+
+        vk::rendering_attachment color_render_attachment = {
+            .image_view = swapchain_images[current_frame].image_view(),
+            .layout = vk::image_layout::color_optimal,
+            .resolve_mode = vk::resolved_mode_flags::none,
+            .resolve_image_view = nullptr,
+            .resolve_image_layout = vk::image_layout::undefined,
+            .load = vk::attachment_load::clear,
+            .store = vk::attachment_store::store,
+            .clear_values = clear_color
+        };
+
+        vk::rendering_attachment depth_stencil_attachment = {
+            .image_view = swapchain_depth_images[current_frame].image_view(),
+            .layout = vk::image_layout::depth_stencil_optimal,
+            .resolve_mode = vk::resolved_mode_flags::none,
+            .resolve_image_view = nullptr,
+            .resolve_image_layout = vk::image_layout::undefined,
+            .load = vk::attachment_load::clear,
+            .store = vk::attachment_store::store,
+            .depth_values = depth_value
+        };
+
+        vk::rendering_begin_parameters begin_params = {
+            .render_area = { { 0, 0 },
+                             {
+                               swapchain_extent.width,
+                               swapchain_extent.height,
+                             }, },
+            .layer_count = 1,
+            .color_attachments = std::span<const vk::rendering_attachment>(
+              &color_render_attachment, 1),
+            .depth_attachment = depth_stencil_attachment,
+            .stencil_attachment = depth_stencil_attachment,
+        };
+
+        vk::viewport_params viewport = {
+            .x = 0.0f,
+            .y = 0.0f,
+            .width = static_cast<float>(swapchain_extent.width),
+            .height = static_cast<float>(swapchain_extent.height),
+            .min_depth = 0.0f,
+            .max_depth = 1.0f,
+        };
+        current.set_viewport(
+          0, 1, std::span<const vk::viewport_params>(&viewport, 1));
+
+        vk::scissor_params scissor = {
+            .offset = { 0, 0 },
+            .extent = swapchain_extent,
+        };
+
+        current.set_scissor(
+          0, 1, std::span<const vk::scissor_params>(&scissor, 1));
+
+        current.begin_rendering(begin_params);
+
+        main_graphics_pipeline.bind(current);
+
+        const VkBuffer vertex = test_model.vertex_handle();
+        uint64_t offset = 0;
+        current.bind_vertex_buffers(std::span<const VkBuffer>(&vertex, 1),
+                                    std::span<uint64_t>(&offset, 1));
+
+        if (test_model.has_indices()) {
+            current.bind_index_buffers32(test_model.index_handle());
+        }
+
+        static auto start_time = std::chrono::high_resolution_clock::now();
+
+        auto current_time = std::chrono::high_resolution_clock::now();
+        float time = std::chrono::duration<float, std::chrono::seconds::period>(
+                       current_time - start_time)
+                       .count();
+
+        push_constant_data push = {
+            .texture_index = 0,
+        };
+        main_graphics_pipeline.push_constant<push_constant_data>(
+          current, push, stage, 0, sizeof(push_constant_data));
+
+        // We set the uniforms and then we offload that to the GPU
+        global_uniform ubo = {
+            .model = glm::rotate(glm::mat4(1.0f),
+                                 time * glm::radians(90.0f),
+                                 glm::vec3(0.0f, 0.0f, 1.0f)),
+            .view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f),
+                                glm::vec3(0.0f, 0.0f, 0.0f),
+                                glm::vec3(0.0f, 0.0f, 1.0f)),
+            .proj = glm::perspective(glm::radians(45.0f),
+                                     (float)swapchain_extent.width /
+                                       (float)swapchain_extent.height,
+                                     0.1f,
+                                     10.0f)
+        };
+        ubo.proj[1][1] *= -1;
+
+        test_ubo.transfer<global_uniform>(
+          std::span<const global_uniform>(&ubo, 1));
+
+        std::array<const VkDescriptorSet, 2> descriptors = {
+            set0_resource,
+            set1_resource,
+        };
+
+        current.bind_descriptors(main_graphics_pipeline.layout(),
+                                 VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                 descriptors);
+
+        // Drawing-call to render actual triangle to the screen
+        // vkCmdDrawIndexed(current, static_cast<uint32_t>(indices.size()), 1,
+        // 0, 0, 0);
+        test_model.draw(current);
+
+        // vkCmdDraw(current, 3, 1, 0, 0);
+
+        current.end_rendering();
+
+        swapchain_images[current_frame].memory_barrier(
+          current,
+          surface_properties.format.format,
+          VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+          VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+
+        current.end();
+
+        // Submitting and then presenting to the screen
+        std::array<const VkCommandBuffer, 1> commands = { current };
+        presentation_queue.submit_async(commands);
+        presentation_queue.present_frame(current_frame);
+    }
+
+    logical_device.wait();
+    main_swapchain.destroy();
+
+    texture1.destroy();
+    set0_resource.destroy();
+    set1_resource.destroy();
+    test_ubo.reset();
+    test_model.destroy();
+
+    geometry_resource.destroy();
+    main_graphics_pipeline.destroy();
+
+    for (auto& command : swapchain_command_buffers) {
+        command.destroy();
+    }
+
+    for (auto& image : swapchain_images) {
+        image.destroy();
+    }
+
+    for (auto& image : swapchain_depth_images) {
+        image.destroy();
+    }
+
+    presentation_queue.destroy();
+
+    logical_device.destroy();
+    window_surface.destroy();
+    glfwDestroyWindow(window);
+    api_instance.destroy();
+    return 0;
+}
