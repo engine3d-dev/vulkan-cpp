@@ -1413,6 +1413,16 @@ export namespace vk {
             flag_bits_max_enum = VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM
         };
 
+        enum memory_allocate_flags : uint64_t {
+            device_mask_bit = VK_MEMORY_ALLOCATE_DEVICE_MASK_BIT,
+            device_address_bit = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT,
+            device_address_capture_replay_bit = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT,
+            zero_initialize_bit = VK_MEMORY_ALLOCATE_ZERO_INITIALIZE_BIT_EXT,
+            device_mask_bit_khr = VK_MEMORY_ALLOCATE_DEVICE_MASK_BIT_KHR,
+            device_address_bit_khr = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT,
+            device_address_capture_replay_bit_khr = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT
+        };
+
         enum class shader_stage {
             vertex = VK_SHADER_STAGE_VERTEX_BIT,
             fragment = VK_SHADER_STAGE_FRAGMENT_BIT,
@@ -1607,8 +1617,8 @@ export namespace vk {
         struct buffer_parameters {
             uint32_t memory_mask = 0;
             memory_property property_flags;
-            // VkBufferUsageFlags usage;
             uint32_t usage;
+            memory_allocate_flags allocate_flags;
             VkSharingMode share_mode = VK_SHARING_MODE_EXCLUSIVE;
             const char* debug_name = nullptr;
             PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT =
