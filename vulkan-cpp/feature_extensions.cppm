@@ -64,6 +64,13 @@ export namespace vk {
         }
     };
 
+    using physical_device_features2 =
+      feature_trait<VkPhysicalDeviceFeatures2,
+                    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2>;
+    using buffer_device_address = feature_trait<
+      VkPhysicalDeviceBufferDeviceAddressFeatures,
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES>;
+
     // Descriptor indexing to access unbounded array of a given uniform
     using descriptor_indexing_feature = feature_trait<
       VkPhysicalDeviceDescriptorIndexingFeatures,

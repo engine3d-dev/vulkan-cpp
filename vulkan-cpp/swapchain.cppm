@@ -4,6 +4,7 @@ module;
 #include <print>
 #include <span>
 #include <vector>
+#include <algorithm>
 
 export module vk:swapchain;
 
@@ -30,8 +31,10 @@ export namespace vk {
             }
 
             void create(const swapchain_params& p_settings) {
+
                 VkSwapchainCreateInfoKHR swapchain_ci = {
                     .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+                    .pNext = nullptr,
                     .surface = m_surface_handler,
                     .minImageCount = m_image_size,
                     .imageFormat = m_surface_params.format.format,
@@ -40,10 +43,11 @@ export namespace vk {
                     // formats in vulkan
                     .imageExtent = m_surface_params.capabilities.currentExtent,
                     .imageArrayLayers = 1,
-                    .imageUsage = (VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-                                   VK_IMAGE_USAGE_TRANSFER_DST_BIT),
-                    .queueFamilyIndexCount = 1,
-                    .pQueueFamilyIndices = &p_settings.present_index,
+
+                    // Remove COLOR_ATTACHMENT flag because its not needed
+                    .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                    .queueFamilyIndexCount = 0,
+                    .pQueueFamilyIndices = nullptr,
                     .preTransform =
                       m_surface_params.capabilities.currentTransform,
                     .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
@@ -51,11 +55,11 @@ export namespace vk {
                       static_cast<VkPresentModeKHR>(p_settings.present_mode),
                     .clipped = p_settings.clipped,
                 };
+                VkResult res = vkCreateSwapchainKHR(
+                  m_device, &swapchain_ci, nullptr, &m_swapchain_handler);
 
-                vk_check(
-                  vkCreateSwapchainKHR(
-                    m_device, &swapchain_ci, nullptr, &m_swapchain_handler),
-                  "vkCreateSwapchainKHR");
+                std::println("VkResult = {}", static_cast<int>(res));
+                vk_check(res, "vkCreateSwapchainKHR");
             }
 
             /**
@@ -88,6 +92,8 @@ export namespace vk {
             void destroy() {
                 vkDestroySwapchainKHR(m_device, m_swapchain_handler, nullptr);
             }
+
+            [[nodiscard]] bool alive() const { return m_swapchain_handler; }
 
             operator VkSwapchainKHR() const { return m_swapchain_handler; }
 
