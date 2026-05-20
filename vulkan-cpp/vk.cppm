@@ -22,6 +22,7 @@ export import :index_buffer;
 export import :uniform_buffer;
 export import :descriptor_resource;
 export import :texture;
+export import :buffer_device_address;
 
 namespace vk {
     inline namespace v1 {};
