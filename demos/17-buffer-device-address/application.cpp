@@ -27,12 +27,6 @@ import vk;
 
 #include <tiny_obj_loader.h>
 
-namespace vk {
-    // REQUIRED
-    using physical_device_features2 = feature_trait<VkPhysicalDeviceFeatures2, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2>;
-    using buffer_device_address = feature_trait<VkPhysicalDeviceBufferDeviceAddressFeatures, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES>;
-};
-
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 debug_callback(
   [[maybe_unused]] VkDebugUtilsMessageSeverityFlagBitsEXT p_message_severity,
@@ -41,7 +35,6 @@ debug_callback(
   [[maybe_unused]] void* p_user_data) {
 
     std::print("validation layer:\t\t{}\n\n", p_callback_data->pMessage);
-    // std::print(core_dump_file, "Validation Layer:\t\t{}\n\n", p_callback_data->pMessage);
     return false;
 }
 
@@ -245,7 +238,7 @@ get_instance_extensions() {
 
 struct push_constant_data {
     uint32_t texture_index = 0;
-    uint64_t global_ubo_addr=0;
+    uint64_t global_ubo_addr = 0;
 };
 
 int
@@ -307,13 +300,6 @@ main() {
         std::println("\napi_instance alive and initiated!!!");
     }
 
-    // std::span<const vk::layer_properties> properties =
-    //   api_instance.validation();
-    // for (vk::layer_properties property : properties) {
-    //     std::println("Layer Name:\t\t{}", property.name);
-    //     std::println("Layer Description: {}", property.description);
-    // }
-
     // setting up physical device
     vk::physical_enumeration enumerate_devices{
         .device_type = vk::physical_gpu::integrated,
@@ -359,7 +345,7 @@ main() {
           .runtimeDescriptorArray = true,
         } },
         vk::buffer_device_address{ {
-            .bufferDeviceAddress = true,
+          .bufferDeviceAddress = true,
         } },
     };
 
@@ -370,30 +356,12 @@ main() {
         .queue_family_index = queue_indices.graphics,
     };
 
-
     vk::device logical_device(physical_device, logical_device_params);
 
     vk::surface window_surface(api_instance, window);
 
     vk::surface_params surface_properties =
       physical_device.request_surface(window_surface);
-
-    VkBool32 presentation_supported = false;
-    vkGetPhysicalDeviceSurfaceSupportKHR(physical_device, 0, window_surface, &presentation_supported);
-
-    VkPhysicalDeviceProperties device_properties;
-    vkGetPhysicalDeviceProperties(physical_device, &device_properties);
-
-    VkPhysicalDeviceType currently_selected_physical_gpu = device_properties.deviceType;
-
-    // std::println("External Monitor Physical Device Type: VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU ");
-    // std::println("External Monitor Physical Device Type (take 2): VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU ");
-    // std::println("Selected Physical GPU: {}", static_cast<int>(currently_selected_physical_gpu));
-
-    // std::println("Laptop VkFormat = VK_FORMAT_B8G8R8A8_SRGB , VkColorSpaceKHR = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR ");
-    // std::println("VkFormat = {}\nColor Space = {}", static_cast<int>(surface_properties.format.format), static_cast<int>(surface_properties.format.colorSpace));
-
-    std::println("Presentation Supported = {}", static_cast<bool>(presentation_supported));
 
     vk::swapchain_params enumerate_swapchain_settings = {
         .width = static_cast<uint32_t>(width),
@@ -403,20 +371,13 @@ main() {
             .graphics, // presentation index just uses the graphics index
     };
 
-    std::println("Surface Extent (w, h) = ({}, {})", surface_properties.capabilities.currentExtent.width, surface_properties.capabilities.currentExtent.height);
 
-    std::println("Presentation Index: {}",
-                 physical_device.family_indices().graphics);
-
-    // m_surface_params.capabilities.currentExtent
-    
     vk::swapchain main_swapchain(logical_device,
                                  window_surface,
                                  enumerate_swapchain_settings,
                                  surface_properties);
 
-
-    if(!main_swapchain.alive()) {
+    if (!main_swapchain.alive()) {
         std::println("main_swapchain is nullptr!!!");
         return -1;
     }
@@ -541,7 +502,6 @@ main() {
 
     std::array<vk::vertex_attribute, 1> attributes = {
         vk::vertex_attribute{
-          // layout (set = 0, binding = 0)
           .binding = 0,
           .entries = attribute_entries,
           .stride = sizeof(vk::vertex_input),
@@ -550,26 +510,6 @@ main() {
     };
     geometry_resource.vertex_attributes(attributes);
 
-    // Set 0: For Uniform BUffers (or global scene data)
-    // std::vector<vk::descriptor_entry> entries = {
-    // vk::descriptor_entry{
-    //         // specifies "layout (set = 0, binding = 0) uniform GlobalUbo"
-    //         .type = vk::buffer::uniform,
-    //         .binding_point = {
-    //             .binding = 0,
-    //             .stage = vk::shader_stage::vertex,
-    //         },
-    //         .descriptor_count = 1,
-    //     },
-    // };
-    // vk::descriptor_layout set0_layout = {
-    //     .slot = 0,               // indicate specific descriptor slot 0
-    //     .max_sets = image_count, // max descriptors to allocate
-    //     .entries = entries,      // descriptor layout entries description
-    // };
-    // vk::descriptor_resource set0_resource(logical_device, set0_layout);
-
-    // Set 1 = For Textures
     std::vector<vk::descriptor_entry> entries_set1 = {
         vk::descriptor_entry{
             // layout (set = 0, binding = 1) uniform sampler2D textures[];
@@ -648,25 +588,13 @@ main() {
           physical_device.memory_properties(static_cast<vk::memory_property>(
             vk::memory_property::host_visible_bit |
             vk::memory_property::host_cached_bit)),
-        .usage = static_cast<uint32_t>(vk::buffer_usage::uniform_buffer_bit | vk::buffer_usage::shader_device_address_bit),
+        .usage =
+          static_cast<uint32_t>(vk::buffer_usage::uniform_buffer_bit |
+                                vk::buffer_usage::shader_device_address_bit),
         .allocate_flags = vk::memory_allocate_flags::device_address_bit_khr,
     };
-    vk::dyn::buffer test_ubo = vk::dyn::buffer(
-      logical_device, sizeof(global_uniform), uniform_params);
-
-    // std::array<vk::write_buffer, 1> uniforms0 = {
-    //     vk::write_buffer{
-    //       .buffer = test_ubo,
-    //       .offset = 0,
-    //       .range = static_cast<uint32_t>(test_ubo.size_bytes()),
-    //     },
-    // };
-    // std::array<vk::write_buffer_descriptor, 1> uniforms = {
-    //     vk::write_buffer_descriptor{
-    //       .dst_binding = 0,
-    //       .uniforms = uniforms0,
-    //     },
-    // };
+    vk::dyn::buffer test_ubo =
+      vk::dyn::buffer(logical_device, sizeof(global_uniform), uniform_params);
 
     vk::texture_params config_texture = {
         .memory_mask =
@@ -678,6 +606,7 @@ main() {
                          std::filesystem::path("asset_samples/viking_room.png"),
                          config_texture);
 
+    // Setting the texture sampler/image view to descriptor resource
     std::array<vk::write_image, 1> samplers = {
         vk::write_image{
           .sampler = texture1.image().sampler(),
@@ -686,14 +615,12 @@ main() {
         },
     };
 
-    // Specify image descriptor images/samplers to the descriptor
     std::array<vk::write_image_descriptor, 1> set1_samples = {
         vk::write_image_descriptor{
           .dst_binding = 1,
           .sample_images = samplers,
         }
     };
-    // set0_resource.update(uniforms);
 
     set1_resource.update({}, set1_samples);
 
@@ -829,20 +756,13 @@ main() {
         };
         main_graphics_pipeline.push_constant<push_constant_data>(
           current, push, stage, 0, sizeof(push_constant_data));
-        std::array<const VkDescriptorSet, 1> descriptors = {
-            set1_resource,
-        };
 
+        const VkDescriptorSet set1 = set1_resource;
         current.bind_descriptors(main_graphics_pipeline.layout(),
                                  VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                 descriptors);
+                                 std::span<const VkDescriptorSet>(&set1, 1));
 
-        // Drawing-call to render actual triangle to the screen
-        // vkCmdDrawIndexed(current, static_cast<uint32_t>(indices.size()), 1,
-        // 0, 0, 0);
         test_model.draw(current);
-
-        // vkCmdDraw(current, 3, 1, 0, 0);
 
         current.end_rendering();
 

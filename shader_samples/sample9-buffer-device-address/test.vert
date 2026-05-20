@@ -26,8 +26,6 @@ layout(push_constant) uniform Constants {
 
 
 void main() {
-
-    // UniformBufferObject ubo = UniformBufferObject(push_const.global_ubo_address);
     UniformBufferObject ubo = push_const.global_ubo_address;
 
     gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 1.0);
