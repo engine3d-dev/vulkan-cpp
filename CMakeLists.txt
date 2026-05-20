@@ -56,6 +56,7 @@ target_sources(${PROJECT_NAME} PUBLIC
     vulkan-cpp/uniform_buffer.cppm
     vulkan-cpp/descriptor_resource.cppm
     vulkan-cpp/texture.cppm
+    vulkan-cpp/dyn/buffer.cppm
 )
 
 install(
