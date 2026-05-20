@@ -371,7 +371,6 @@ main() {
             .graphics, // presentation index just uses the graphics index
     };
 
-
     vk::swapchain main_swapchain(logical_device,
                                  window_surface,
                                  enumerate_swapchain_settings,

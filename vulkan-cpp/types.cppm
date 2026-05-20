@@ -1416,11 +1416,13 @@ export namespace vk {
         enum memory_allocate_flags : uint64_t {
             device_mask_bit = VK_MEMORY_ALLOCATE_DEVICE_MASK_BIT,
             device_address_bit = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT,
-            device_address_capture_replay_bit = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT,
+            device_address_capture_replay_bit =
+              VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT,
             zero_initialize_bit = VK_MEMORY_ALLOCATE_ZERO_INITIALIZE_BIT_EXT,
             device_mask_bit_khr = VK_MEMORY_ALLOCATE_DEVICE_MASK_BIT_KHR,
             device_address_bit_khr = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT,
-            device_address_capture_replay_bit_khr = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT
+            device_address_capture_replay_bit_khr =
+              VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT
         };
 
         enum class shader_stage {
