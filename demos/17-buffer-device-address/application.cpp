@@ -28,6 +28,8 @@ import vk;
 #include <tiny_obj_loader.h>
 
 namespace vk {
+    // REQUIRED
+    using physical_device_features2 = feature_trait<VkPhysicalDeviceFeatures2, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2>;
     using buffer_device_address = feature_trait<VkPhysicalDeviceBufferDeviceAddressFeatures, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES>;
 };
 
@@ -243,6 +245,7 @@ get_instance_extensions() {
 
 struct push_constant_data {
     uint32_t texture_index = 0;
+    uint64_t global_ubo_addr=0;
 };
 
 int
@@ -304,12 +307,12 @@ main() {
         std::println("\napi_instance alive and initiated!!!");
     }
 
-    std::span<const vk::layer_properties> properties =
-      api_instance.validation();
-    for (vk::layer_properties property : properties) {
-        std::println("Validation Layer Name:\t\t{}", property.name);
-        std::println("Validation Layer Description: {}", property.description);
-    }
+    // std::span<const vk::layer_properties> properties =
+    //   api_instance.validation();
+    // for (vk::layer_properties property : properties) {
+    //     std::println("Layer Name:\t\t{}", property.name);
+    //     std::println("Layer Description: {}", property.description);
+    // }
 
     // setting up physical device
     vk::physical_enumeration enumerate_devices{
@@ -383,19 +386,12 @@ main() {
 
     VkPhysicalDeviceType currently_selected_physical_gpu = device_properties.deviceType;
 
-    std::println("External Monitor Physical Device Type: VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU ");
-    std::println("External Monitor Physical Device Type (take 2): VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU ");
-    std::println("Selected Physical GPU: {}", static_cast<int>(currently_selected_physical_gpu));
+    // std::println("External Monitor Physical Device Type: VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU ");
+    // std::println("External Monitor Physical Device Type (take 2): VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU ");
+    // std::println("Selected Physical GPU: {}", static_cast<int>(currently_selected_physical_gpu));
 
-    // m_surface_params.format.format,
-    //                 .imageColorSpace = m_surface_params.format.colorSpace
-
-    std::println("Laptop VkFormat = VK_FORMAT_B8G8R8A8_SRGB , VkColorSpaceKHR = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR ");
-    std::println("VkFormat = {}\nColor Space = {}", static_cast<int>(surface_properties.format.format), static_cast<int>(surface_properties.format.colorSpace));
-
-    // if (presentation_supported] == VK_TRUE) {
-    //     // The surface is presentable by this queue family
-    // }
+    // std::println("Laptop VkFormat = VK_FORMAT_B8G8R8A8_SRGB , VkColorSpaceKHR = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR ");
+    // std::println("VkFormat = {}\nColor Space = {}", static_cast<int>(surface_properties.format.format), static_cast<int>(surface_properties.format.colorSpace));
 
     std::println("Presentation Supported = {}", static_cast<bool>(presentation_supported));
 
@@ -555,31 +551,31 @@ main() {
     geometry_resource.vertex_attributes(attributes);
 
     // Set 0: For Uniform BUffers (or global scene data)
-    std::vector<vk::descriptor_entry> entries = {
-    vk::descriptor_entry{
-            // specifies "layout (set = 0, binding = 0) uniform GlobalUbo"
-            .type = vk::buffer::uniform,
-            .binding_point = {
-                .binding = 0,
-                .stage = vk::shader_stage::vertex,
-            },
-            .descriptor_count = 1,
-        },
-    };
-    vk::descriptor_layout set0_layout = {
-        .slot = 0,               // indicate specific descriptor slot 0
-        .max_sets = image_count, // max descriptors to allocate
-        .entries = entries,      // descriptor layout entries description
-    };
-    vk::descriptor_resource set0_resource(logical_device, set0_layout);
+    // std::vector<vk::descriptor_entry> entries = {
+    // vk::descriptor_entry{
+    //         // specifies "layout (set = 0, binding = 0) uniform GlobalUbo"
+    //         .type = vk::buffer::uniform,
+    //         .binding_point = {
+    //             .binding = 0,
+    //             .stage = vk::shader_stage::vertex,
+    //         },
+    //         .descriptor_count = 1,
+    //     },
+    // };
+    // vk::descriptor_layout set0_layout = {
+    //     .slot = 0,               // indicate specific descriptor slot 0
+    //     .max_sets = image_count, // max descriptors to allocate
+    //     .entries = entries,      // descriptor layout entries description
+    // };
+    // vk::descriptor_resource set0_resource(logical_device, set0_layout);
 
     // Set 1 = For Textures
     std::vector<vk::descriptor_entry> entries_set1 = {
         vk::descriptor_entry{
-            // layout (set = 1, binding = 0) uniform sampler2D textures[];
+            // layout (set = 0, binding = 1) uniform sampler2D textures[];
             .type = vk::buffer::combined_image_sampler,
             .binding_point = {
-                .binding = 0,
+                .binding = 1,
                 .stage = vk::shader_stage::fragment,
             },
             .descriptor_count = 1,
@@ -591,7 +587,7 @@ main() {
 
     uint32_t max_descriptor = 1;
     vk::descriptor_layout set1_layout = {
-        .slot = 1,               // indicate specific descriptor slot 0
+        .slot = 0,               // indicate specific descriptor slot 0
         .max_sets = image_count, // max descriptors to allocate
         .entries = entries_set1, // descriptor layout entries description
         .descriptor_counts = std::span<const uint32_t>(&max_descriptor, 1),
@@ -602,8 +598,7 @@ main() {
       set1_layout,
       vk::descriptor_layout_flags::update_after_bind_pool);
 
-    std::array<VkDescriptorSetLayout, 2> layouts = {
-        set0_resource.layout(),
+    std::array<VkDescriptorSetLayout, 1> layouts = {
         set1_resource.layout(),
     };
 
@@ -659,19 +654,19 @@ main() {
     vk::dyn::buffer test_ubo = vk::dyn::buffer(
       logical_device, sizeof(global_uniform), uniform_params);
 
-    std::array<vk::write_buffer, 1> uniforms0 = {
-        vk::write_buffer{
-          .buffer = test_ubo,
-          .offset = 0,
-          .range = static_cast<uint32_t>(test_ubo.size_bytes()),
-        },
-    };
-    std::array<vk::write_buffer_descriptor, 1> uniforms = {
-        vk::write_buffer_descriptor{
-          .dst_binding = 0,
-          .uniforms = uniforms0,
-        },
-    };
+    // std::array<vk::write_buffer, 1> uniforms0 = {
+    //     vk::write_buffer{
+    //       .buffer = test_ubo,
+    //       .offset = 0,
+    //       .range = static_cast<uint32_t>(test_ubo.size_bytes()),
+    //     },
+    // };
+    // std::array<vk::write_buffer_descriptor, 1> uniforms = {
+    //     vk::write_buffer_descriptor{
+    //       .dst_binding = 0,
+    //       .uniforms = uniforms0,
+    //     },
+    // };
 
     vk::texture_params config_texture = {
         .memory_mask =
@@ -694,11 +689,11 @@ main() {
     // Specify image descriptor images/samplers to the descriptor
     std::array<vk::write_image_descriptor, 1> set1_samples = {
         vk::write_image_descriptor{
-          .dst_binding = 0,
+          .dst_binding = 1,
           .sample_images = samplers,
         }
     };
-    set0_resource.update(uniforms);
+    // set0_resource.update(uniforms);
 
     set1_resource.update({}, set1_samples);
 
@@ -808,12 +803,6 @@ main() {
                        current_time - start_time)
                        .count();
 
-        push_constant_data push = {
-            .texture_index = 0,
-        };
-        main_graphics_pipeline.push_constant<push_constant_data>(
-          current, push, stage, 0, sizeof(push_constant_data));
-
         // We set the uniforms and then we offload that to the GPU
         global_uniform ubo = {
             .model = glm::rotate(glm::mat4(1.0f),
@@ -833,8 +822,14 @@ main() {
         test_ubo.transfer<global_uniform>(
           std::span<const global_uniform>(&ubo, 1));
 
-        std::array<const VkDescriptorSet, 2> descriptors = {
-            set0_resource,
+        const uint64_t ubo_address = test_ubo.get_device_address();
+        push_constant_data push = {
+            .texture_index = 0,
+            .global_ubo_addr = ubo_address,
+        };
+        main_graphics_pipeline.push_constant<push_constant_data>(
+          current, push, stage, 0, sizeof(push_constant_data));
+        std::array<const VkDescriptorSet, 1> descriptors = {
             set1_resource,
         };
 
@@ -869,7 +864,6 @@ main() {
     main_swapchain.destroy();
 
     texture1.destroy();
-    set0_resource.destroy();
     set1_resource.destroy();
     test_ubo.reset();
     test_model.destroy();
