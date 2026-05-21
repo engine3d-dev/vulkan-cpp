@@ -22,8 +22,7 @@ import vk;
 #include <glm/gtc/matrix_transform.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
-
-#include <stdio.h>
+#include <expected>
 
 #include <tiny_obj_loader.h>
 
@@ -301,13 +300,16 @@ main() {
     }
 
     // setting up physical device
-    vk::physical_enumeration enumerate_devices{
-        .device_type = vk::physical_gpu::integrated,
-    };
-    vk::physical_device physical_device(api_instance, enumerate_devices);
+    // vk::physical_enumeration enumerate_devices{
+    //     .device_type = vk::physical_gpu::integrated,
+    // };
+    // vk::physical_device physical_device(api_instance, enumerate_devices);
 
-    vk::queue_indices queue_indices = physical_device.family_indices();
+    // vk::queue_indices queue_indices = physical_device.family_indices();
 
+
+    std::expected<vk::physical_device, VkResult> physical_device_expected = api_instance.enumerate_physical_device(vk::physical_gpu::integrated);
+    vk::physical_device physical_device = physical_device_expected.value();
     // setting up logical device
     std::array<float, 1> priorities = { 0.f };
 
@@ -353,7 +355,8 @@ main() {
         .features = device_features.data(),
         .queue_priorities = priorities,
         .extensions = extensions,
-        .queue_family_index = queue_indices.graphics,
+        // .queue_family_index = queue_indices.graphics,
+        .queue_family_index = 0,
     };
 
     vk::device logical_device(physical_device, logical_device_params);
@@ -434,7 +437,7 @@ main() {
     for (size_t i = 0; i < swapchain_command_buffers.size(); i++) {
         vk::command_params settings = {
             .levels = vk::command_levels::primary,
-            .queue_index = enumerate_swapchain_settings.present_index,
+            .queue_index = 0,
             .flags = vk::command_pool_flags::reset,
         };
 

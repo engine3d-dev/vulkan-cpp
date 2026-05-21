@@ -3,11 +3,13 @@ module;
 #include <span>
 #include <vector>
 #include <vulkan/vulkan.h>
+#include <expected>
 
 export module vk:instance;
 
-export import :types;
-export import :utilities;
+import :types;
+import :utilities;
+import :physical_device;
 
 export namespace vk {
     inline namespace v1 {
@@ -20,6 +22,7 @@ export namespace vk {
          */
         class instance {
         public:
+            instance() = delete;
             /**
              * @param p_config sets the application information that vulkan has
              * optionally.
@@ -123,12 +126,61 @@ export namespace vk {
 #endif
             }
 
+            ~instance() = default;
+
             //! @return true if a valid VkInstance
             [[nodiscard]] bool alive() const { return !m_instance; }
 
             //! @return available validation layers
             std::span<const layer_properties> validation() {
                 return m_layer_properties;
+            }
+
+            /**
+             * @brief Enumerate physical devices and select specific physical
+             * device to report properties from.
+             *
+             * @return vk::physical_device if successful
+             * @return VkResult if an unexpected error occurs
+             *
+             *
+             * ```C++
+             *
+             * vk::instance api_instance = ...;
+             * std::optional<vk::physical_device> physical_device =
+             * api_instance.enumerate_physical_device(vk::physical_device_type::integrated);
+             *
+             * ```
+             */
+            std::expected<physical_device, VkResult> enumerate_physical_device(
+              physical_gpu p_device_type) {
+                uint32_t device_count = 0;
+                VkResult res = vkEnumeratePhysicalDevices(
+                  m_instance, &device_count, nullptr);
+
+                if (res != VK_SUCCESS) {
+                    return std::unexpected(res);
+                }
+
+                std::vector<VkPhysicalDevice> physical_devices(device_count);
+                res = vkEnumeratePhysicalDevices(
+                  m_instance, &device_count, physical_devices.data());
+
+                if (res != VK_SUCCESS) {
+                    return std::unexpected(res);
+                }
+
+                for (const auto& device : physical_devices) {
+                    VkPhysicalDeviceProperties device_properties;
+                    vkGetPhysicalDeviceProperties(device, &device_properties);
+
+                    if (device_properties.deviceType ==
+                        static_cast<VkPhysicalDeviceType>(p_device_type)) {
+                        return physical_device(device);
+                    }
+                }
+
+                return std::unexpected(res);
             }
 
             /**

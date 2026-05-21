@@ -14,60 +14,34 @@ export namespace vk {
     inline namespace v1 {
         class physical_device {
         public:
-            physical_device() = default;
+            
+            physical_device() = delete("Not allowed constructing empty vk::physical_device");
+            ~physical_device() = default;
 
-            physical_device(
-              const VkInstance& p_instance,
-              const physical_enumeration& p_physical_enumeration) {
-                m_physical_device = enumerate_physical_devices(
-                  p_instance, p_physical_enumeration.device_type);
+            physical_device(const VkPhysicalDevice& p_physical)
+              : m_physical_device(p_physical) {}
 
-                if (m_physical_device == nullptr) {
-                    return;
-                }
+            /**
+             * @brief Query for properties for queues for you specific physical
+             * device.
+             */
+            [[nodiscard]] std::span<const VkQueueFamilyProperties>
+            queue_family_properties() {
+                uint32_t queue_family_count = 0;
+                vkGetPhysicalDeviceQueueFamilyProperties(
+                  m_physical_device, &queue_family_count, nullptr);
 
-                m_queue_family_properties =
-                  enumerate_queue_family_properties(m_physical_device);
+                std::vector<VkQueueFamilyProperties> queue_families(queue_family_count);
 
-                // This makes sure that we get the graphics, compute, and
-                // transfer queue indices from the physical queue family
-                // assigned
-                uint32_t queue_index = 0;
-                for (const auto& queue_family : m_queue_family_properties) {
-                    if (queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-                        m_queue_family_indices.graphics = queue_index;
-                        break;
-                    }
+                vkGetPhysicalDeviceQueueFamilyProperties(m_physical_device,
+                                                         &queue_family_count,
+                                                         queue_families.data());
 
-                    queue_index++;
-                }
-                queue_index = 0;
-
-                for (const auto& queue_family : m_queue_family_properties) {
-                    if (queue_family.queueFlags & VK_QUEUE_COMPUTE_BIT) {
-                        m_queue_family_indices.compute = queue_index;
-                    }
-                    queue_index++;
-                }
-                queue_index = 0;
-
-                for (const auto& queue_family : m_queue_family_properties) {
-                    if (queue_family.queueFlags & VK_QUEUE_TRANSFER_BIT) {
-                        m_queue_family_indices.transfer = queue_index;
-                    }
-                    queue_index++;
-                }
-                queue_index = 0;
+                return queue_families;
             }
 
             //! @return true if physical device is valid
             [[nodiscard]] bool alive() const { return m_physical_device; }
-
-            //! @return queue family indices for graphics, compute, and transfer
-            //! operations
-            [[nodiscard]] queue_indices family_indices() const {
-                return m_queue_family_indices;
-            }
 
             //! @return the presentation index for the presentation queue
             uint32_t queue_present_index(const VkSurfaceKHR& p_surface) {
@@ -257,9 +231,10 @@ export namespace vk {
                 return format;
             }
 
-            VkPhysicalDevice enumerate_physical_devices(
+            VkPhysicalDevice enumerate(
               const VkInstance& p_instance,
               const physical_gpu& p_physical_device_type) {
+
                 uint32_t device_count = 0;
                 vkEnumeratePhysicalDevices(p_instance, &device_count, nullptr);
 
@@ -267,8 +242,6 @@ export namespace vk {
                     return nullptr;
                 }
 
-                // TODO: Turn this into map<VkDescriptorDeviceType,
-                // VkPhysicalDevice>
                 std::vector<VkPhysicalDevice> physical_devices(device_count);
                 vkEnumeratePhysicalDevices(
                   p_instance, &device_count, physical_devices.data());
