@@ -126,7 +126,9 @@ export namespace vk {
 #endif
             }
 
-            ~instance() = default;
+            ~instance() {
+                destruct();
+            }
 
             //! @return true if a valid VkInstance
             [[nodiscard]] bool alive() const { return !m_instance; }
@@ -147,8 +149,10 @@ export namespace vk {
              * ```C++
              *
              * vk::instance api_instance = ...;
-             * std::optional<vk::physical_device> physical_device =
+             * std::expected<vk::physical_device, VkResult> expected =
              * api_instance.enumerate_physical_device(vk::physical_device_type::integrated);
+             *
+             * vk::physical_device physical_device = expected.value();
              *
              * ```
              */
@@ -206,7 +210,9 @@ export namespace vk {
             operator VkInstance() const { return m_instance; }
 
             //! @brief Invokes the destruction of the VkInstance.
-            void destroy() {}
+            void destruct() {
+                vkDestroyInstance(m_instance, nullptr);
+            }
 
         private:
             VkInstance m_instance = nullptr;

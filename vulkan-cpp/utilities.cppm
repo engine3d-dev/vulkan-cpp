@@ -9,7 +9,7 @@ module;
 
 export module vk:utilities;
 
-export import :types;
+import :types;
 
 export namespace vk {
     inline namespace v1 {
@@ -21,21 +21,7 @@ export namespace vk {
                              static_cast<int>(p_result));
             }
         }
-
-        std::vector<VkQueueFamilyProperties> enumerate_queue_family_properties(
-          const VkPhysicalDevice& p_physical) {
-            uint32_t queue_family_count = 0;
-            vkGetPhysicalDeviceQueueFamilyProperties(
-              p_physical, &queue_family_count, nullptr);
-            std::vector<VkQueueFamilyProperties> queue_family_properties(
-              queue_family_count);
-
-            vkGetPhysicalDeviceQueueFamilyProperties(
-              p_physical, &queue_family_count, queue_family_properties.data());
-
-            return queue_family_properties;
-        }
-
+        
         VkSemaphore create_semaphore(const VkDevice& p_device) {
             // creating semaphores
             VkSemaphoreCreateInfo semaphore_ci = {

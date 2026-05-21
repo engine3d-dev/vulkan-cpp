@@ -300,16 +300,11 @@ main() {
     }
 
     // setting up physical device
-    // vk::physical_enumeration enumerate_devices{
-    //     .device_type = vk::physical_gpu::integrated,
-    // };
-    // vk::physical_device physical_device(api_instance, enumerate_devices);
 
-    // vk::queue_indices queue_indices = physical_device.family_indices();
-
-
-    std::expected<vk::physical_device, VkResult> physical_device_expected = api_instance.enumerate_physical_device(vk::physical_gpu::integrated);
+    std::expected<vk::physical_device, VkResult> physical_device_expected =
+      api_instance.enumerate_physical_device(vk::physical_gpu::integrated);
     vk::physical_device physical_device = physical_device_expected.value();
+
     // setting up logical device
     std::array<float, 1> priorities = { 0.f };
 
@@ -369,9 +364,7 @@ main() {
     vk::swapchain_params enumerate_swapchain_settings = {
         .width = static_cast<uint32_t>(width),
         .height = static_cast<uint32_t>(height),
-        .present_index =
-          physical_device.family_indices()
-            .graphics, // presentation index just uses the graphics index
+        .present_index = 0,
     };
 
     vk::swapchain main_swapchain(logical_device,
@@ -810,6 +803,6 @@ main() {
     logical_device.destroy();
     window_surface.destroy();
     glfwDestroyWindow(window);
-    api_instance.destroy();
+    api_instance.destruct();
     return 0;
 }
