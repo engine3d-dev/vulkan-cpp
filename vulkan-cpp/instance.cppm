@@ -126,9 +126,7 @@ export namespace vk {
 #endif
             }
 
-            ~instance() {
-                destruct();
-            }
+            ~instance() = default;
 
             //! @return true if a valid VkInstance
             [[nodiscard]] bool alive() const { return !m_instance; }
@@ -211,7 +209,9 @@ export namespace vk {
 
             //! @brief Invokes the destruction of the VkInstance.
             void destruct() {
-                vkDestroyInstance(m_instance, nullptr);
+                if (m_instance != nullptr) {
+                    vkDestroyInstance(m_instance, nullptr);
+                }
             }
 
         private:

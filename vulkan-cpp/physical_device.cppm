@@ -16,10 +16,11 @@ export namespace vk {
         public:
             physical_device() =
               delete("Not allowed constructing empty vk::physical_device");
-            ~physical_device() = default;
 
             physical_device(const VkPhysicalDevice& p_physical)
               : m_physical_device(p_physical) {}
+
+            ~physical_device() = default;
 
             /**
              * @brief reports the properties of this specific physical device

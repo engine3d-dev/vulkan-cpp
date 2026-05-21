@@ -803,6 +803,6 @@ main() {
     logical_device.destroy();
     window_surface.destroy();
     glfwDestroyWindow(window);
-    api_instance.destruct();
+    // api_instance.destruct();
     return 0;
 }
