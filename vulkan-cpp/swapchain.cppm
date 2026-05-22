@@ -13,6 +13,7 @@ export import :device_queue;
 
 export namespace vk {
     inline namespace v1 {
+
         class swapchain {
         public:
             swapchain(const VkDevice& p_device,
@@ -20,25 +21,25 @@ export namespace vk {
                       const swapchain_params& p_settings,
                       const surface_params& p_surface_properties)
               : m_device(p_device)
-              , m_surface_handler(p_surface)
-              , m_surface_params(p_surface_properties) {
-                m_image_size = m_surface_params.image_size;
+              , m_surface_handler(p_surface) {
 
-                create(p_settings);
+                construct(p_settings, p_surface_properties);
             }
 
-            void create(const swapchain_params& p_settings) {
+            void construct(const swapchain_params& p_settings,
+                           const surface_params& p_surface_properties) {
 
                 VkSwapchainCreateInfoKHR swapchain_ci = {
                     .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
                     .pNext = nullptr,
                     .surface = m_surface_handler,
-                    .minImageCount = m_image_size,
-                    .imageFormat = m_surface_params.format.format,
-                    .imageColorSpace = m_surface_params.format.colorSpace,
+                    .minImageCount = p_surface_properties.image_size,
+                    .imageFormat = p_surface_properties.format.format,
+                    .imageColorSpace = p_surface_properties.format.colorSpace,
                     // use physical device surface formats to getting the right
                     // formats in vulkan
-                    .imageExtent = m_surface_params.capabilities.currentExtent,
+                    .imageExtent =
+                      p_surface_properties.capabilities.currentExtent,
                     .imageArrayLayers = 1,
 
                     // Remove COLOR_ATTACHMENT flag because its not needed
@@ -46,7 +47,7 @@ export namespace vk {
                     .queueFamilyIndexCount = 0,
                     .pQueueFamilyIndices = nullptr,
                     .preTransform =
-                      m_surface_params.capabilities.currentTransform,
+                      p_surface_properties.capabilities.currentTransform,
                     .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
                     .presentMode =
                       static_cast<VkPresentModeKHR>(p_settings.present_mode),
@@ -71,6 +72,7 @@ export namespace vk {
              * std::span<const VkImage> images = main_swapchain.get_images();
              *
              * ```
+             * TODO: Have this return std::span<const vk::sample_image>
              *
              */
             std::span<const VkImage> get_images() {
@@ -99,11 +101,6 @@ export namespace vk {
             VkDevice m_device = nullptr;
             VkSwapchainKHR m_swapchain_handler = nullptr;
             VkSurfaceKHR m_surface_handler = nullptr;
-            surface_params m_surface_params{};
-            uint32_t m_image_size = 0;
-
-            device_queue m_present_queue;
-
             std::vector<VkImage> m_images;
         };
     };
