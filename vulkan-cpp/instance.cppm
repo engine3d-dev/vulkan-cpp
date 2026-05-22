@@ -22,7 +22,8 @@ export namespace vk {
          */
         class instance {
         public:
-            instance() = delete;
+            instance() = delete("Disallow constructing empty vk::instance");
+
             /**
              * @param p_config sets the application information that vulkan has
              * optionally.
@@ -46,23 +47,6 @@ export namespace vk {
                     .flags = 0,
                     .pApplicationInfo = &app_info
                 };
-
-                // Setting up validation layers properties
-                uint32_t layer_count = 0;
-                std::vector<VkLayerProperties> layer_properties;
-                vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
-                // std::vector<VkLayerProperties> layer_properties(layer_count);
-                layer_properties.resize(layer_count);
-                vkEnumerateInstanceLayerProperties(&layer_count,
-                                                   layer_properties.data());
-
-                for (const VkLayerProperties property : layer_properties) {
-                    m_layer_properties.emplace_back(
-                      property.layerName,
-                      property.specVersion,
-                      property.implementationVersion,
-                      property.description);
-                }
 
                 // Setting up instance extensions
                 instance_ci.enabledExtensionCount =
@@ -131,8 +115,24 @@ export namespace vk {
             //! @return true if a valid VkInstance
             [[nodiscard]] bool alive() const { return !m_instance; }
 
-            //! @return available validation layers
+            //! @return Requesting available validation layers
             std::span<const layer_properties> validation() {
+                uint32_t layer_count = 0;
+                std::vector<VkLayerProperties> layer_properties;
+                vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
+
+                layer_properties.resize(layer_count);
+                vkEnumerateInstanceLayerProperties(&layer_count,
+                                                   layer_properties.data());
+
+                for (const VkLayerProperties property : layer_properties) {
+                    m_layer_properties.emplace_back(
+                      property.layerName,
+                      property.specVersion,
+                      property.implementationVersion,
+                      property.description);
+                }
+
                 return m_layer_properties;
             }
 

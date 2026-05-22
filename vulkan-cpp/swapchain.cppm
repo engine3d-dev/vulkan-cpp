@@ -1,7 +1,6 @@
 module;
 
 #include <vulkan/vulkan.h>
-#include <print>
 #include <span>
 #include <vector>
 #include <algorithm>
@@ -24,8 +23,6 @@ export namespace vk {
               , m_surface_handler(p_surface)
               , m_surface_params(p_surface_properties) {
                 m_image_size = m_surface_params.image_size;
-
-                std::println("Surface Image Size = {}", m_image_size);
 
                 create(p_settings);
             }
@@ -58,7 +55,6 @@ export namespace vk {
                 VkResult res = vkCreateSwapchainKHR(
                   m_device, &swapchain_ci, nullptr, &m_swapchain_handler);
 
-                std::println("VkResult = {}", static_cast<int>(res));
                 vk_check(res, "vkCreateSwapchainKHR");
             }
 
