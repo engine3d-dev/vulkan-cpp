@@ -16,6 +16,8 @@ export namespace vk {
 
         class swapchain {
         public:
+            swapchain() = delete("Cannot construct empty swapchain");
+
             swapchain(const VkDevice& p_device,
                       const VkSurfaceKHR& p_surface,
                       const swapchain_params& p_settings,
@@ -25,6 +27,8 @@ export namespace vk {
 
                 construct(p_settings, p_surface_properties);
             }
+
+            ~swapchain() = default;
 
             void construct(const swapchain_params& p_settings,
                            const surface_params& p_surface_properties) {
