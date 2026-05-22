@@ -1418,7 +1418,7 @@ export namespace vk {
             device_address_bit = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT,
             device_address_capture_replay_bit =
               VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT,
-            zero_initialize_bit = VK_MEMORY_ALLOCATE_ZERO_INITIALIZE_BIT_EXT,
+            // zero_initialize_bit = VK_MEMORY_ALLOCATE_ZERO_INITIALIZE_BIT_EXT,
             device_mask_bit_khr = VK_MEMORY_ALLOCATE_DEVICE_MASK_BIT_KHR,
             device_address_bit_khr = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT,
             device_address_capture_replay_bit_khr =

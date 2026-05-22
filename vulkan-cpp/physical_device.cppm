@@ -7,93 +7,96 @@ module;
 
 export module vk:physical_device;
 
-export import :utilities;
-export import :types;
+import :utilities;
+import :types;
 
 export namespace vk {
     inline namespace v1 {
         class physical_device {
         public:
-            physical_device() = default;
+            physical_device() =
+              delete("Not allowed constructing empty vk::physical_device");
 
-            physical_device(
-              const VkInstance& p_instance,
-              const physical_enumeration& p_physical_enumeration) {
-                m_physical_device = enumerate_physical_devices(
-                  p_instance, p_physical_enumeration.device_type);
+            physical_device(const VkPhysicalDevice& p_physical)
+              : m_physical_device(p_physical) {}
 
-                if (m_physical_device == nullptr) {
-                    return;
-                }
+            ~physical_device() = default;
 
-                m_queue_family_properties =
-                  enumerate_queue_family_properties(m_physical_device);
+            /**
+             * @brief reports the properties of this specific physical device
+             *
+             * @return VkPhysicalDeviceProperties of the selected physical
+             * device
+             */
+            [[nodiscard]] VkPhysicalDeviceProperties properties() const {
+                VkPhysicalDeviceProperties device_properties;
+                vkGetPhysicalDeviceProperties(m_physical_device,
+                                              &device_properties);
 
-                // This makes sure that we get the graphics, compute, and
-                // transfer queue indices from the physical queue family
-                // assigned
-                uint32_t queue_index = 0;
-                for (const auto& queue_family : m_queue_family_properties) {
-                    if (queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-                        m_queue_family_indices.graphics = queue_index;
-                        break;
-                    }
+                return device_properties;
+            }
 
-                    queue_index++;
-                }
-                queue_index = 0;
+            /**
+             * @brief Query for properties for queues for you specific physical
+             * device.
+             */
+            [[nodiscard]] std::span<const VkQueueFamilyProperties>
+            queue_family_properties() {
+                uint32_t queue_family_count = 0;
+                vkGetPhysicalDeviceQueueFamilyProperties(
+                  m_physical_device, &queue_family_count, nullptr);
 
-                for (const auto& queue_family : m_queue_family_properties) {
-                    if (queue_family.queueFlags & VK_QUEUE_COMPUTE_BIT) {
-                        m_queue_family_indices.compute = queue_index;
-                    }
-                    queue_index++;
-                }
-                queue_index = 0;
+                m_queue_family_properties.resize(queue_family_count);
 
-                for (const auto& queue_family : m_queue_family_properties) {
-                    if (queue_family.queueFlags & VK_QUEUE_TRANSFER_BIT) {
-                        m_queue_family_indices.transfer = queue_index;
-                    }
-                    queue_index++;
-                }
-                queue_index = 0;
+                vkGetPhysicalDeviceQueueFamilyProperties(
+                  m_physical_device,
+                  &queue_family_count,
+                  m_queue_family_properties.data());
+
+                return m_queue_family_properties;
             }
 
             //! @return true if physical device is valid
             [[nodiscard]] bool alive() const { return m_physical_device; }
 
-            //! @return queue family indices for graphics, compute, and transfer
-            //! operations
-            [[nodiscard]] queue_indices family_indices() const {
-                return m_queue_family_indices;
-            }
-
-            //! @return the presentation index for the presentation queue
-            uint32_t queue_present_index(const VkSurfaceKHR& p_surface) {
-                uint32_t presentation_index = 0;
-                uint32_t compatible = false;
-                uint32_t i = 0;
+            /**
+             * @brief Checks if the surface has presentation supported
+             *
+             * @param p_surface to perform presentation supported check on.
+             * @param p_queue_index to specify the queue family index to check
+             * presentation is supported.
+             *
+             * @return true if presentation supported, otherwise false
+             *
+             *
+             * Example:
+             *
+             * ```C++
+             *
+             * vk::physical_device physical_device = ...;
+             * vk::surface surface = ...;
+             *
+             * bool is_present_supported =
+             * physical_device.is_present_supported(surface);
+             *
+             * if(is_present_supported) { ... }
+             *
+             * ```
+             */
+            [[nodiscard]] uint32_t is_present_supported(
+              const VkSurfaceKHR& p_surface,
+              uint32_t p_queue_index = 0) const {
+                uint32_t is_compatible = false;
                 for (const auto& queue_family : m_queue_family_properties) {
-                    vk_check(vkGetPhysicalDeviceSurfaceSupportKHR(
-                               m_physical_device, i, p_surface, &compatible),
-                             "vkGetPhysicalDeviceSurfaceSupportKHR");
-
-                    if (compatible) {
-                        presentation_index = i;
-                    }
+                    vk_check(
+                      vkGetPhysicalDeviceSurfaceSupportKHR(m_physical_device,
+                                                           p_queue_index,
+                                                           p_surface,
+                                                           &is_compatible),
+                      "vkGetPhysicalDeviceSurfaceSupportKHR");
                 }
 
-                return presentation_index;
-            }
-
-            //! @return physical device memory requirements
-            [[nodiscard]] VkPhysicalDeviceMemoryProperties memory_properties()
-              const {
-                VkPhysicalDeviceMemoryProperties physical_memory_properties;
-                vkGetPhysicalDeviceMemoryProperties(
-                  m_physical_device, &physical_memory_properties);
-                return physical_memory_properties;
+                return is_compatible;
             }
 
             [[nodiscard]] uint32_t memory_properties(
@@ -129,28 +132,54 @@ export namespace vk {
             [[nodiscard]] VkFormat request_depth_format(
               std::span<const format> p_format_supported) {
 
-                return request_compatible_formats(
+                return request_formats(
                   p_format_supported,
                   VK_IMAGE_TILING_OPTIMAL,
                   VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
             }
 
             /**
-             * @brief Requests a format and select an arbitrary format if those
-             * are available to select those
+             * @brief Requests for compatible formats to select
              *
              * @param p_tiling is selecting arrangements of the data format
              * @param p_feature_flag is the bitmask selection for the image
              * format
              */
-            [[nodiscard]] VkFormat request_format(
+            [[nodiscard]] VkFormat request_formats(
               std::span<const format> p_format_supported,
               uint32_t p_tiling,
               uint32_t p_feature_flag) {
-                return request_compatible_formats(
-                  p_format_supported,
-                  static_cast<VkImageTiling>(p_tiling),
-                  static_cast<VkFormatFeatureFlags>(p_feature_flag));
+                VkFormat format = VK_FORMAT_UNDEFINED;
+                VkImageTiling tiling = static_cast<VkImageTiling>(p_tiling);
+                VkFormatFeatureFlags feature_flag =
+                  static_cast<VkFormatFeatureFlags>(p_feature_flag);
+
+                for (uint32_t i = 0; i < p_format_supported.size(); i++) {
+                    VkFormat current =
+                      static_cast<VkFormat>(p_format_supported[i]);
+                    VkFormatProperties format_properties;
+                    vkGetPhysicalDeviceFormatProperties(
+                      m_physical_device, current, &format_properties);
+
+                    switch (tiling) {
+                        case VK_IMAGE_TILING_LINEAR:
+                            if (format_properties.linearTilingFeatures &
+                                feature_flag) {
+                                format = current;
+                            }
+                            break;
+                        case VK_IMAGE_TILING_OPTIMAL:
+                            if (format_properties.optimalTilingFeatures &
+                                feature_flag) {
+                                format = current;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                return format;
             }
 
             [[nodiscard]] surface_params request_surface(
@@ -221,70 +250,6 @@ export namespace vk {
                 }
 
                 return final_image_count;
-            }
-
-            VkFormat request_compatible_formats(
-              std::span<const format> p_format_supported,
-              VkImageTiling p_tiling,
-              VkFormatFeatureFlags p_feature_flag) {
-                VkFormat format = VK_FORMAT_UNDEFINED;
-
-                for (uint32_t i = 0; i < p_format_supported.size(); i++) {
-                    VkFormat current =
-                      static_cast<VkFormat>(p_format_supported[i]);
-                    VkFormatProperties format_properties;
-                    vkGetPhysicalDeviceFormatProperties(
-                      m_physical_device, current, &format_properties);
-
-                    switch (p_tiling) {
-                        case VK_IMAGE_TILING_LINEAR:
-                            if (format_properties.linearTilingFeatures &
-                                p_feature_flag) {
-                                format = current;
-                            }
-                            break;
-                        case VK_IMAGE_TILING_OPTIMAL:
-                            if (format_properties.optimalTilingFeatures &
-                                p_feature_flag) {
-                                format = current;
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                }
-
-                return format;
-            }
-
-            VkPhysicalDevice enumerate_physical_devices(
-              const VkInstance& p_instance,
-              const physical_gpu& p_physical_device_type) {
-                uint32_t device_count = 0;
-                vkEnumeratePhysicalDevices(p_instance, &device_count, nullptr);
-
-                if (device_count == 0) {
-                    return nullptr;
-                }
-
-                // TODO: Turn this into map<VkDescriptorDeviceType,
-                // VkPhysicalDevice>
-                std::vector<VkPhysicalDevice> physical_devices(device_count);
-                vkEnumeratePhysicalDevices(
-                  p_instance, &device_count, physical_devices.data());
-                VkPhysicalDevice physical_device = nullptr;
-
-                for (const auto& device : physical_devices) {
-                    VkPhysicalDeviceProperties device_properties;
-                    vkGetPhysicalDeviceProperties(device, &device_properties);
-
-                    if (device_properties.deviceType ==
-                        static_cast<VkPhysicalDeviceType>(
-                          p_physical_device_type)) {
-                        physical_device = device;
-                    }
-                }
-                return physical_device;
             }
 
         private:

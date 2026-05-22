@@ -3,11 +3,13 @@ module;
 #include <span>
 #include <vector>
 #include <vulkan/vulkan.h>
+#include <expected>
 
 export module vk:instance;
 
-export import :types;
-export import :utilities;
+import :types;
+import :utilities;
+import :physical_device;
 
 export namespace vk {
     inline namespace v1 {
@@ -20,6 +22,8 @@ export namespace vk {
          */
         class instance {
         public:
+            instance() = delete("Disallow constructing empty vk::instance");
+
             /**
              * @param p_config sets the application information that vulkan has
              * optionally.
@@ -43,23 +47,6 @@ export namespace vk {
                     .flags = 0,
                     .pApplicationInfo = &app_info
                 };
-
-                // Setting up validation layers properties
-                uint32_t layer_count = 0;
-                std::vector<VkLayerProperties> layer_properties;
-                vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
-                // std::vector<VkLayerProperties> layer_properties(layer_count);
-                layer_properties.resize(layer_count);
-                vkEnumerateInstanceLayerProperties(&layer_count,
-                                                   layer_properties.data());
-
-                for (const VkLayerProperties property : layer_properties) {
-                    m_layer_properties.emplace_back(
-                      property.layerName,
-                      property.specVersion,
-                      property.implementationVersion,
-                      property.description);
-                }
 
                 // Setting up instance extensions
                 instance_ci.enabledExtensionCount =
@@ -123,12 +110,79 @@ export namespace vk {
 #endif
             }
 
+            ~instance() = default;
+
             //! @return true if a valid VkInstance
             [[nodiscard]] bool alive() const { return !m_instance; }
 
-            //! @return available validation layers
+            //! @return Requesting available validation layers
             std::span<const layer_properties> validation() {
+                uint32_t layer_count = 0;
+                std::vector<VkLayerProperties> layer_properties;
+                vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
+
+                layer_properties.resize(layer_count);
+                vkEnumerateInstanceLayerProperties(&layer_count,
+                                                   layer_properties.data());
+
+                for (const VkLayerProperties property : layer_properties) {
+                    m_layer_properties.emplace_back(
+                      property.layerName,
+                      property.specVersion,
+                      property.implementationVersion,
+                      property.description);
+                }
+
                 return m_layer_properties;
+            }
+
+            /**
+             * @brief Enumerate physical devices and select specific physical
+             * device to report properties from.
+             *
+             * @return vk::physical_device if successful
+             * @return VkResult if an unexpected error occurs
+             *
+             *
+             * ```C++
+             *
+             * vk::instance api_instance = ...;
+             * std::expected<vk::physical_device, VkResult> expected =
+             * api_instance.enumerate_physical_device(vk::physical_device_type::integrated);
+             *
+             * vk::physical_device physical_device = expected.value();
+             *
+             * ```
+             */
+            std::expected<physical_device, VkResult> enumerate_physical_device(
+              physical_gpu p_device_type) {
+                uint32_t device_count = 0;
+                VkResult res = vkEnumeratePhysicalDevices(
+                  m_instance, &device_count, nullptr);
+
+                if (res != VK_SUCCESS) {
+                    return std::unexpected(res);
+                }
+
+                std::vector<VkPhysicalDevice> physical_devices(device_count);
+                res = vkEnumeratePhysicalDevices(
+                  m_instance, &device_count, physical_devices.data());
+
+                if (res != VK_SUCCESS) {
+                    return std::unexpected(res);
+                }
+
+                for (const auto& device : physical_devices) {
+                    VkPhysicalDeviceProperties device_properties;
+                    vkGetPhysicalDeviceProperties(device, &device_properties);
+
+                    if (device_properties.deviceType ==
+                        static_cast<VkPhysicalDeviceType>(p_device_type)) {
+                        return physical_device(device);
+                    }
+                }
+
+                return std::unexpected(res);
             }
 
             /**
@@ -154,7 +208,11 @@ export namespace vk {
             operator VkInstance() const { return m_instance; }
 
             //! @brief Invokes the destruction of the VkInstance.
-            void destroy() {}
+            void destruct() {
+                if (m_instance != nullptr) {
+                    vkDestroyInstance(m_instance, nullptr);
+                }
+            }
 
         private:
             VkInstance m_instance = nullptr;
