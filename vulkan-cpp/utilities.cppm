@@ -21,7 +21,7 @@ export namespace vk {
                              static_cast<int>(p_result));
             }
         }
-        
+
         VkSemaphore create_semaphore(const VkDevice& p_device) {
             // creating semaphores
             VkSemaphoreCreateInfo semaphore_ci = {
