@@ -3,11 +3,13 @@ module;
 #include <span>
 #include <vulkan/vulkan.h>
 #include <limits>
+#include <memory>
 
 export module vk:device_present_queue;
 
-export import :types;
-export import :utilities;
+import :types;
+import :utilities;
+import :device;
 
 export namespace vk {
     inline namespace v1 {
@@ -22,18 +24,18 @@ export namespace vk {
          */
         class device_present_queue {
         public:
-            device_present_queue() = default;
-            device_present_queue(const VkDevice& p_device,
+            device_present_queue() = delete;
+            device_present_queue(std::shared_ptr<device> p_device,
                                  const VkSwapchainKHR& p_swapchain_context,
                                  const queue_params& p_config)
               : m_device(p_device)
               , m_swapchain(p_swapchain_context) {
 
                 vkGetDeviceQueue(
-                  m_device, p_config.family, p_config.index, &m_queue_handler);
+                  *m_device, p_config.family, p_config.index, &m_queue_handler);
 
-                m_work_completed = create_semaphore(m_device);
-                m_presentation_completed = create_semaphore(m_device);
+                m_work_completed = create_semaphore(*m_device);
+                m_presentation_completed = create_semaphore(*m_device);
                 m_out_of_date = false;
             }
 
@@ -68,7 +70,7 @@ export namespace vk {
 
                 uint32_t image_acquired;
                 VkResult acquired_next_image_res =
-                  vkAcquireNextImageKHR(m_device,
+                  vkAcquireNextImageKHR(*m_device,
                                         m_swapchain,
                                         std::numeric_limits<uint32_t>::max(),
                                         m_presentation_completed,
@@ -153,9 +155,9 @@ export namespace vk {
             }
 
             void destroy() {
-                vkDeviceWaitIdle(m_device);
-                vkDestroySemaphore(m_device, m_presentation_completed, nullptr);
-                vkDestroySemaphore(m_device, m_work_completed, nullptr);
+                vkDeviceWaitIdle(*m_device);
+                vkDestroySemaphore(*m_device, m_presentation_completed, nullptr);
+                vkDestroySemaphore(*m_device, m_work_completed, nullptr);
             }
 
             operator VkQueue() { return m_queue_handler; }
@@ -163,7 +165,7 @@ export namespace vk {
             operator VkQueue() const { return m_queue_handler; }
 
         private:
-            VkDevice m_device = nullptr;
+            std::shared_ptr<device> m_device = nullptr;
             bool m_out_of_date = false;
             VkSwapchainKHR m_swapchain = nullptr;
             VkQueue m_queue_handler = nullptr;

@@ -5,11 +5,13 @@ module;
 #include <vector>
 #include <fstream>
 #include <filesystem>
+#include <memory>
 
 export module vk:shader_resource;
 
-export import :types;
-export import :utilities;
+import :types;
+import :utilities;
+import :device;
 
 export namespace vk {
     inline namespace v1 {
@@ -41,8 +43,8 @@ export namespace vk {
          */
         class shader_resource {
         public:
-            shader_resource() = default;
-            shader_resource(const VkDevice& p_device,
+            shader_resource() = delete;
+            shader_resource(std::shared_ptr<device> p_device,
                             const shader_resource_info& p_info)
               : m_device(p_device) {
                 m_shader_module_handlers.resize(p_info.sources.size());
@@ -68,7 +70,7 @@ export namespace vk {
                     // Setting m_shader_module_handlers[i]'s stage and the
                     // VkShaderModule handle altogether
                     vk_check(
-                      vkCreateShaderModule(m_device,
+                      vkCreateShaderModule(*m_device,
                                            &shader_module_ci,
                                            nullptr,
                                            &m_shader_module_handlers[i].module),
@@ -131,10 +133,10 @@ export namespace vk {
             }
 
             //! @brief used for explicit cleanup for this resource
-            void destroy() {
+            void destruct() {
                 for (auto& handle : m_shader_module_handlers) {
                     if (handle.module != nullptr) {
-                        vkDestroyShaderModule(m_device, handle.module, nullptr);
+                        vkDestroyShaderModule(*m_device, handle.module, nullptr);
                     }
                 }
             }
@@ -171,7 +173,7 @@ export namespace vk {
             }
 
         private:
-            VkDevice m_device = nullptr;
+            std::shared_ptr<device> m_device = nullptr;
             bool m_is_resource_valid = false;
             std::vector<VkVertexInputAttributeDescription> m_vertex_attributes;
             std::vector<VkVertexInputBindingDescription>

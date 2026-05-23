@@ -17,7 +17,7 @@ export namespace vk {
          */
         class buffer_stream16 {
         public:
-            buffer_stream16() = default;
+            buffer_stream16() = delete;
             buffer_stream16(const VkDevice&,
                             uint64_t,
                             const buffer_parameters&) {}

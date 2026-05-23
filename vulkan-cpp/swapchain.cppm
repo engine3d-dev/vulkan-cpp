@@ -4,12 +4,14 @@ module;
 #include <span>
 #include <vector>
 #include <algorithm>
+#include <memory>
 
 export module vk:swapchain;
 
-export import :types;
-export import :utilities;
-export import :device_queue;
+import :types;
+import :utilities;
+import :device_queue;
+import :device;
 
 export namespace vk {
     inline namespace v1 {
@@ -18,7 +20,7 @@ export namespace vk {
         public:
             swapchain() = delete("Cannot construct empty swapchain");
 
-            swapchain(const VkDevice& p_device,
+            swapchain(std::shared_ptr<device> p_device,
                       const VkSurfaceKHR& p_surface,
                       const swapchain_params& p_settings,
                       const surface_params& p_surface_properties)
@@ -28,7 +30,11 @@ export namespace vk {
                 construct(p_settings, p_surface_properties);
             }
 
-            ~swapchain() = default;
+            ~swapchain() {
+                if(m_swapchain_handler != nullptr) {
+                    destruct();
+                }
+            }
 
             void construct(const swapchain_params& p_settings,
                            const surface_params& p_surface_properties) {
@@ -58,7 +64,7 @@ export namespace vk {
                     .clipped = p_settings.clipped,
                 };
                 VkResult res = vkCreateSwapchainKHR(
-                  m_device, &swapchain_ci, nullptr, &m_swapchain_handler);
+                  *m_device, &swapchain_ci, nullptr, &m_swapchain_handler);
 
                 vk_check(res, "vkCreateSwapchainKHR");
             }
@@ -82,17 +88,17 @@ export namespace vk {
             std::span<const VkImage> get_images() {
                 uint32_t image_count = 0;
                 vkGetSwapchainImagesKHR(
-                  m_device, m_swapchain_handler, &image_count, nullptr);
+                  *m_device, m_swapchain_handler, &image_count, nullptr);
 
                 m_images.resize(image_count);
                 vkGetSwapchainImagesKHR(
-                  m_device, m_swapchain_handler, &image_count, m_images.data());
+                  *m_device, m_swapchain_handler, &image_count, m_images.data());
 
                 return m_images;
             }
 
-            void destroy() {
-                vkDestroySwapchainKHR(m_device, m_swapchain_handler, nullptr);
+            void destruct() {
+                vkDestroySwapchainKHR(*m_device, m_swapchain_handler, nullptr);
             }
 
             [[nodiscard]] bool alive() const { return m_swapchain_handler; }
@@ -102,7 +108,7 @@ export namespace vk {
             operator VkSwapchainKHR() { return m_swapchain_handler; }
 
         private:
-            VkDevice m_device = nullptr;
+            std::shared_ptr<device> m_device = nullptr;
             VkSwapchainKHR m_swapchain_handler = nullptr;
             VkSurfaceKHR m_surface_handler = nullptr;
             std::vector<VkImage> m_images;

@@ -4,11 +4,13 @@ module;
 #include <span>
 #include <vector>
 #include <bit>
+#include <memory>
 
 export module vk:buffer_streams;
 
-export import :types;
-export import :utilities;
+import :types;
+import :utilities;
+import :device;
 
 export namespace vk {
     inline namespace v1 {
@@ -21,7 +23,11 @@ export namespace vk {
          */
         class buffer_stream {
         public:
-            buffer_stream() = default;
+            buffer_stream() = delete;
+
+            ~buffer_stream() {
+                destruct();
+            }
 
             /**
              * @brief constructs a buffer_stream to write streams of data to GPU
@@ -33,7 +39,7 @@ export namespace vk {
              * @param p_params are additional parameters for the buffer
              * handles
              */
-            buffer_stream(const VkDevice& p_device,
+            buffer_stream(std::shared_ptr<device> p_device,
                           uint64_t p_device_size,
                           const buffer_parameters& p_params)
               : m_device(p_device) {
@@ -48,13 +54,13 @@ export namespace vk {
                 };
 
                 vk_check(
-                  vkCreateBuffer(p_device, &buffer_ci, nullptr, &m_handle),
+                  vkCreateBuffer(*m_device, &buffer_ci, nullptr, &m_handle),
                   "vkCreateBuffer");
 
                 // retrieving buffer memory requirements
                 VkMemoryRequirements memory_requirements = {};
                 vkGetBufferMemoryRequirements(
-                  p_device, m_handle, &memory_requirements);
+                  *m_device, m_handle, &memory_requirements);
                 uint32_t mapped_memory_requirements =
                   memory_requirements.memoryTypeBits & p_params.memory_mask;
                 uint32_t memory_index =
@@ -80,18 +86,18 @@ export namespace vk {
 
                 if (p_params.vkSetDebugUtilsObjectNameEXT != nullptr) {
                     // vkSetDebugUtilsObjectNameEXT(m_device, &debug_info);
-                    p_params.vkSetDebugUtilsObjectNameEXT(m_device,
+                    p_params.vkSetDebugUtilsObjectNameEXT(*m_device,
                                                           &debug_info);
                 }
 #endif
                 vk_check(
                   vkAllocateMemory(
-                    p_device, &memory_alloc_info, nullptr, &m_device_memory),
+                    *m_device, &memory_alloc_info, nullptr, &m_device_memory),
                   "vkAllocateMemory");
 
                 // 5. bind memory resource of this buffer handle
                 vk_check(
-                  vkBindBufferMemory(p_device, m_handle, m_device_memory, 0),
+                  vkBindBufferMemory(*m_device, m_handle, m_device_memory, 0),
                   "vkBindBufferMemory");
             }
 
@@ -113,7 +119,7 @@ export namespace vk {
             template<typename T>
             void transfer(std::span<const T> p_in_data, uint32_t p_offset = 0) {
                 void* mapped = nullptr;
-                vk_check(vkMapMemory(m_device,
+                vk_check(vkMapMemory(*m_device,
                                      m_device_memory,
                                      p_offset,
                                      p_in_data.size_bytes(),
@@ -121,7 +127,7 @@ export namespace vk {
                                      &mapped),
                          "vkMapMemory");
                 memcpy(mapped, p_in_data.data(), p_in_data.size_bytes());
-                vkUnmapMemory(m_device, m_device_memory);
+                vkUnmapMemory(*m_device, m_device_memory);
             }
 
             /**
@@ -140,7 +146,7 @@ export namespace vk {
             void transfer(std::span<const uint8_t> p_data,
                           uint32_t p_offset = 0) {
                 void* mapped = nullptr;
-                vk_check(vkMapMemory(m_device,
+                vk_check(vkMapMemory(*m_device,
                                      m_device_memory,
                                      p_offset,
                                      p_data.size_bytes(),
@@ -148,7 +154,7 @@ export namespace vk {
                                      &mapped),
                          "vkMapMemory");
                 memcpy(mapped, p_data.data(), p_data.size_bytes());
-                vkUnmapMemory(m_device, m_device_memory);
+                vkUnmapMemory(*m_device, m_device_memory);
             }
 
             /**
@@ -269,13 +275,13 @@ export namespace vk {
                   image_copies.data());
             }
 
-            void destroy() {
+            void destruct() {
                 if (m_handle != nullptr) {
-                    vkDestroyBuffer(m_device, m_handle, nullptr);
+                    vkDestroyBuffer(*m_device, m_handle, nullptr);
                 }
 
                 if (m_device_memory != nullptr) {
-                    vkFreeMemory(m_device, m_device_memory, nullptr);
+                    vkFreeMemory(*m_device, m_device_memory, nullptr);
                 }
             }
 
@@ -284,7 +290,7 @@ export namespace vk {
             operator VkBuffer() { return m_handle; }
 
         private:
-            VkDevice m_device = nullptr;
+            std::shared_ptr<device> m_device = nullptr;
             VkBuffer m_handle;
             VkDeviceMemory m_device_memory;
         };

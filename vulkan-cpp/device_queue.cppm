@@ -1,11 +1,13 @@
 module;
 
 #include <vulkan/vulkan.h>
+#include <memory>
 
 export module vk:device_queue;
 
-export import :types;
-export import :utilities;
+import :types;
+import :utilities;
+import :device;
 
 export namespace vk {
     inline namespace v1 {
@@ -15,12 +17,12 @@ export namespace vk {
          */
         class device_queue {
         public:
-            device_queue() = default;
+            device_queue() = delete;
 
-            device_queue(const VkDevice& p_device,
-                         const queue_params& p_config) {
+            device_queue(std::shared_ptr<device> p_device,
+                         const queue_params& p_config) : m_device(p_device) {
                 vkGetDeviceQueue(
-                  p_device, p_config.family, p_config.index, &m_queue_handler);
+                  *m_device, p_config.family, p_config.index, &m_queue_handler);
             }
 
             [[nodiscard]] bool alive() const { return m_queue_handler; }
@@ -31,6 +33,7 @@ export namespace vk {
 
         private:
             VkQueue m_queue_handler = nullptr;
+            std::shared_ptr<device> m_device=nullptr;
         };
     };
 };

@@ -74,7 +74,7 @@ class obj_model {
 public:
     obj_model() = default;
     obj_model(const std::filesystem::path& p_filename,
-              const VkDevice& p_device,
+              std::shared_ptr<vk::device> p_device,
               const vk::physical_device& p_physical) {
         tinyobj::attrib_t attrib;
         std::vector<tinyobj::shape_t> shapes;
@@ -181,16 +181,16 @@ public:
             .usage = static_cast<uint32_t>(vk::buffer_usage::index_buffer_bit),
         };
 
-        m_vertex_buffer = vk::vertex_buffer(p_device, vertices, vertex_params);
-        m_index_buffer = vk::index_buffer(p_device, indices, index_params);
+        m_vertex_buffer = std::make_shared<vk::vertex_buffer>(p_device, vertices, vertex_params);
+        m_index_buffer = std::make_shared<vk::index_buffer>(p_device, indices, index_params);
         m_is_loaded = true;
     }
 
     [[nodiscard]] bool loaded() const { return m_is_loaded; }
 
-    [[nodiscard]] VkBuffer vertex_handle() const { return m_vertex_buffer; }
+    [[nodiscard]] std::shared_ptr<vk::vertex_buffer> vertex_handle() { return m_vertex_buffer; }
 
-    [[nodiscard]] VkBuffer index_handle() const { return m_index_buffer; }
+    [[nodiscard]] std::shared_ptr<vk::index_buffer> index_handle() { return m_index_buffer; }
 
     [[nodiscard]] bool has_indices() const { return m_has_indices; }
 
@@ -205,17 +205,17 @@ public:
         }
     }
 
-    void destroy() {
-        m_vertex_buffer.destroy();
-        m_index_buffer.destroy();
-    }
+    // void destroy() {
+    //     m_vertex_buffer.destroy();
+    //     m_index_buffer.destroy();
+    // }
 
 private:
     bool m_is_loaded = false;
     bool m_has_indices = false;
     uint32_t m_indices_size = 0;
-    vk::vertex_buffer m_vertex_buffer{};
-    vk::index_buffer m_index_buffer{};
+    std::shared_ptr<vk::vertex_buffer> m_vertex_buffer{};
+    std::shared_ptr<vk::index_buffer> m_index_buffer{};
 };
 
 std::vector<const char*>
@@ -410,6 +410,8 @@ main() {
     VkFormat depth_format =
       physical_device.request_depth_format(format_support);
 
+    const auto physical_features = physical_device.features();
+
     vk::device_features device_features{
         vk::dynamic_rendering_feature{ {
           .dynamicRendering = true,
@@ -434,7 +436,7 @@ main() {
         .queue_family_index = 0,
     };
 
-    vk::device logical_device(physical_device, logical_device_params);
+    std::shared_ptr<vk::device> logical_device = std::make_shared<vk::device>(physical_device, logical_device_params, physical_features);
 
     vk::surface window_surface(api_instance, window);
 
@@ -447,18 +449,18 @@ main() {
         .present_index = 0,
     };
 
-    vk::swapchain main_swapchain(logical_device,
+    std::shared_ptr<vk::swapchain> main_swapchain = std::make_shared<vk::swapchain>(logical_device,
                                  window_surface,
                                  enumerate_swapchain_settings,
                                  surface_properties);
 
-    if (!main_swapchain.alive()) {
+    if (!main_swapchain->alive()) {
         std::println("main_swapchain is nullptr!!!");
         return -1;
     }
 
     // querying presentable images
-    std::span<const VkImage> images = main_swapchain.get_images();
+    std::span<const VkImage> images = main_swapchain->get_images();
     uint32_t image_count = static_cast<uint32_t>(images.size());
 
     // Creating Images
@@ -521,8 +523,8 @@ main() {
         .family = 0,
         .index = 0,
     };
-    vk::device_present_queue presentation_queue(
-      logical_device, main_swapchain, enumerate_present_queue);
+    std::shared_ptr<vk::device_present_queue> presentation_queue = std::make_shared<vk::device_present_queue>(
+      logical_device, *main_swapchain, enumerate_present_queue);
 
     // gets set with the renderpass
     std::array<float, 4> color = { 0.f, 0.5f, 0.5f, 1.f };
@@ -704,10 +706,11 @@ main() {
         .depthStencil = { .depth = 1.f, .stencil = 0 },
     };
 
+    uint32_t i = 0;
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
-        uint32_t current_frame = presentation_queue.acquire_next_image();
+        uint32_t current_frame = presentation_queue->acquire_next_image();
         vk::command_buffer current = swapchain_command_buffers[current_frame];
 
         current.begin(vk::command_usage::simulatneous_use_bit);
@@ -786,13 +789,15 @@ main() {
 
         main_graphics_pipeline.bind(current);
 
-        const VkBuffer vertex = test_model.vertex_handle();
+        std::shared_ptr<vk::vertex_buffer> vertex_handle = test_model.vertex_handle();
+        const VkBuffer vertex = *vertex_handle;
         uint64_t offset = 0;
         current.bind_vertex_buffers(std::span<const VkBuffer>(&vertex, 1),
                                     std::span<uint64_t>(&offset, 1));
 
         if (test_model.has_indices()) {
-            current.bind_index_buffers32(test_model.index_handle());
+            std::shared_ptr<vk::index_buffer> index_handle = test_model.index_handle();
+            current.bind_index_buffers32(*index_handle);
         }
 
         static auto start_time = std::chrono::high_resolution_clock::now();
@@ -848,37 +853,42 @@ main() {
 
         // Submitting and then presenting to the screen
         std::array<const VkCommandBuffer, 1> commands = { current };
-        presentation_queue.submit_async(commands);
-        presentation_queue.present_frame(current_frame);
+        presentation_queue->submit_async(commands);
+        presentation_queue->present_frame(current_frame);
+        i++;
+
+        if(i == 10) {
+            glfwSetWindowShouldClose(window, true);
+        }
     }
 
-    logical_device.wait();
-    main_swapchain.destroy();
+    // logical_device.wait();
+    // main_swapchain->destruct();
 
-    texture1.destroy();
-    set1_resource.destroy();
-    test_ubo.reset();
-    test_model.destroy();
+    // texture1.destruct();
+    // set1_resource.destruct();
+    // test_ubo.destruct();
+    // test_model.destruct();
 
-    geometry_resource.destroy();
-    main_graphics_pipeline.destroy();
+    // geometry_resource.destruct();
+    // main_graphics_pipeline.destruct();
 
-    for (auto& command : swapchain_command_buffers) {
-        command.destroy();
-    }
+    // for (auto& command : swapchain_command_buffers) {
+    //     command.destruct();
+    // }
 
-    for (auto& image : swapchain_images) {
-        image.destroy();
-    }
+    // for (auto& image : swapchain_images) {
+    //     image.destruct();
+    // }
 
-    for (auto& image : swapchain_depth_images) {
-        image.destroy();
-    }
+    // for (auto& image : swapchain_depth_images) {
+    //     image.destruct();
+    // }
 
-    presentation_queue.destroy();
+    // presentation_queue.destruct();
 
-    logical_device.destroy();
-    window_surface.destroy();
+    // logical_device.destruct();
+    // window_surface.destruct();
     glfwDestroyWindow(window);
     // api_instance.destruct();
     return 0;

@@ -4,6 +4,7 @@ module;
 #include <span>
 #include <array>
 #include <filesystem>
+#include <memory>
 
 export module vk:texture;
 
@@ -13,6 +14,7 @@ import :buffer_streams;
 import :sample_image;
 import :command_buffer;
 import :image;
+import :device;
 
 export namespace vk {
     inline namespace v1 {
@@ -21,7 +23,7 @@ export namespace vk {
         public:
             texture() = delete;
 
-            texture(const VkDevice& p_device,
+            texture(std::shared_ptr<device> p_device,
                     const image_extent& p_extent,
                     std::span<const uint8_t> p_color,
                     uint32_t p_memory_mask,
@@ -38,7 +40,7 @@ export namespace vk {
                 m_texture_loaded = true;
             }
 
-            texture(const VkDevice& p_device,
+            texture(std::shared_ptr<device> p_device,
                     image* p_image,
                     const texture_params& p_texture_params)
               : m_device(p_device) {
@@ -66,7 +68,7 @@ export namespace vk {
                     .layer_count = p_layer_count,
                 };
 
-                m_image = sample_image(m_device, img_options);
+                m_image = std::make_optional<sample_image>(m_device, img_options);
 
                 // Setup staging buffer
                 uint32_t property_flag = memory_property::host_visible_bit |
@@ -97,7 +99,7 @@ export namespace vk {
                 // Performing image layouts
                 VkImageLayout old_layout = VK_IMAGE_LAYOUT_UNDEFINED;
                 VkImageLayout new_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-                m_image.memory_barrier(temp_command_buffer,
+                m_image->memory_barrier(temp_command_buffer,
                                        img_options.format,
                                        old_layout,
                                        new_layout);
@@ -110,11 +112,11 @@ export namespace vk {
                 };
 
                 staging.copy_to_image(
-                  temp_command_buffer, m_image, region_copies);
+                  temp_command_buffer, m_image.value(), region_copies);
 
                 old_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
                 new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                m_image.memory_barrier(temp_command_buffer,
+                m_image->memory_barrier(temp_command_buffer,
                                        img_options.format,
                                        old_layout,
                                        new_layout);
@@ -125,7 +127,7 @@ export namespace vk {
                 uint32_t queue_index = 0;
                 VkQueue temp_graphics_queue = nullptr;
                 vkGetDeviceQueue(
-                  m_device, queue_family, queue_index, &temp_graphics_queue);
+                  *m_device, queue_family, queue_index, &temp_graphics_queue);
 
                 const VkCommandBuffer handle = temp_command_buffer;
                 VkSubmitInfo submit_info = {
@@ -137,8 +139,12 @@ export namespace vk {
                 vkQueueSubmit(temp_graphics_queue, 1, &submit_info, nullptr);
                 vkQueueWaitIdle(temp_graphics_queue);
 
-                temp_command_buffer.destroy();
-                staging.destroy();
+                // temp_command_buffer.destroy();
+                // staging.destroy();
+            }
+
+            ~texture() {
+                // destruct();
             }
 
             void construct(image* p_image,
@@ -160,7 +166,7 @@ export namespace vk {
                     .layer_count = p_texture_params.layer_count,
                 };
 
-                m_image = sample_image(m_device, img_options);
+                m_image = std::make_optional<sample_image>(m_device, img_options);
 
                 // Setup staging buffer
                 uint32_t property_flag = memory_property::host_visible_bit |
@@ -192,7 +198,7 @@ export namespace vk {
                 // Performing image layouts
                 VkImageLayout old_layout = VK_IMAGE_LAYOUT_UNDEFINED;
                 VkImageLayout new_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-                m_image.memory_barrier(temp_command_buffer,
+                m_image->memory_barrier(temp_command_buffer,
                                        img_options.format,
                                        old_layout,
                                        new_layout);
@@ -205,11 +211,11 @@ export namespace vk {
                 };
 
                 staging.copy_to_image(
-                  temp_command_buffer, m_image, region_copies);
+                  temp_command_buffer, m_image.value(), region_copies);
 
                 old_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
                 new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                m_image.memory_barrier(temp_command_buffer,
+                m_image->memory_barrier(temp_command_buffer,
                                        img_options.format,
                                        old_layout,
                                        new_layout);
@@ -220,7 +226,7 @@ export namespace vk {
                 uint32_t queue_index = 0;
                 VkQueue temp_graphics_queue = nullptr;
                 vkGetDeviceQueue(
-                  m_device, queue_family, queue_index, &temp_graphics_queue);
+                  *m_device, queue_family, queue_index, &temp_graphics_queue);
 
                 const VkCommandBuffer handle = temp_command_buffer;
                 VkSubmitInfo submit_info = {
@@ -232,24 +238,24 @@ export namespace vk {
                 vkQueueSubmit(temp_graphics_queue, 1, &submit_info, nullptr);
                 vkQueueWaitIdle(temp_graphics_queue);
 
-                temp_command_buffer.destroy();
-                staging.destroy();
+                // temp_command_buffer.destroy();
+                // staging.destroy();
             }
 
             //! @return true if image loaded, false if texture did not load
             //! correctly
             [[nodiscard]] bool loaded() const { return m_texture_loaded; }
 
-            [[nodiscard]] sample_image image() const { return m_image; }
+            [[nodiscard]] sample_image image() const { return m_image.value(); }
 
             [[nodiscard]] image_extent extent() const { return m_extent; }
 
-            void destroy() { m_image.destroy(); }
+            // void destruct() { m_image.destruct(); }
 
         private:
-            VkDevice m_device = nullptr;
+            std::shared_ptr<device> m_device = nullptr;
             bool m_texture_loaded = false;
-            sample_image m_image{};
+            std::optional<sample_image> m_image;
             image_extent m_extent;
             class image* m_image_loader = nullptr;
         };

@@ -27,10 +27,10 @@ export namespace vk {
                 destruct();
             }
 
-            device(const device&) = default;
-            device(device&&) = delete;
-            device& operator=(const device&) = default;
-            device& operator=(device&&) = delete;
+            // device(const device&) = delete;
+            // device(device&&) = delete;
+            // device& operator=(const device&) = delete;
+            // device& operator=(device&&) = delete;
 
 
             void construct(const VkPhysicalDevice p_physical, const device_params& p_params, const VkPhysicalDeviceFeatures& p_features) {

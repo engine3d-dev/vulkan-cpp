@@ -4,11 +4,13 @@ module;
 #include <span>
 #include <vector>
 #include <bit>
+#include <memory>
 
 export module vk:sample_image;
 
-export import :types;
-export import :utilities;
+import :types;
+import :utilities;
+import :device;
 
 export namespace vk {
     inline namespace v1 {
@@ -30,9 +32,10 @@ export namespace vk {
         class sample_image {
         public:
             sample_image() = default;
-            sample_image(const VkDevice& p_device,
-                         const image_params& p_image_params)
-              : m_device(p_device) {
+            sample_image(std::shared_ptr<device> p_device,
+                         const image_params& p_image_params) {
+                m_device = p_device;
+
                 // 1. creating VkImage handle
                 VkImageCreateInfo image_ci = {
                     .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -55,13 +58,13 @@ export namespace vk {
                     .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
                 };
 
-                vk_check(vkCreateImage(p_device, &image_ci, nullptr, &m_image),
+                vk_check(vkCreateImage(*m_device, &image_ci, nullptr, &m_image),
                          "vkCreateImage");
 
                 // 2. get image memory requirements from physical device
                 VkMemoryRequirements memory_requirements;
                 vkGetImageMemoryRequirements(
-                  p_device, m_image, &memory_requirements);
+                  *m_device, m_image, &memory_requirements);
 
                 uint32_t mapped_memory_requirements =
                   memory_requirements.memoryTypeBits &
@@ -81,12 +84,12 @@ export namespace vk {
 
                 vk_check(
                   vkAllocateMemory(
-                    p_device, &memory_alloc_info, nullptr, &m_device_memory),
+                    *m_device, &memory_alloc_info, nullptr, &m_device_memory),
                   "vkAllocateMemory");
 
                 // 5. bind image memory
                 vk_check(
-                  vkBindImageMemory(p_device, m_image, m_device_memory, 0),
+                  vkBindImageMemory(*m_device, m_image, m_device_memory, 0),
                   "vkBindImageMemory");
 
                 // Needs to create VkImageView after VkImage
@@ -116,7 +119,7 @@ export namespace vk {
                 };
 
                 vk_check(vkCreateImageView(
-                           p_device, &image_view_ci, nullptr, &m_image_view),
+                           *m_device, &image_view_ci, nullptr, &m_image_view),
                          "vkCreateImage");
 
                 // Create VkSampler handler
@@ -145,11 +148,11 @@ export namespace vk {
                 };
 
                 vk_check(
-                  vkCreateSampler(p_device, &sampler_info, nullptr, &m_sampler),
+                  vkCreateSampler(*m_device, &sampler_info, nullptr, &m_sampler),
                   "vkCreateSampler");
             }
 
-            sample_image(const VkDevice& p_device,
+            sample_image(std::shared_ptr<device> p_device,
                          const VkImage& p_image,
                          const image_params& p_image_params)
               : m_device(p_device)
@@ -178,7 +181,7 @@ export namespace vk {
                 };
 
                 vk_check(vkCreateImageView(
-                           p_device, &image_view_ci, nullptr, &m_image_view),
+                           *m_device, &image_view_ci, nullptr, &m_image_view),
                          "vkCreateImage");
 
                 // Create VkSampler handler
@@ -207,7 +210,7 @@ export namespace vk {
                 };
 
                 vk_check(
-                  vkCreateSampler(p_device, &sampler_info, nullptr, &m_sampler),
+                  vkCreateSampler(*m_device, &sampler_info, nullptr, &m_sampler),
                   "vkCreateSampler");
 
                 m_only_destroy_image_view = true;
@@ -510,9 +513,9 @@ export namespace vk {
                                      &image_memory_barrier);
             }
 
-            void destroy() {
+            void destruct() {
                 if (m_image_view != nullptr) {
-                    vkDestroyImageView(m_device, m_image_view, nullptr);
+                    vkDestroyImageView(*m_device, m_image_view, nullptr);
                 }
 
                 // Boolean check is to make sure we might only want
@@ -522,15 +525,15 @@ export namespace vk {
                 // its images and we should only destruct the VkImageView
                 // and not the swapchain's images directly
                 if (m_image != nullptr and !m_only_destroy_image_view) {
-                    vkDestroyImage(m_device, m_image, nullptr);
+                    vkDestroyImage(*m_device, m_image, nullptr);
                 }
 
                 if (m_sampler != nullptr) {
-                    vkDestroySampler(m_device, m_sampler, nullptr);
+                    vkDestroySampler(*m_device, m_sampler, nullptr);
                 }
 
                 if (m_device_memory != nullptr) {
-                    vkFreeMemory(m_device, m_device_memory, nullptr);
+                    vkFreeMemory(*m_device, m_device_memory, nullptr);
                 }
             }
 
@@ -540,7 +543,7 @@ export namespace vk {
 
         private:
             bool m_only_destroy_image_view = false;
-            VkDevice m_device = nullptr;
+            std::shared_ptr<device> m_device = nullptr;
             VkImage m_image = nullptr;
             VkImageView m_image_view = nullptr;
             VkSampler m_sampler = nullptr;

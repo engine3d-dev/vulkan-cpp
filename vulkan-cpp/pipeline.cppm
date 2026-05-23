@@ -5,11 +5,13 @@ module;
 #include <vector>
 #include <cstdint>
 #include <array>
+#include <memory>
 
 export module vk:pipeline;
 
-export import :types;
-export import :utilities;
+import :types;
+import :utilities;
+import :device;
 
 export namespace vk {
     inline namespace v1 {
@@ -134,7 +136,7 @@ export namespace vk {
          */
         class pipeline {
         public:
-            pipeline() = default;
+            pipeline() = delete;
 
             /**
              * @brief constructs the graphics pipeline handle
@@ -144,9 +146,13 @@ export namespace vk {
              * @param p_params are the parameters for creating the pipelines
              * with
              */
-            pipeline(const VkDevice& p_device, const pipeline_params& p_params)
+            pipeline(std::shared_ptr<device> p_device, const pipeline_params& p_params)
               : m_device(p_device) {
-                configure(p_params);
+                construct(p_params);
+            }
+
+            ~pipeline() {
+                destruct();
             }
 
             /**
@@ -179,7 +185,7 @@ export namespace vk {
              * More info on vulkan's official
              * [docs](https://docs.vulkan.org/refpages/latest/refpages/source/vkCreateGraphicsPipelines.html)
              */
-            void configure(const pipeline_params& p_params) {
+            void construct(const pipeline_params& p_params) {
                 std::vector<VkPipelineShaderStageCreateInfo>
                   pipeline_shader_stages(p_params.shader_modules.size());
 
@@ -388,7 +394,7 @@ export namespace vk {
 
                 vk_check(
                   vkCreatePipelineLayout(
-                    m_device, &pipeline_layout_ci, nullptr, &m_pipeline_layout),
+                    *m_device, &pipeline_layout_ci, nullptr, &m_pipeline_layout),
                   "vkCreatePipelineLayout");
 
                 VkPipelineRenderingCreateInfo rendering_ci = {
@@ -432,7 +438,7 @@ export namespace vk {
                     .basePipelineIndex = -1
                 };
 
-                vk::vk_check(vkCreateGraphicsPipelines(m_device,
+                vk::vk_check(vkCreateGraphicsPipelines(*m_device,
                                                        nullptr,
                                                        1,
                                                        &graphics_pipeline_ci,
@@ -556,13 +562,13 @@ export namespace vk {
             }
 
             //! @brief explicit cleanup performed on vk::pipeline
-            void destroy() {
+            void destruct() {
                 if (m_pipeline_layout != nullptr) {
                     vkDestroyPipelineLayout(
-                      m_device, m_pipeline_layout, nullptr);
+                      *m_device, m_pipeline_layout, nullptr);
                 }
                 if (m_pipeline != nullptr) {
-                    vkDestroyPipeline(m_device, m_pipeline, nullptr);
+                    vkDestroyPipeline(*m_device, m_pipeline, nullptr);
                 }
             }
 
@@ -574,7 +580,7 @@ export namespace vk {
             operator VkPipeline() { return m_pipeline; }
 
         private:
-            VkDevice m_device = nullptr;
+            std::shared_ptr<device> m_device = nullptr;
             VkPipelineLayout m_pipeline_layout;
             VkPipeline m_pipeline = nullptr;
         };

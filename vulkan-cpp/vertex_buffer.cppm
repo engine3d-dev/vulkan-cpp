@@ -3,13 +3,16 @@ module;
 #include <vulkan/vulkan.h>
 #include <span>
 #include <array>
+#include <memory>
+#include <optional>
+#include <print>
 
 export module vk:vertex_buffer;
 
-export import :types;
-export import :utilities;
-export import :command_buffer;
-export import :buffer_streams;
+import :types;
+import :utilities;
+import :command_buffer;
+import :buffer_streams;
 
 export namespace vk {
     inline namespace v1 {
@@ -25,9 +28,9 @@ export namespace vk {
          */
         class vertex_buffer {
         public:
-            vertex_buffer() = default;
+            vertex_buffer() = delete;
 
-            vertex_buffer(const VkDevice& p_device,
+            vertex_buffer(std::shared_ptr<device> p_device,
                           std::span<const vertex_input> p_vertices,
                           const buffer_parameters& p_params)
               : m_device(p_device) {
@@ -56,14 +59,14 @@ export namespace vk {
 
                 // Creating vertex buffer handle
                 m_vertex_handler =
-                  buffer_stream(m_device, p_vertices.size_bytes(), p_params);
+                  std::make_shared<buffer_stream>(m_device, p_vertices.size_bytes(), p_params);
 
                 // 1. Retrieve the first queue
                 // TODO: Use vk::device_queue for this
                 VkQueue temp_graphics_queue = nullptr;
                 uint32_t queue_family_index = 0;
                 uint32_t queue_index = 0;
-                vkGetDeviceQueue(p_device,
+                vkGetDeviceQueue(*m_device,
                                  queue_family_index,
                                  queue_index,
                                  &temp_graphics_queue);
@@ -73,13 +76,13 @@ export namespace vk {
                     .levels = command_levels::primary,
                     .queue_index = 0,
                 };
-                command_buffer copy_command_buffer(p_device,
+                command_buffer copy_command_buffer(m_device,
                                                    enumerate_command_info);
 
                 copy_command_buffer.begin(command_usage::one_time_submit);
 
                 copy_command_buffer.copy_buffer(
-                  staging_buffer, m_vertex_handler, p_vertices.size_bytes());
+                  staging_buffer, *m_vertex_handler, p_vertices.size_bytes());
 
                 copy_command_buffer.end();
                 VkCommandBuffer temp = copy_command_buffer;
@@ -91,27 +94,27 @@ export namespace vk {
                 vkQueueSubmit(temp_graphics_queue, 1, &submit_info, nullptr);
                 vkQueueWaitIdle(temp_graphics_queue);
 
-                copy_command_buffer.destroy();
+                // copy_command_buffer.destroy();
 
                 // 5. cleanup staging buffer -- no longer used
-                staging_buffer.destroy();
+                // staging_buffer.destroy();
             }
 
-            [[nodiscard]] bool alive() const { return m_vertex_handler; }
+            [[nodiscard]] bool alive() const { return *m_vertex_handler; }
 
             // TODO: Probably handle flushing in vk::buffer_stream to give
             // support for this...?
             // void write(std::span<const vertex_input> p_vertices) {}
 
-            operator VkBuffer() const { return m_vertex_handler; }
+            operator VkBuffer() const { return *m_vertex_handler; }
 
-            operator VkBuffer() { return m_vertex_handler; }
+            operator VkBuffer() { return *m_vertex_handler; }
 
-            void destroy() { m_vertex_handler.destroy(); }
+            // void destruct() { m_vertex_handler.destroy(); }
 
         private:
-            VkDevice m_device = nullptr;
-            buffer_stream m_vertex_handler;
+            std::shared_ptr<device> m_device = nullptr;
+            std::shared_ptr<buffer_stream> m_vertex_handler;
         };
     };
 };

@@ -4,11 +4,13 @@ module;
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <print>
+#include <memory>
 
 export module vk:command_buffer;
 
-export import :types;
-export import :utilities;
+import :types;
+import :utilities;
+import :device;
 
 export namespace vk {
     inline namespace v1 {
@@ -29,7 +31,7 @@ export namespace vk {
         class command_buffer {
         public:
             command_buffer() = default;
-            command_buffer(const VkDevice& p_device,
+            command_buffer(std::shared_ptr<device> p_device,
                            const command_params& p_enumerate_command_info)
               : m_device(p_device) {
                 VkCommandPoolCreateInfo pool_ci = {
@@ -43,7 +45,7 @@ export namespace vk {
                 };
 
                 vk_check(vkCreateCommandPool(
-                           m_device, &pool_ci, nullptr, &m_command_pool),
+                           *m_device, &pool_ci, nullptr, &m_command_pool),
                          "vkCreateCommandPool");
 
                 VkCommandBufferAllocateInfo command_buffer_alloc_info = {
@@ -55,7 +57,7 @@ export namespace vk {
                     .commandBufferCount = 1
                 };
 
-                vk_check(vkAllocateCommandBuffers(m_device,
+                vk_check(vkAllocateCommandBuffers(*m_device,
                                                   &command_buffer_alloc_info,
                                                   &m_command_buffer),
                          "vkAllocateCommandBuffers");
@@ -648,8 +650,8 @@ export namespace vk {
              */
             void destroy() {
                 vkFreeCommandBuffers(
-                  m_device, m_command_pool, 1, &m_command_buffer);
-                vkDestroyCommandPool(m_device, m_command_pool, nullptr);
+                  *m_device, m_command_pool, 1, &m_command_buffer);
+                vkDestroyCommandPool(*m_device, m_command_pool, nullptr);
             }
 
             operator VkCommandBuffer() const { return m_command_buffer; }
@@ -657,7 +659,7 @@ export namespace vk {
             operator VkCommandBuffer() { return m_command_buffer; }
 
         private:
-            VkDevice m_device = nullptr;
+            std::shared_ptr<device> m_device = nullptr;
             uint32_t m_begin_end_count = 0;
             VkCommandPool m_command_pool = nullptr;
             VkCommandBuffer m_command_buffer = nullptr;

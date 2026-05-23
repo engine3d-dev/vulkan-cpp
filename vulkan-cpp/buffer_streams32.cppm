@@ -5,12 +5,13 @@ module;
 #include <array>
 #include <cstring>
 #include <bit>
+#include <memory>
 
 export module vk:buffer_streams32;
 
-export import :types;
-export import :utilities;
-export import :command_buffer;
+import :types;
+import :utilities;
+import :command_buffer;
 
 export namespace vk {
     inline namespace v1 {
@@ -20,7 +21,7 @@ export namespace vk {
         class buffer_stream32 {
         public:
             buffer_stream32() = default;
-            buffer_stream32(const VkDevice& p_device,
+            buffer_stream32(std::shared_ptr<device> p_device,
                             uint64_t p_device_size,
                             const buffer_parameters& p_params)
               : m_device(p_device) {
@@ -34,13 +35,13 @@ export namespace vk {
                 };
 
                 vk_check(
-                  vkCreateBuffer(p_device, &buffer_ci, nullptr, &m_handle),
+                  vkCreateBuffer(*m_device, &buffer_ci, nullptr, &m_handle),
                   "vkCreateBuffer");
 
                 // 2. retrieving buffer memory requirements
                 VkMemoryRequirements memory_requirements = {};
                 vkGetBufferMemoryRequirements(
-                  p_device, m_handle, &memory_requirements);
+                  *m_device, m_handle, &memory_requirements);
                 uint32_t mapped_memory_requirements =
                   memory_requirements.memoryTypeBits & p_params.memory_mask;
                 uint32_t memory_index =
@@ -66,19 +67,23 @@ export namespace vk {
 
                 if (p_params.vkSetDebugUtilsObjectNameEXT != nullptr) {
                     // vkSetDebugUtilsObjectNameEXT(m_device, &debug_info);
-                    p_params.vkSetDebugUtilsObjectNameEXT(m_device,
+                    p_params.vkSetDebugUtilsObjectNameEXT(*m_device,
                                                           &debug_info);
                 }
 #endif
                 vk_check(
                   vkAllocateMemory(
-                    p_device, &memory_alloc_info, nullptr, &m_device_memory),
+                    *m_device, &memory_alloc_info, nullptr, &m_device_memory),
                   "vkAllocateMemory");
 
                 // 5. bind memory resource of this buffer handle
                 vk_check(
-                  vkBindBufferMemory(p_device, m_handle, m_device_memory, 0),
+                  vkBindBufferMemory(*m_device, m_handle, m_device_memory, 0),
                   "vkBindBufferMemory");
+            }
+
+            ~buffer_stream32() {
+                destruct();
             }
 
             /**
@@ -86,7 +91,7 @@ export namespace vk {
              */
             void write(std::span<const uint32_t> p_data) {
                 void* mapped = nullptr;
-                vk_check(vkMapMemory(m_device,
+                vk_check(vkMapMemory(*m_device,
                                      m_device_memory,
                                      0,
                                      p_data.size_bytes(),
@@ -94,7 +99,7 @@ export namespace vk {
                                      &mapped),
                          "vkMapMemory");
                 memcpy(mapped, p_data.data(), p_data.size_bytes());
-                vkUnmapMemory(m_device, m_device_memory);
+                vkUnmapMemory(*m_device, m_device_memory);
             }
 
             void copy_to_image(const VkCommandBuffer& p_command,
@@ -123,13 +128,13 @@ export namespace vk {
                                        &buffer_image_copy);
             }
 
-            void destroy() {
+            void destruct() {
                 if (m_handle != nullptr) {
-                    vkDestroyBuffer(m_device, m_handle, nullptr);
+                    vkDestroyBuffer(*m_device, m_handle, nullptr);
                 }
 
                 if (m_device_memory != nullptr) {
-                    vkFreeMemory(m_device, m_device_memory, nullptr);
+                    vkFreeMemory(*m_device, m_device_memory, nullptr);
                 }
             }
 
@@ -138,7 +143,7 @@ export namespace vk {
             operator VkBuffer() const { return m_handle; }
 
         private:
-            VkDevice m_device = nullptr;
+            std::shared_ptr<device> m_device = nullptr;
             VkDeviceMemory m_device_memory = nullptr;
             VkBuffer m_handle = nullptr;
         };

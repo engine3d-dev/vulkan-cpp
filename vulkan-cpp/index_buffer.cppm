@@ -2,13 +2,16 @@ module;
 
 #include <vulkan/vulkan.h>
 #include <span>
+#include <memory>
+#include <optional>
 
 export module vk:index_buffer;
 
-export import :types;
-export import :utilities;
-export import :command_buffer;
-export import :buffer_streams32;
+import :types;
+import :utilities;
+import :command_buffer;
+import :buffer_streams32;
+import :device;
 
 export namespace vk {
     inline namespace v1 {
@@ -22,29 +25,33 @@ export namespace vk {
          */
         class index_buffer {
         public:
-            index_buffer() = default;
-            index_buffer(const VkDevice& p_device,
+            index_buffer() = delete;
+            index_buffer(std::shared_ptr<device> p_device,
                          std::span<const uint32_t> p_indices,
                          const buffer_parameters& p_params)
               : m_device(p_device) {
 
                 m_index_buffer =
-                  buffer_stream32(m_device, p_indices.size_bytes(), p_params);
+                  std::make_shared<buffer_stream32>(m_device, p_indices.size_bytes(), p_params);
 
-                m_index_buffer.write(p_indices);
+                m_index_buffer->write(p_indices);
             }
 
-            [[nodiscard]] bool alive() const { return m_index_buffer; }
+            ~index_buffer() {
+                destruct();
+            }
 
-            operator VkBuffer() const { return m_index_buffer; }
+            [[nodiscard]] bool alive() const { return *m_index_buffer; }
 
-            operator VkBuffer() { return m_index_buffer; }
+            operator VkBuffer() const { return *m_index_buffer; }
 
-            void destroy() { m_index_buffer.destroy(); }
+            operator VkBuffer() { return *m_index_buffer; }
+
+            void destruct() { m_index_buffer->destruct(); }
 
         private:
-            VkDevice m_device = nullptr;
-            buffer_stream32 m_index_buffer{};
+            std::shared_ptr<device> m_device = nullptr;
+            std::shared_ptr<buffer_stream32> m_index_buffer;
         };
     };
 };

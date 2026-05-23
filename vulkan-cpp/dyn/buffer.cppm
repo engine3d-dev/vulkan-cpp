@@ -4,11 +4,13 @@ module;
 #include <vector>
 #include <span>
 #include <bit>
+#include <memory>
 
 export module vk:buffer_device_address;
 
 import :types;
 import :utilities;
+import :device;
 
 export namespace vk::dyn {
 
@@ -16,11 +18,15 @@ export namespace vk::dyn {
     public:
         buffer() = delete;
 
-        buffer(const VkDevice& p_device,
+        buffer(std::shared_ptr<device> p_device,
                uint64_t p_device_size,
                const buffer_parameters& p_params)
           : m_device(p_device) {
             construct(p_device_size, p_params);
+        }
+
+        ~buffer() {
+            destruct();
         }
 
         // Can be invoked to perform invalidation on this buffer
@@ -39,7 +45,7 @@ export namespace vk::dyn {
                 .sharingMode = p_params.share_mode,
             };
 
-            vk_check(vkCreateBuffer(m_device, &buffer_ci, nullptr, &m_handle),
+            vk_check(vkCreateBuffer(*m_device, &buffer_ci, nullptr, &m_handle),
                      "vkCreateBuffer");
 
             // Required to ensure the memory allocated is correspondent to the
@@ -53,7 +59,7 @@ export namespace vk::dyn {
             // retrieving buffer memory requirements
             VkMemoryRequirements memory_requirements = {};
             vkGetBufferMemoryRequirements(
-              m_device, m_handle, &memory_requirements);
+              *m_device, m_handle, &memory_requirements);
             uint32_t mapped_memory_requirements =
               memory_requirements.memoryTypeBits & p_params.memory_mask;
             uint32_t memory_index =
@@ -69,9 +75,9 @@ export namespace vk::dyn {
 
             // Allocating for this buffer handle
             vk_check(vkAllocateMemory(
-                       m_device, &memory_alloc_info, nullptr, &m_device_memory),
+                       *m_device, &memory_alloc_info, nullptr, &m_device_memory),
                      "vkAllocateMemory");
-            vk_check(vkBindBufferMemory(m_device, m_handle, m_device_memory, 0),
+            vk_check(vkBindBufferMemory(*m_device, m_handle, m_device_memory, 0),
                      "vkBindBufferMemory");
         }
 
@@ -114,20 +120,20 @@ export namespace vk::dyn {
         }
 
         //! @brief Destroys this object
-        void reset() {
+        void destruct() {
             if (m_handle != nullptr) {
-                vkDestroyBuffer(m_device, m_handle, nullptr);
+                vkDestroyBuffer(*m_device, m_handle, nullptr);
             }
 
             if (m_device_memory != nullptr) {
-                vkFreeMemory(m_device, m_device_memory, nullptr);
+                vkFreeMemory(*m_device, m_device_memory, nullptr);
             }
         }
 
         template<typename T>
         void transfer(std::span<const T> p_data, uint32_t p_offset = 0) {
             void* mapped = nullptr;
-            vk_check(vkMapMemory(m_device,
+            vk_check(vkMapMemory(*m_device,
                                  m_device_memory,
                                  p_offset,
                                  p_data.size_bytes(),
@@ -135,7 +141,7 @@ export namespace vk::dyn {
                                  &mapped),
                      "vkMapMemory");
             memcpy(mapped, p_data.data(), p_data.size_bytes());
-            vkUnmapMemory(m_device, m_device_memory);
+            vkUnmapMemory(*m_device, m_device_memory);
         }
 
         //! @brief Allows to retrieve the address to this particular buffer
@@ -148,7 +154,7 @@ export namespace vk::dyn {
             };
 
             return static_cast<uint64_t>(
-              vkGetBufferDeviceAddress(m_device, &buffer_address_info));
+              vkGetBufferDeviceAddress(*m_device, &buffer_address_info));
         }
 
         [[nodiscard("Cannot discard device_memory()")]] VkDeviceMemory
@@ -167,7 +173,7 @@ export namespace vk::dyn {
 
     private:
         uint32_t m_size_bytes = 0;
-        VkDevice m_device = nullptr;
+        std::shared_ptr<device> m_device = nullptr;
         VkBuffer m_handle = nullptr;
         VkDeviceMemory m_device_memory;
     };

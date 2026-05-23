@@ -4,13 +4,14 @@ module;
 #include <span>
 #include <array>
 #include <unordered_map>
+#include <memory>
 
 export module vk:descriptor_resource;
 
-export import :types;
-export import :utilities;
-export import :uniform_buffer;
-export import :sample_image;
+import :types;
+import :utilities;
+import :uniform_buffer;
+import :sample_image;
 
 export namespace vk {
     inline namespace v1 {
@@ -42,7 +43,7 @@ export namespace vk {
          */
         class descriptor_resource {
         public:
-            descriptor_resource() = default;
+            descriptor_resource() = delete;
 
             /**
              * @brief Constructs a descriptor resource for configuring the
@@ -110,7 +111,7 @@ export namespace vk {
              *
              */
             descriptor_resource(
-              const VkDevice& p_device,
+              std::shared_ptr<device> p_device,
               const descriptor_layout& p_info,
               descriptor_layout_flags p_flags = descriptor_layout_flags::none)
               : m_device(p_device)
@@ -162,7 +163,7 @@ export namespace vk {
                 };
 
                 vk_check(vkCreateDescriptorPool(
-                           m_device, &pool_ci, nullptr, &m_descriptor_pool),
+                           *m_device, &pool_ci, nullptr, &m_descriptor_pool),
                          "vkCreateDescriptorPool");
 
                 // For Descriptor Indexing
@@ -196,7 +197,7 @@ export namespace vk {
                     .pBindings = descriptor_layout_bindings.data()
                 };
 
-                vk_check(vkCreateDescriptorSetLayout(m_device,
+                vk_check(vkCreateDescriptorSetLayout(*m_device,
                                                      &descriptor_layout_ci,
                                                      nullptr,
                                                      &m_descriptor_layout),
@@ -221,10 +222,14 @@ export namespace vk {
                     .pSetLayouts = &m_descriptor_layout
                 };
 
-                vk_check(vkAllocateDescriptorSets(m_device,
+                vk_check(vkAllocateDescriptorSets(*m_device,
                                                   &descriptor_set_alloc_info,
                                                   &m_descriptor_set),
                          "vkAllocateDescriptorSets");
+            }
+
+            ~descriptor_resource() {
+                destruct();
             }
 
             /**
@@ -368,7 +373,7 @@ export namespace vk {
                 }
 
                 vkUpdateDescriptorSets(
-                  m_device,
+                  *m_device,
                   static_cast<uint32_t>(write_descriptors.size()),
                   write_descriptors.data(),
                   0,
@@ -385,15 +390,15 @@ export namespace vk {
                 return m_descriptor_layout;
             }
 
-            void destroy() {
+            void destruct() {
                 if (m_descriptor_pool != nullptr) {
                     vkDestroyDescriptorPool(
-                      m_device, m_descriptor_pool, nullptr);
+                      *m_device, m_descriptor_pool, nullptr);
                 }
 
                 if (m_descriptor_layout != nullptr) {
                     vkDestroyDescriptorSetLayout(
-                      m_device, m_descriptor_layout, nullptr);
+                      *m_device, m_descriptor_layout, nullptr);
                 }
             }
 
@@ -402,7 +407,7 @@ export namespace vk {
             operator VkDescriptorSet() { return m_descriptor_set; }
 
         private:
-            VkDevice m_device = nullptr;
+            std::shared_ptr<device> m_device = nullptr;
             uint32_t m_slot;
             VkDescriptorPool m_descriptor_pool = nullptr;
             VkDescriptorSetLayout m_descriptor_layout = nullptr;
