@@ -12,7 +12,7 @@ export module vk:utilities;
 import :types;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
 
         void vk_check(const VkResult& p_result, const std::string& p_name) {
             if (p_result != VK_SUCCESS) {

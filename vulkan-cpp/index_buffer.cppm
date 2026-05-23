@@ -11,7 +11,7 @@ export import :command_buffer;
 export import :buffer_streams32;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
 
         /**
          * @brief Test implementation for index buffers

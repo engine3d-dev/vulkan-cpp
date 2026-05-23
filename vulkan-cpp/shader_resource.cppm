@@ -12,7 +12,7 @@ export import :types;
 export import :utilities;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
 
         /**
          * @param sources holds data the shader source and stage the source it

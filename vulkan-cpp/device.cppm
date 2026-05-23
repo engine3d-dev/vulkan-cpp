@@ -8,7 +8,7 @@ export import :types;
 export import :utilities;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
         /**
          * @name device
          * @brief represents a vulkan logical device

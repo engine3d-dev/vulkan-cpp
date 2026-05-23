@@ -12,7 +12,7 @@ export import :command_buffer;
 export import :buffer_streams;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
         /**
          * @brief vulkan implementation for loading in vertices to a vulkan
          * buffer handle

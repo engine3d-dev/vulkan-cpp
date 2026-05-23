@@ -11,7 +11,7 @@ export import :types;
 export import :utilities;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
         /**
          * We shift 32-bits to the high 32-bits for the old layout and OR the
          * new layout lsb 32-bits additional to the shifted 32-bits

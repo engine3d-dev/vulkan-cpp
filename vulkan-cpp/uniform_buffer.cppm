@@ -13,7 +13,7 @@ export import :command_buffer;
 export import :buffer_streams;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
         /**
          * @brief represents a vulkan uniform buffer
          *

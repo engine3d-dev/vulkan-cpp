@@ -12,7 +12,7 @@ export import :types;
 export import :utilities;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
 
         struct input_assembly_state {
             primitive_topology topology = primitive_topology::triangle_list;

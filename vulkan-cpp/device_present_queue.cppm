@@ -10,7 +10,7 @@ export import :types;
 export import :utilities;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
         /**
          * @name device_present_queue
          * @brief Represents a presentation queue that must have an associated

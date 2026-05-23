@@ -12,7 +12,7 @@ import :types;
 import :utilities;
 
 export namespace vk::dyn::experimental {
-    inline namespace v1 {
+    inline namespace v6 {
         struct shader_ext_params {
             shader_stage stage;
             shader_stage next_stage;

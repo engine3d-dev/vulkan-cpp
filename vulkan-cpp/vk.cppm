@@ -26,5 +26,5 @@ export import :buffer_device_address;
 export import :image;
 
 namespace vk {
-    inline namespace v1 {};
+    inline namespace v6 {};
 };

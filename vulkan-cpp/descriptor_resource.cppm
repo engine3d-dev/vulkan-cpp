@@ -13,7 +13,7 @@ export import :uniform_buffer;
 export import :sample_image;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
         /**
          * @param slot is the slot specific to the number slot for the
          * descriptor. Ex. layout (set = 0)

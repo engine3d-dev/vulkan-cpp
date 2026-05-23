@@ -13,7 +13,7 @@ export module vk:types;
 import :feature_extensions;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
         enum format : uint32_t {
             // Core Formats
             undefined = VK_FORMAT_UNDEFINED,

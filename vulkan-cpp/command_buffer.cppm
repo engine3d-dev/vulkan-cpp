@@ -11,7 +11,7 @@ export import :types;
 export import :utilities;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
         struct command_inherit_info {
             VkRenderPass renderpass = nullptr;
             uint32_t subpass_index = 0;

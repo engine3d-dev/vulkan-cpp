@@ -15,7 +15,7 @@ import :command_buffer;
 import :image;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
 
         class texture {
         public:

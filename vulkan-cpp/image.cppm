@@ -8,7 +8,7 @@ export module vk:image;
 import :types;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
 
         /**
          * @brief interface for the purpose of acting as an interface to

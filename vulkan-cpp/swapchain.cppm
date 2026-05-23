@@ -12,7 +12,7 @@ export import :utilities;
 export import :device_queue;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
 
         class swapchain {
         public:

@@ -11,7 +11,7 @@ export import :types;
 export import :utilities;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
         /**
          * @brief buffer stream for streaming arbitrary buffers of 32-bytes
          */

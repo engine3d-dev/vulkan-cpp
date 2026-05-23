@@ -13,7 +13,7 @@ export import :utilities;
 export import :command_buffer;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
         /**
          * @brief buffer stream for streaming arbitrary buffers of 32-bytes
          */
