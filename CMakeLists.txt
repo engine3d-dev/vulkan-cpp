@@ -16,13 +16,11 @@ static_library(
     glfw3
     Vulkan
     glm
-    stb
 
     LINK_PACKAGES
     glfw
     Vulkan::Vulkan
     glm::glm
-    stb::stb
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
