@@ -9,7 +9,7 @@ export module vk:vertex_buffer;
 export import :types;
 export import :utilities;
 export import :command_buffer;
-export import :buffer_streams;
+export import :buffer;
 
 export namespace vk {
     inline namespace v6 {
@@ -50,13 +50,13 @@ export namespace vk {
                     .vkSetDebugUtilsObjectNameEXT =
                       p_params.vkSetDebugUtilsObjectNameEXT
                 };
-                buffer_stream staging_buffer(
+                buffer staging_buffer(
                   m_device, p_vertices.size_bytes(), staging_buffer_params);
                 staging_buffer.transfer(p_vertices);
 
                 // Creating vertex buffer handle
                 m_vertex_handler =
-                  buffer_stream(m_device, p_vertices.size_bytes(), p_params);
+                  buffer(m_device, p_vertices.size_bytes(), p_params);
 
                 // 1. Retrieve the first queue
                 // TODO: Use vk::device_queue for this
@@ -99,7 +99,7 @@ export namespace vk {
 
             [[nodiscard]] bool alive() const { return m_vertex_handler; }
 
-            // TODO: Probably handle flushing in vk::buffer_stream to give
+            // TODO: Probably handle flushing in vk::buffer to give
             // support for this...?
             // void write(std::span<const vertex_input> p_vertices) {}
 
@@ -111,7 +111,7 @@ export namespace vk {
 
         private:
             VkDevice m_device = nullptr;
-            buffer_stream m_vertex_handler;
+            buffer m_vertex_handler;
         };
     };
 };

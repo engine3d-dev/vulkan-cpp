@@ -43,7 +43,7 @@ These flags are a way to indicate this specific layout binding may have a max am
 std::vector<vk::descriptor_entry> entries_set1 = {
     vk::descriptor_entry{
         // layout (set = 1, binding = 0) uniform sampler2D
-        .type = vk::buffer::combined_image_sampler,
+        .type = vk::descriptor_type::combined_image_sampler,
         .binding_point = {
             .binding = 0,
             .stage = vk::shader_stage::fragment,

@@ -10,7 +10,7 @@ export module vk:uniform_buffer;
 export import :types;
 export import :utilities;
 export import :command_buffer;
-export import :buffer_streams;
+export import :buffer;
 
 export namespace vk {
     inline namespace v6 {
@@ -28,7 +28,7 @@ export namespace vk {
               : m_device(p_device)
               , m_size_bytes(p_size_bytes) {
                 m_uniform_handle =
-                  buffer_stream(m_device, p_size_bytes, p_uniform_params);
+                  buffer(m_device, p_size_bytes, p_uniform_params);
             }
 
             [[nodiscard]] bool alive() const { return m_uniform_handle; }
@@ -53,7 +53,7 @@ export namespace vk {
         private:
             uint64_t m_size_bytes;
             VkDevice m_device = nullptr;
-            buffer_stream m_uniform_handle{};
+            buffer m_uniform_handle{};
         };
     };
 };

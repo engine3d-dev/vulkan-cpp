@@ -359,7 +359,7 @@ main() {
     std::vector<vk::descriptor_entry> entries = {
     vk::descriptor_entry{
             // specifies "layout (set = 0, binding = 0) uniform GlobalUbo"
-            .type = vk::buffer::uniform,
+            .type = vk::descriptor_type::uniform,
             .binding_point = {
                 .binding = 0,
                 .stage = vk::shader_stage::vertex,

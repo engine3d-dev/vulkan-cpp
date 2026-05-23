@@ -536,8 +536,8 @@ export namespace vk {
              * Example Usage:
              *
              * ```C++
-             * vk::buffer_stream staging_buffer(logical_device, ...);
-             * vk::buffer_stream vertex_buffer(logical_device, ...);
+             * vk::buffer staging_buffer(logical_device, ...);
+             * vk::buffer vertex_buffer(logical_device, ...);
              *
              * vk::command_buffer primary_command(logical_device, ...);
              *

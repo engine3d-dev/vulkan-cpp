@@ -5,7 +5,7 @@ module;
 #include <array>
 #include <cstring>
 
-export module vk:buffer_streams16;
+export module vk:buffer16;
 
 export import :types;
 export import :utilities;
@@ -15,10 +15,10 @@ export namespace vk {
         /**
          * @brief buffer stream for streaming arbitrary buffers of 32-bytes
          */
-        class buffer_stream16 {
+        class buffer16 {
         public:
-            buffer_stream16() = default;
-            buffer_stream16(const VkDevice&,
+            buffer16() = default;
+            buffer16(const VkDevice&,
                             uint64_t,
                             const buffer_parameters&) {}
 

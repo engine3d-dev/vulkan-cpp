@@ -8,7 +8,7 @@ export module vk:index_buffer;
 export import :types;
 export import :utilities;
 export import :command_buffer;
-export import :buffer_streams32;
+export import :buffer32;
 
 export namespace vk {
     inline namespace v6 {
@@ -29,7 +29,7 @@ export namespace vk {
               : m_device(p_device) {
 
                 m_index_buffer =
-                  buffer_stream32(m_device, p_indices.size_bytes(), p_params);
+                  buffer32(m_device, p_indices.size_bytes(), p_params);
 
                 m_index_buffer.write(p_indices);
             }
@@ -44,7 +44,7 @@ export namespace vk {
 
         private:
             VkDevice m_device = nullptr;
-            buffer_stream32 m_index_buffer{};
+            buffer32 m_index_buffer{};
         };
     };
 };

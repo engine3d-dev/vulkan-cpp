@@ -1050,7 +1050,7 @@ export namespace vk {
             depth_clamp_range_ext = VK_DYNAMIC_STATE_DEPTH_CLAMP_RANGE_EXT
         };
 
-        enum buffer : uint8_t {
+        enum descriptor_type : uint8_t {
             uniform =
               VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, // represents
                                                  // VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
@@ -1548,7 +1548,7 @@ export namespace vk {
         };
 
         struct descriptor_entry {
-            buffer type;
+            descriptor_type type;
             descriptor_binding_point binding_point;
             uint32_t descriptor_count;
             descriptor_bind_flags flags;

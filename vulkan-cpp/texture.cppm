@@ -9,7 +9,7 @@ export module vk:texture;
 
 import :types;
 import :utilities;
-import :buffer_streams;
+import :buffer;
 import :sample_image;
 import :command_buffer;
 import :image;
@@ -79,7 +79,7 @@ export namespace vk {
                     .usage =
                       static_cast<uint32_t>(buffer_usage::transfer_src_bit),
                 };
-                buffer_stream staging(m_device, p_data.size(), staging_options);
+                buffer staging(m_device, p_data.size(), staging_options);
 
                 staging.transfer(p_data);
 
@@ -173,7 +173,7 @@ export namespace vk {
                     .usage =
                       static_cast<uint32_t>(buffer_usage::transfer_src_bit),
                 };
-                buffer_stream staging(
+                buffer staging(
                   m_device, p_image->read().size(), staging_options);
 
                 staging.transfer(p_image->read());

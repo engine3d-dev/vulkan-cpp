@@ -86,7 +86,7 @@ public:
             .usage = static_cast<uint32_t>(vk::buffer_usage::transfer_src_bit),
         };
 
-        vk::buffer_stream staging_buffer = vk::buffer_stream(
+        vk::buffer staging_buffer = vk::buffer(
           m_device, static_cast<uint32_t>(image_size), staging_buffer_params);
 
         // Creating image handle to storing the HDR
@@ -428,14 +428,14 @@ public:
         //  - binding 1: samplerCube (fragment)
         std::array<vk::descriptor_entry, 2> entries = {
             vk::descriptor_entry{
-              .type = vk::buffer::uniform,
+              .type = vk::descriptor_type::uniform,
               .binding_point =
                 vk::descriptor_binding_point{
                   .binding = 0, .stage = vk::shader_stage::vertex },
               .descriptor_count = 1,
             },
             vk::descriptor_entry{
-              .type = vk::buffer::combined_image_sampler,
+              .type = vk::descriptor_type::combined_image_sampler,
               .binding_point =
                 vk::descriptor_binding_point{
                   .binding = 1, .stage = vk::shader_stage::fragment },

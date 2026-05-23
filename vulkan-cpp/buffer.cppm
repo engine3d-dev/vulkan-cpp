@@ -5,7 +5,7 @@ module;
 #include <vector>
 #include <bit>
 
-export module vk:buffer_streams;
+export module vk:buffer;
 
 export import :types;
 export import :utilities;
@@ -19,12 +19,12 @@ export namespace vk {
          * GPU memory
          *
          */
-        class buffer_stream {
+        class buffer {
         public:
-            buffer_stream() = default;
+            buffer() = default;
 
             /**
-             * @brief constructs a buffer_stream to write streams of data to GPU
+             * @brief constructs a buffer to write streams of data to GPU
              * memory
              *
              * @param p_device is the logical device to construct the buffer
@@ -33,9 +33,9 @@ export namespace vk {
              * @param p_params are additional parameters for the buffer
              * handles
              */
-            buffer_stream(const VkDevice& p_device,
-                          uint64_t p_device_size,
-                          const buffer_parameters& p_params)
+            buffer(const VkDevice& p_device,
+                   uint64_t p_device_size,
+                   const buffer_parameters& p_params)
               : m_device(p_device) {
 
                 VkBufferCreateInfo buffer_ci = {
@@ -130,7 +130,7 @@ export namespace vk {
              * Example Usage:
              *
              * ```C++
-             * buffer_streams staging_buffer(logical_device, ...);
+             * buffers staging_buffer(logical_device, ...);
              *
              * std::array<uint8_t, 4> white_color = { 0xFF, 0xFF, 0xFF, 0xFF };
              * staging_buffer.transfer(white_color);
@@ -227,7 +227,7 @@ export namespace vk {
              *
              * ```C++
              *
-             * vk::buffer_stream staging_buffer(logical_device, {...});
+             * vk::buffer staging_buffer(logical_device, {...});
              *
              * std::array<vk::buffer_image_copy, 1> copy_regions = {
              *      vk::buffer_image_copy{

@@ -6,7 +6,7 @@ module;
 #include <cstring>
 #include <bit>
 
-export module vk:buffer_streams32;
+export module vk:buffer32;
 
 export import :types;
 export import :utilities;
@@ -17,10 +17,10 @@ export namespace vk {
         /**
          * @brief buffer stream for streaming arbitrary buffers of 32-bytes
          */
-        class buffer_stream32 {
+        class buffer32 {
         public:
-            buffer_stream32() = default;
-            buffer_stream32(const VkDevice& p_device,
+            buffer32() = default;
+            buffer32(const VkDevice& p_device,
                             uint64_t p_device_size,
                             const buffer_parameters& p_params)
               : m_device(p_device) {
