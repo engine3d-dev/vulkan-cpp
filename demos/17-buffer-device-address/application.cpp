@@ -674,7 +674,7 @@ main() {
         .memory_mask =
           physical_device.memory_properties(vk::memory_property::host_visible_bit | vk::memory_property::host_cached_bit),
     };
-    
+
     stb_image img = stb_image("asset_samples/viking_room.png", config_texture);
     vk::texture texture1(logical_device, &img, config_texture);
 
@@ -694,6 +694,7 @@ main() {
         }
     };
 
+    
     set1_resource.update({}, set1_samples);
 
     VkClearValue clear_color = {
