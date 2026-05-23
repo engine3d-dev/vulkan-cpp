@@ -679,6 +679,8 @@ main() {
     //                      config_texture);
     stb_image img = stb_image("asset_samples/viking_room.png", config_texture);
     vk::texture texture1(logical_device, &img, config_texture);
+    // std::array<uint8_t, 4> color_bytes = {0xFF, 0xFF, 0xFF, 0xFF};
+    // vk::texture texture1(logical_device, vk::image_extent{1, 1}, color_bytes, physical_device.memory_properties(vk::memory_property::host_visible_bit | vk::memory_property::host_cached_bit));
 
     // Setting the texture sampler/image view to descriptor resource
     std::array<vk::write_image, 1> samplers = {

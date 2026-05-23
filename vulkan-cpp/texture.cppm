@@ -5,11 +5,6 @@ module;
 #include <array>
 #include <filesystem>
 
-#ifndef STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-#endif
-
 export module vk:texture;
 
 import :types;
@@ -22,134 +17,20 @@ import :image;
 export namespace vk {
     inline namespace v1 {
 
-        sample_image create_texture_with_data(const VkDevice& p_device,
-                                              const image_params& p_config,
-                                              std::span<const uint8_t> p_data) {
-
-            // 1. loading texture
-            sample_image texture_image = sample_image(p_device, p_config);
-
-            // 2. transfer data from staging buffer
-            uint32_t property_flag = memory_property::host_visible_bit |
-                                     memory_property::host_cached_bit;
-
-            buffer_parameters staging_buffer_config = {
-                .memory_mask = p_config.memory_mask,
-                .property_flags = static_cast<memory_property>(property_flag),
-                .usage = static_cast<uint32_t>(buffer_usage::transfer_src_bit),
-            };
-            buffer_stream staging(
-              p_device, p_data.size(), staging_buffer_config);
-
-            // 3. write data to the staging buffer with specific size specified
-            staging.transfer(p_data);
-
-            // 4. start recording to this command buffer
-            VkImageLayout old_layout = VK_IMAGE_LAYOUT_UNDEFINED;
-            VkImageLayout new_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-            VkFormat texture_format = p_config.format;
-
-            // 5. Creating temporary command buffer for texture
-            command_params copy_command_params = {
-                .levels = command_levels::primary,
-                .queue_index = 0,
-                .flags = command_pool_flags::reset,
-            };
-            command_buffer temp_command_buffer =
-              command_buffer(p_device, copy_command_params);
-
-            temp_command_buffer.begin(command_usage::one_time_submit);
-
-            // 6. transition image layout
-            // Ensure that we are transferring our image data and correcting the
-            // format to ensure we do not lose any data in the process
-            texture_image.memory_barrier(
-              temp_command_buffer, texture_format, old_layout, new_layout);
-
-            std::array<vk::buffer_image_copy, 1> region_copies = {
-                vk::buffer_image_copy{
-                    .image_offset = { .width = 0, .height = 0, .depth = 0, },
-                    .image_extent = { .width = p_config.extent.width, .height = p_config.extent.height, .depth = 1, },
-                }
-            };
-
-            // staging.copy_to_image(temp_command_buffer, texture_image,
-            // p_config.extent);
-            staging.copy_to_image(
-              temp_command_buffer, texture_image, region_copies);
-            old_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-            new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            texture_image.memory_barrier(
-              temp_command_buffer, texture_format, old_layout, new_layout);
-
-            temp_command_buffer.end();
-
-            // 8. Getting graphics queue to store the texture data for GPU
-            // access
-            // TODO: Extend vk::device_queue to enable perform command
-            // submission to the GPU
-            uint32_t queue_family_index = 0;
-            uint32_t queue_index = 0;
-            VkQueue temp_graphics_queue;
-            vkGetDeviceQueue(
-              p_device, queue_family_index, queue_index, &temp_graphics_queue);
-
-            // 8. now submit that texture data to be stored in GPU memory
-            const VkCommandBuffer handle = temp_command_buffer;
-            VkSubmitInfo submit_info = {
-                .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-                .commandBufferCount = 1,
-                .pCommandBuffers = &handle,
-            };
-
-            vkQueueSubmit(temp_graphics_queue, 1, &submit_info, nullptr);
-            vkQueueWaitIdle(temp_graphics_queue);
-
-            temp_command_buffer.destroy();
-            staging.destroy();
-
-            return texture_image;
-        }
-
         class texture {
         public:
-            texture() = default;
+            texture() = delete;
 
-            // TODO: Replace these current parameters to using vk::image_params
-            // to make the API's consistent.
             texture(const VkDevice& p_device,
                     const image_extent& p_extent,
-                    uint32_t p_memory_mask)
+                    std::span<const uint8_t> p_color,
+                    uint32_t p_memory_mask,
+                    uint32_t p_mip_levels=1,
+                    uint32_t p_layer_count=1)
               : m_device(p_device)
               , m_extent(p_extent) {
 
-                // 1.) Load in extent dimensions
-                // White pixels for storing texture.
-                std::array<uint8_t, 4> white_color = { 0xFF, 0xFF, 0xFF, 0xFF };
-
-                image_params config_image = {
-                    .extent = m_extent,
-                    .format = static_cast<VkFormat>(format::r8g8b8a8_unorm),
-                    .memory_mask = p_memory_mask,
-                    .usage =
-                      static_cast<uint32_t>(image_usage::transfer_dst_bit) |
-                      static_cast<uint32_t>(image_usage::sampled_bit),
-                };
-                int bytes_per_pixel =
-                  bytes_per_texture_format(config_image.format);
-
-                // Ensuring we get pass in the correct image size with bytes per
-                // pixel
-                uint32_t layer_size_with_bytes = config_image.extent.width *
-                                                 config_image.extent.height *
-                                                 bytes_per_pixel;
-                uint32_t layer_count = 1;
-                uint32_t image_size = layer_size_with_bytes * layer_count;
-
-                m_image = create_texture_with_data(
-                  m_device,
-                  config_image,
-                  std::span<const uint8_t>(white_color.data(), image_size));
+                construct(p_extent, p_color, p_memory_mask, p_mip_levels, p_layer_count);
                 m_texture_loaded = true;
             }
 
@@ -157,6 +38,87 @@ export namespace vk {
                 construct(p_image, p_texture_params);
             }
 
+            void construct(image_extent p_extent, std::span<const uint8_t> p_data, uint32_t p_memory_mask, uint32_t p_mip_levels=1, uint32_t p_layer_count=1) {
+                m_extent = p_extent;
+
+                const VkFormat texture_format = static_cast<VkFormat>(format::r8g8b8a8_unorm);
+                // NOTE To Self: Essentially passed to p_config parameter in create_texture_with_data
+                image_params img_options = {
+                    .extent = p_extent,
+                    .format = texture_format,
+                    .memory_mask = p_memory_mask,
+                    .usage =
+                      static_cast<uint32_t>(image_usage::transfer_dst_bit) |
+                      static_cast<uint32_t>(image_usage::sampled_bit),
+                    .mip_levels = p_mip_levels,
+                    .layer_count = p_layer_count,
+                };
+
+                m_image = sample_image(m_device, img_options);
+
+
+                // Setup staging buffer
+                uint32_t property_flag = memory_property::host_visible_bit |
+                                     memory_property::host_cached_bit;
+
+                buffer_parameters staging_options = {
+                    .memory_mask = img_options.memory_mask,
+                    .property_flags = static_cast<memory_property>(property_flag),
+                    .usage = static_cast<uint32_t>(buffer_usage::transfer_src_bit),
+                };
+                buffer_stream staging(m_device, p_data.size(), staging_options);
+
+                staging.transfer(p_data);
+
+                // 5. Creating temporary command buffer for texture
+                command_params copy_command_params = {
+                    .levels = command_levels::primary,
+                    .queue_index = 0,
+                    .flags = command_pool_flags::reset,
+                };
+                command_buffer temp_command_buffer = command_buffer(m_device, copy_command_params);
+
+                temp_command_buffer.begin(command_usage::one_time_submit);
+
+                // Performing image layouts
+                VkImageLayout old_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+                VkImageLayout new_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+                m_image.memory_barrier(temp_command_buffer, img_options.format, old_layout, new_layout);
+
+                std::array<vk::buffer_image_copy, 1> region_copies = {
+                    vk::buffer_image_copy{
+                        .image_offset = { .width = 0, .height = 0, .depth = 0, },
+                        .image_extent = { .width = img_options.extent.width, .height = img_options.extent.height, .depth = 1, },
+                    }
+                };
+
+                staging.copy_to_image(temp_command_buffer, m_image, region_copies);
+
+                old_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+                new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                m_image.memory_barrier(temp_command_buffer, img_options.format, old_layout, new_layout);
+
+                temp_command_buffer.end();
+
+                uint32_t queue_family = 0;
+                uint32_t queue_index = 0;
+                VkQueue temp_graphics_queue=nullptr;
+                vkGetDeviceQueue(m_device, queue_family, queue_index, &temp_graphics_queue);
+
+                const VkCommandBuffer handle = temp_command_buffer;
+                VkSubmitInfo submit_info = {
+                    .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+                    .commandBufferCount = 1,
+                    .pCommandBuffers = &handle,
+                };
+
+                vkQueueSubmit(temp_graphics_queue, 1, &submit_info, nullptr);
+                vkQueueWaitIdle(temp_graphics_queue);
+
+
+                temp_command_buffer.destroy();
+                staging.destroy();
+            }
 
             void construct(image* p_image, const texture_params& p_texture_params) {
                 m_extent = p_image->extent();
