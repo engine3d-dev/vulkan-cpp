@@ -246,10 +246,9 @@ struct push_constant_data {
     uint64_t global_ubo_addr = 0;
 };
 
-
 /**
  * @brief STBI-specific implementation of the vk::image interface
-*/
+ */
 class stb_image : public vk::image {
 public:
     stb_image() = delete;
@@ -261,18 +260,21 @@ public:
     ~stb_image() = default;
 
 protected:
-    bool image_load(std::string_view p_path, vk::texture_params p_params) override {
+    bool image_load(std::string_view p_path,
+                    vk::texture_params p_params) override {
         int w = 0;
         int h = 0;
         int channels = 0;
 
-        stbi_uc* image_pixel_data = stbi_load(p_path.data(), &w, &h, &channels, STBI_rgb_alpha);
+        stbi_uc* image_pixel_data =
+          stbi_load(p_path.data(), &w, &h, &channels, STBI_rgb_alpha);
 
-        if(!image_pixel_data) {
+        if (!image_pixel_data) {
             return false;
         }
 
-        const VkFormat texture_format = static_cast<VkFormat>(vk::format::r8g8b8a8_unorm);
+        const VkFormat texture_format =
+          static_cast<VkFormat>(vk::format::r8g8b8a8_unorm);
         int bytes_per_pixel = vk::bytes_per_texture_format(texture_format);
 
         m_extent = {
@@ -280,8 +282,10 @@ protected:
             .height = static_cast<uint32_t>(h),
         };
 
-        // Retrieving total size of bytes of the dimensions of the image and accounting for pixels of the image
-        uint32_t size_bytes = m_extent.width * m_extent.height * bytes_per_pixel;
+        // Retrieving total size of bytes of the dimensions of the image and
+        // accounting for pixels of the image
+        uint32_t size_bytes =
+          m_extent.width * m_extent.height * bytes_per_pixel;
 
         // Retrieving total image size to the count of the image layers
         uint32_t size = size_bytes * p_params.layer_count;
@@ -290,15 +294,15 @@ protected:
             .extent = m_extent,
             .format = texture_format,
             .memory_mask = p_params.memory_mask,
-            .usage =
-                static_cast<uint32_t>(vk::image_usage::transfer_dst_bit) |
-                static_cast<uint32_t>(vk::image_usage::sampled_bit),
+            .usage = static_cast<uint32_t>(vk::image_usage::transfer_dst_bit) |
+                     static_cast<uint32_t>(vk::image_usage::sampled_bit),
             .mip_levels = p_params.mip_levels,
             .layer_count = p_params.layer_count,
         };
 
         m_bytes.reserve(size);
-        std::span<uint8_t> bytes_view = std::span<uint8_t>(image_pixel_data, size);
+        std::span<uint8_t> bytes_view =
+          std::span<uint8_t>(image_pixel_data, size);
 
         m_bytes.assign(bytes_view.begin(), bytes_view.end());
 
@@ -307,14 +311,9 @@ protected:
         return true;
     }
 
-    std::span<const uint8_t> image_read() const override {
-        return m_bytes;
-    }
+    std::span<const uint8_t> image_read() const override { return m_bytes; }
 
-    vk::image_extent image_extent() const override {
-        return m_extent;
-    }
-
+    vk::image_extent image_extent() const override { return m_extent; }
 
 private:
     vk::image_extent m_extent{};
@@ -671,8 +670,9 @@ main() {
       vk::dyn::buffer(logical_device, sizeof(global_uniform), uniform_params);
 
     vk::texture_params config_texture = {
-        .memory_mask =
-          physical_device.memory_properties(vk::memory_property::host_visible_bit | vk::memory_property::host_cached_bit),
+        .memory_mask = physical_device.memory_properties(
+          vk::memory_property::host_visible_bit |
+          vk::memory_property::host_cached_bit),
     };
 
     stb_image img = stb_image("asset_samples/viking_room.png", config_texture);
@@ -694,7 +694,6 @@ main() {
         }
     };
 
-    
     set1_resource.update({}, set1_samples);
 
     VkClearValue clear_color = {
