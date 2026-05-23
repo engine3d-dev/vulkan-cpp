@@ -56,6 +56,12 @@ export namespace vk {
                 return m_queue_family_properties;
             }
 
+            [[nodiscard]] VkPhysicalDeviceFeatures features() const {
+                VkPhysicalDeviceFeatures features;
+                vkGetPhysicalDeviceFeatures(m_physical_device, &features);
+                return features;
+            }
+
             //! @return true if physical device is valid
             [[nodiscard]] bool alive() const { return m_physical_device; }
 
