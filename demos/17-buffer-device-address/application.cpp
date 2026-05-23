@@ -827,7 +827,7 @@ main() {
             .global_ubo_addr = ubo_address,
         };
         main_graphics_pipeline.push_constant<push_constant_data>(
-          current, push, stage, 0, sizeof(push_constant_data));
+          current, push, stage, 0);
 
         const VkDescriptorSet set1 = set1_resource;
         current.bind_descriptors(main_graphics_pipeline.layout(),
