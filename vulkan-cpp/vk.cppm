@@ -23,6 +23,7 @@ export import :uniform_buffer;
 export import :descriptor_resource;
 export import :texture;
 export import :buffer_device_address;
+export import :image;
 
 namespace vk {
     inline namespace v1 {};
