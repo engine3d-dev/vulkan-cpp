@@ -611,7 +611,7 @@ export namespace vk {
                     const auto viewport = p_params[i];
                     viewports[i] = {
                         .x = viewport.x,
-                        .y = viewport.x,
+                        .y = viewport.y,
                         .width = viewport.width,
                         .height = viewport.height,
                         .minDepth = viewport.min_depth,
