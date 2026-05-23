@@ -1604,6 +1604,13 @@ export namespace vk {
             uint32_t addrses_mode_w = sampler_address_mode::repeat;
         };
 
+        // TODO: Remove redundant struct and replace with vk::image_params
+        struct texture_params {
+            uint32_t memory_mask = 0;
+            uint32_t mip_levels = 1;
+            uint32_t layer_count = 1;
+        };
+
         struct buffer_image_copy {
             uint32_t offset = 0;
             uint32_t row_length = 0;
