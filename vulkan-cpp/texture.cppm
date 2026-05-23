@@ -42,7 +42,7 @@ export namespace vk {
                 m_extent = p_extent;
 
                 const VkFormat texture_format = static_cast<VkFormat>(format::r8g8b8a8_unorm);
-                // NOTE To Self: Essentially passed to p_config parameter in create_texture_with_data
+                
                 image_params img_options = {
                     .extent = p_extent,
                     .format = texture_format,
