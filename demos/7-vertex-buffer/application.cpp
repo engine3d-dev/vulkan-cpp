@@ -179,7 +179,7 @@ main() {
             .memory_mask = physical_device.memory_properties(
               vk::memory_property::device_local_bit),
             .aspect = vk::image_aspect_flags::color_bit,
-            .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+            .usage = vk::image_usage::color_attachment_bit,
             .mip_levels = 1,
             .layer_count = 1,
         };
@@ -316,8 +316,8 @@ main() {
     vk::buffer_parameters vertex_params = {
         .memory_mask = physical_device.memory_properties(property_flags),
         .property_flags = vk::memory_property::device_local_bit,
-        .usage = static_cast<uint32_t>(vk::buffer_usage::transfer_dst_bit) |
-                 static_cast<uint32_t>(vk::buffer_usage::vertex_buffer_bit),
+        .usage = vk::buffer_usage::transfer_dst_bit |
+                 vk::buffer_usage::vertex_buffer_bit,
     };
     vk::vertex_buffer test_vbo(logical_device, vertices, vertex_params);
 

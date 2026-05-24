@@ -42,9 +42,8 @@ vk::buffer_parameters uniform_params = {
         physical_device.memory_properties(static_cast<vk::memory_property>(
         vk::memory_property::host_visible_bit |
         vk::memory_property::host_cached_bit)),
-    .usage =
-        static_cast<uint32_t>(vk::buffer_usage::uniform_buffer_bit |
-                            vk::buffer_usage::shader_device_address_bit),
+    .usage = vk::buffer_usage::uniform_buffer_bit |
+             vk::buffer_usage::shader_device_address_bit,
     .allocate_flags = vk::memory_allocate_flags::device_address_bit_khr,
 };
 

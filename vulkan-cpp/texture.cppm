@@ -60,30 +60,26 @@ export namespace vk {
                     .format = texture_format,
                     .memory_mask = p_memory_mask,
                     .usage =
-                      static_cast<uint32_t>(image_usage::transfer_dst_bit) |
-                      static_cast<uint32_t>(image_usage::sampled_bit),
+                      image_usage::transfer_dst_bit | image_usage::sampled_bit,
                     .mip_levels = p_mip_levels,
                     .layer_count = p_layer_count,
                 };
 
                 m_image = sample_image(m_device, img_options);
 
-                // Setup staging buffer
-                uint32_t property_flag = memory_property::host_visible_bit |
-                                         memory_property::host_cached_bit;
-
+                // Performing staging transfers
                 buffer_parameters staging_options = {
                     .memory_mask = img_options.memory_mask,
-                    .property_flags =
-                      static_cast<memory_property>(property_flag),
-                    .usage =
-                      static_cast<uint32_t>(buffer_usage::transfer_src_bit),
+                    .property_flags = memory_property::host_visible_bit |
+                                      memory_property::host_cached_bit,
+                    .usage = buffer_usage::transfer_src_bit,
                 };
                 buffer staging(m_device, p_data.size(), staging_options);
 
                 staging.transfer(p_data);
 
-                // 5. Creating temporary command buffer for texture
+                // Performing transfers as a command to GPU memory for
+                // preparations
                 command_params copy_command_params = {
                     .levels = command_levels::primary,
                     .queue_index = 0,
@@ -147,15 +143,13 @@ export namespace vk {
 
                 const VkFormat texture_format =
                   static_cast<VkFormat>(format::r8g8b8a8_unorm);
-                // NOTE To Self: Essentially passed to p_config parameter in
-                // create_texture_with_data
+
                 image_params img_options = {
                     .extent = p_image->extent(),
                     .format = texture_format,
                     .memory_mask = p_texture_params.memory_mask,
                     .usage =
-                      static_cast<uint32_t>(image_usage::transfer_dst_bit) |
-                      static_cast<uint32_t>(image_usage::sampled_bit),
+                      image_usage::transfer_dst_bit | image_usage::sampled_bit,
                     .mip_levels = p_texture_params.mip_levels,
                     .layer_count = p_texture_params.layer_count,
                 };
@@ -170,8 +164,7 @@ export namespace vk {
                     .memory_mask = img_options.memory_mask,
                     .property_flags =
                       static_cast<memory_property>(property_flag),
-                    .usage =
-                      static_cast<uint32_t>(buffer_usage::transfer_src_bit),
+                    .usage = buffer_usage::transfer_src_bit,
                 };
                 buffer staging(
                   m_device, p_image->read().size(), staging_options);

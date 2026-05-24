@@ -84,7 +84,7 @@ public:
             .property_flags = static_cast<vk::memory_property>(
               vk::memory_property::host_visible_bit |
               vk::memory_property::host_cached_bit),
-            .usage = static_cast<uint32_t>(vk::buffer_usage::transfer_src_bit),
+            .usage = vk::buffer_usage::transfer_src_bit,
         };
 
         vk::buffer staging_buffer = vk::buffer(
@@ -327,17 +327,14 @@ public:
                               { 0.0f, 0.0f } }
         };
 
-        const uint32_t property =
-          static_cast<uint32_t>(vk::buffer_usage::transfer_dst_bit) |
-          static_cast<uint32_t>(vk::buffer_usage::vertex_buffer_bit);
         vk::buffer_parameters vertex_params = {
             .memory_mask = m_physical_device->memory_properties(
               vk::memory_property::host_visible_bit |
               vk::memory_property::host_cached_bit),
             .property_flags = vk::memory_property::host_visible_bit |
                               vk::memory_property::host_cached_bit,
-            .usage = static_cast<uint32_t>(vk::buffer_usage::transfer_dst_bit |
-                                           vk::buffer_usage::vertex_buffer_bit),
+            .usage = vk::buffer_usage::transfer_dst_bit |
+                     vk::buffer_usage::vertex_buffer_bit,
         };
         m_skybox_vbo_size = vertices.size();
         m_skybox_vbo = vk::vertex_buffer(m_device, vertices, vertex_params);
@@ -409,8 +406,7 @@ public:
             // m_physical_device->memory_properties(static_cast<vk::memory_property>(property)),
             .memory_mask = m_physical_device->memory_properties(
               vk::memory_property::host_cached_bit),
-            .usage =
-              static_cast<uint32_t>(vk::buffer_usage::uniform_buffer_bit),
+            .usage = vk::buffer_usage::uniform_buffer_bit,
         };
         m_skybox_ubo =
           vk::uniform_buffer(m_device, sizeof(skybox_uniform), uniform_params);

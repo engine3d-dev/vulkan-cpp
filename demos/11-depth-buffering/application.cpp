@@ -115,8 +115,8 @@ protected:
             .extent = m_extent,
             .format = texture_format,
             .memory_mask = p_params.memory_mask,
-            .usage = static_cast<uint32_t>(vk::image_usage::transfer_dst_bit) |
-                     static_cast<uint32_t>(vk::image_usage::sampled_bit),
+            .usage =
+              vk::image_usage::transfer_dst_bit | vk::image_usage::sampled_bit,
             .mip_levels = p_params.mip_levels,
             .layer_count = p_params.layer_count,
         };
@@ -264,7 +264,7 @@ main() {
             .memory_mask = physical_device.memory_properties(
               vk::memory_property::device_local_bit),
             .aspect = vk::image_aspect_flags::color_bit,
-            .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+            .usage = vk::image_usage::color_attachment_bit,
             .mip_levels = 1,
             .layer_count = 1,
         };
@@ -282,7 +282,7 @@ main() {
             .memory_mask = physical_device.memory_properties(
               vk::memory_property::device_local_bit),
             .aspect = vk::image_aspect_flags::depth_bit,
-            .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+            .usage = vk::image_usage::depth_stencil_bit,
             .mip_levels = 1,
             .layer_count = 1,
         };
@@ -534,8 +534,8 @@ main() {
     vk::buffer_parameters vertex_params = {
         .memory_mask = physical_device.memory_properties(property_flags),
         .property_flags = vk::memory_property::device_local_bit,
-        .usage = static_cast<uint32_t>(vk::buffer_usage::transfer_dst_bit) |
-                 static_cast<uint32_t>(vk::buffer_usage::vertex_buffer_bit),
+        .usage = vk::buffer_usage::transfer_dst_bit |
+                 vk::buffer_usage::vertex_buffer_bit,
     };
     vk::vertex_buffer test_vbo(logical_device, vertices, vertex_params);
 
@@ -543,19 +543,17 @@ main() {
     std::array<uint32_t, 12> indices = { 0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4 };
     vk::buffer_parameters index_params = {
         .memory_mask = physical_device.memory_properties(property_flags),
-        .property_flags = static_cast<vk::memory_property>(
-          vk::memory_property::host_visible_bit |
-          vk::memory_property::host_cached_bit),
-        .usage = static_cast<uint32_t>(vk::buffer_usage::index_buffer_bit),
+        .property_flags = vk::memory_property::host_visible_bit |
+                          vk::memory_property::host_cached_bit,
+        .usage = vk::buffer_usage::index_buffer_bit,
     };
     vk::index_buffer test_ibo(logical_device, indices, index_params);
 
     vk::buffer_parameters uniform_params = {
-        .memory_mask =
-          physical_device.memory_properties(static_cast<vk::memory_property>(
-            vk::memory_property::host_visible_bit |
-            vk::memory_property::host_cached_bit)),
-        .usage = static_cast<uint32_t>(vk::buffer_usage::uniform_buffer_bit),
+        .memory_mask = physical_device.memory_properties(
+          vk::memory_property::host_visible_bit |
+          vk::memory_property::host_cached_bit),
+        .usage = vk::buffer_usage::uniform_buffer_bit,
     };
 
     vk::uniform_buffer test_ubo = vk::uniform_buffer(

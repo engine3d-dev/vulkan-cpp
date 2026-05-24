@@ -195,7 +195,7 @@ main() {
             .format = surface_properties.format.format,
             .memory_mask = physical_device.memory_properties(vk::memory_property::device_local_bit),
             .aspect = vk::image_aspect_flags::color_bit,
-            .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+            .usage = vk::image_usage::color_attachment_bit,
             .mip_levels = 1,
             .layer_count = 1,
         };
@@ -213,7 +213,7 @@ main() {
             .memory_mask = physical_device.memory_properties(
               vk::memory_property::device_local_bit),
             .aspect = vk::image_aspect_flags::depth_bit,
-            .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+            .usage = vk::image_usage::depth_stencil_bit,
             .mip_levels = 1,
             .layer_count = 1,
         };
@@ -335,7 +335,7 @@ main() {
         float time = std::chrono::duration<float, std::chrono::seconds::period>(
                        current_time - start_time)
                        .count();
-        
+
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
             position.z += 1.f;
         }

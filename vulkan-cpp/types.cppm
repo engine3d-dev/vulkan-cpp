@@ -1065,7 +1065,7 @@ export namespace vk {
                                                // VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE
         };
 
-        enum image_usage : uint32_t {
+        enum class image_usage : uint32_t {
             transfer_src_bit = VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
             transfer_dst_bit = VK_IMAGE_USAGE_TRANSFER_DST_BIT,
             sampled_bit = VK_IMAGE_USAGE_SAMPLED_BIT,
@@ -1589,7 +1589,7 @@ export namespace vk {
             memory_property property = memory_property::device_local_bit;
             uint32_t memory_mask = 0;
             image_aspect_flags aspect = image_aspect_flags::color_bit;
-            uint32_t usage;
+            image_usage usage;
             VkImageCreateFlags image_flags = 0;
             VkImageViewType view_type = VK_IMAGE_VIEW_TYPE_2D;
             uint32_t mip_levels = 1;
@@ -1626,7 +1626,7 @@ export namespace vk {
         struct buffer_parameters {
             uint32_t memory_mask = 0;
             memory_property property_flags;
-            uint32_t usage;
+            buffer_usage usage;
             memory_allocate_flags allocate_flags;
             VkSharingMode share_mode = VK_SHARING_MODE_EXCLUSIVE;
             const char* debug_name = nullptr;

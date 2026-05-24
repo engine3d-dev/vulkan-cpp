@@ -32,20 +32,14 @@ export namespace vk {
                           const buffer_parameters& p_params)
               : m_device(p_device) {
 
-                // Staging buffer
-                const uint32_t transfer =
-                  static_cast<uint32_t>(buffer_usage::transfer_src_bit);
-                const uint32_t storage =
-                  static_cast<uint32_t>(buffer_usage::storage_buffer_bit);
-                uint32_t usage = transfer | storage;
+                // Staging buffer operations
                 buffer_parameters staging_buffer_params = {
                     .memory_mask = p_params.memory_mask,
                     .property_flags = static_cast<memory_property>(
                       memory_property::host_visible_bit |
                       memory_property::host_cached_bit),
-                    .usage =
-                      static_cast<uint32_t>(buffer_usage::transfer_src_bit) |
-                      static_cast<uint32_t>(buffer_usage::storage_buffer_bit),
+                    .usage = buffer_usage::transfer_src_bit |
+                             buffer_usage::storage_buffer_bit,
                     .debug_name = p_params.debug_name,
                     .vkSetDebugUtilsObjectNameEXT =
                       p_params.vkSetDebugUtilsObjectNameEXT
@@ -115,9 +109,8 @@ export namespace vk {
                     .property_flags = static_cast<memory_property>(
                       memory_property::host_visible_bit |
                       memory_property::host_cached_bit),
-                    .usage =
-                      static_cast<uint32_t>(buffer_usage::transfer_src_bit) |
-                      static_cast<uint32_t>(buffer_usage::storage_buffer_bit),
+                    .usage = buffer_usage::transfer_src_bit |
+                             buffer_usage::storage_buffer_bit,
                     .debug_name = p_params.debug_name,
                     .vkSetDebugUtilsObjectNameEXT =
                       p_params.vkSetDebugUtilsObjectNameEXT
@@ -174,8 +167,6 @@ export namespace vk {
 
             [[nodiscard]] bool alive() const { return m_vertex_handler; }
 
-            // TODO: Probably handle flushing in vk::buffer to give
-            // support for this...?
             void transfer(std::span<const vertex_input> p_vertices) {
                 m_vertex_handler.transfer(p_vertices);
             }
