@@ -73,7 +73,6 @@ struct material_uniform {
     glm::vec4 color;
 };
 
-
 /**
  * @brief STBI-specific implementation of the vk::image interface
  */
@@ -528,7 +527,8 @@ main() {
             vk::memory_property::host_cached_bit)),
     };
 
-    stb_image img = stb_image("asset_samples/container_diffuse.png", config_texture);
+    stb_image img =
+      stb_image("asset_samples/container_diffuse.png", config_texture);
     vk::texture texture1(logical_device, &img, config_texture);
 
     // Moving update call here because now we add textures to set0

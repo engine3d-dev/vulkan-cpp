@@ -228,7 +228,9 @@ main() {
         // ensure this is the case Since you have an image for color attachment
         // and another image for the depth atttachment to specify
         std::array<VkImageView, renderpass_attachments.size()>
-          image_view_attachments = { swapchain_images[i].image_view(), };
+          image_view_attachments = {
+              swapchain_images[i].image_view(),
+          };
 
         vk::framebuffer_params framebuffer_info = {
             .renderpass = main_renderpass,

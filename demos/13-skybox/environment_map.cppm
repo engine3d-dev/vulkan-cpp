@@ -538,7 +538,8 @@ public:
             .dynamic_states = dyn,
         };
 
-        m_skybox_pipeline = std::make_optional<vk::pipeline>(m_device, pipe_info);
+        m_skybox_pipeline =
+          std::make_optional<vk::pipeline>(m_device, pipe_info);
     }
 
     void update_uniform(const skybox_uniform& p_ubo) {

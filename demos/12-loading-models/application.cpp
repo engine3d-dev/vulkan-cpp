@@ -242,7 +242,6 @@ get_instance_extensions() {
     return extension_names;
 }
 
-
 /**
  * @brief STBI-specific implementation of the vk::image interface
  */
@@ -705,9 +704,7 @@ main() {
     };
 
     stb_image img = stb_image("asset_samples/viking_room.png", config_texture);
-    vk::texture texture1(logical_device,
-                         &img,
-                         config_texture);
+    vk::texture texture1(logical_device, &img, config_texture);
 
     std::array<vk::write_image, 1> samplers = {
         vk::write_image{
