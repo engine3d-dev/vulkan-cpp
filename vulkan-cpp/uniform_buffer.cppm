@@ -48,7 +48,7 @@ export namespace vk {
 
             operator VkBuffer() { return m_uniform_handle; }
 
-            void destroy() { m_uniform_handle.destroy(); }
+            void destruct() { m_uniform_handle.destruct(); }
 
         private:
             uint64_t m_size_bytes;

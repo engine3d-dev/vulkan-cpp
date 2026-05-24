@@ -138,7 +138,7 @@ export namespace vk {
                 vkQueueWaitIdle(temp_graphics_queue);
 
                 temp_command_buffer.destroy();
-                staging.destroy();
+                staging.destruct();
             }
 
             void construct(image* p_image,
@@ -233,7 +233,7 @@ export namespace vk {
                 vkQueueWaitIdle(temp_graphics_queue);
 
                 temp_command_buffer.destroy();
-                staging.destroy();
+                staging.destruct();
             }
 
             //! @return true if image loaded, false if texture did not load
@@ -244,7 +244,7 @@ export namespace vk {
 
             [[nodiscard]] image_extent extent() const { return m_extent; }
 
-            void destroy() { m_image.destroy(); }
+            void destroy() { m_image.destruct(); }
 
         private:
             VkDevice m_device = nullptr;

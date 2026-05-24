@@ -206,8 +206,8 @@ public:
     }
 
     void destroy() {
-        m_vertex_buffer.destroy();
-        m_index_buffer.destroy();
+        m_vertex_buffer.destruct();
+        m_index_buffer.destruct();
     }
 
 private:
@@ -868,11 +868,11 @@ main() {
     }
 
     for (auto& image : swapchain_images) {
-        image.destroy();
+        image.destruct();
     }
 
     for (auto& image : swapchain_depth_images) {
-        image.destroy();
+        image.destruct();
     }
 
     presentation_queue.destroy();

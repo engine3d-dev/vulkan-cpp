@@ -37,7 +37,13 @@ export namespace vk {
                    uint64_t p_device_size,
                    const buffer_parameters& p_params)
               : m_device(p_device) {
+                construct(p_device_size, p_params);
+            }
 
+            ~buffer() = default;
+
+            void construct(uint64_t p_device_size,
+                           const buffer_parameters& p_params) {
                 VkBufferCreateInfo buffer_ci = {
                     .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
                     .pNext = nullptr,
@@ -48,13 +54,13 @@ export namespace vk {
                 };
 
                 vk_check(
-                  vkCreateBuffer(p_device, &buffer_ci, nullptr, &m_handle),
+                  vkCreateBuffer(m_device, &buffer_ci, nullptr, &m_handle),
                   "vkCreateBuffer");
 
                 // retrieving buffer memory requirements
                 VkMemoryRequirements memory_requirements = {};
                 vkGetBufferMemoryRequirements(
-                  p_device, m_handle, &memory_requirements);
+                  m_device, m_handle, &memory_requirements);
                 uint32_t mapped_memory_requirements =
                   memory_requirements.memoryTypeBits & p_params.memory_mask;
                 uint32_t memory_index =
@@ -86,12 +92,12 @@ export namespace vk {
 #endif
                 vk_check(
                   vkAllocateMemory(
-                    p_device, &memory_alloc_info, nullptr, &m_device_memory),
+                    m_device, &memory_alloc_info, nullptr, &m_device_memory),
                   "vkAllocateMemory");
 
                 // 5. bind memory resource of this buffer handle
                 vk_check(
-                  vkBindBufferMemory(p_device, m_handle, m_device_memory, 0),
+                  vkBindBufferMemory(m_device, m_handle, m_device_memory, 0),
                   "vkBindBufferMemory");
             }
 
@@ -269,7 +275,7 @@ export namespace vk {
                   image_copies.data());
             }
 
-            void destroy() {
+            void destruct() {
                 if (m_handle != nullptr) {
                     vkDestroyBuffer(m_device, m_handle, nullptr);
                 }

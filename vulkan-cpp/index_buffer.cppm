@@ -31,7 +31,16 @@ export namespace vk {
                 m_index_buffer =
                   buffer32(m_device, p_indices.size_bytes(), p_params);
 
-                m_index_buffer.write(p_indices);
+                m_index_buffer.transfer(p_indices);
+            }
+
+            void construct(std::span<const uint32_t> p_indices,
+                           const buffer_parameters& p_params) {
+                m_index_buffer.construct(p_indices.size_bytes(), p_params);
+            }
+
+            void transfer(std::span<const uint32_t> p_data) {
+                m_index_buffer.transfer(p_data);
             }
 
             [[nodiscard]] bool alive() const { return m_index_buffer; }
@@ -40,7 +49,7 @@ export namespace vk {
 
             operator VkBuffer() { return m_index_buffer; }
 
-            void destroy() { m_index_buffer.destroy(); }
+            void destruct() { m_index_buffer.destruct(); }
 
         private:
             VkDevice m_device = nullptr;
