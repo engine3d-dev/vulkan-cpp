@@ -76,7 +76,7 @@ vk::device logical_device(physical_device, logical_device_params);
 
 # Last Minute Notes
 
-When you have a logical device. When your application closes, make sure to call `.wait()` and `.destroy()`.
+When you have a logical device. When your application closes, make sure to call `.wait()` and `.destruct()`.
 
 Vulkan requires that all objects you create must be destroyed, deallocated, or freed before the logical device itself gets destroyed
 
@@ -91,8 +91,8 @@ while(!glfwWindowShouldCLose(window)) {
 // .wait() calls vkDeviceWaitIdle(device) under the hood
 logical_device.wait();
 
-// .destroy() ensure the resources of the logical devices are cleaned up properly
-logical_device.destroy();
+// .destruct() ensure the resources of the logical devices are cleaned up properly
+logical_device.destruct();
 ```
 
 # Thats it!

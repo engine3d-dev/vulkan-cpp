@@ -385,7 +385,7 @@ export namespace vk {
                 return m_descriptor_layout;
             }
 
-            void destroy() {
+            void destruct() {
                 if (m_descriptor_pool != nullptr) {
                     vkDestroyDescriptorPool(
                       m_device, m_descriptor_pool, nullptr);

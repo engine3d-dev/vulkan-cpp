@@ -172,7 +172,7 @@ export namespace vk::dyn::experimental {
                   &m_shader_handle);
             }
 
-            void destroy() {
+            void destruct() {
                 vkDestroyShaderEXT(m_device, m_shader_handle, nullptr);
             }
 

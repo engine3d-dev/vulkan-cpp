@@ -18,9 +18,7 @@ export namespace vk {
         class buffer16 {
         public:
             buffer16() = default;
-            buffer16(const VkDevice&,
-                            uint64_t,
-                            const buffer_parameters&) {}
+            buffer16(const VkDevice&, uint64_t, const buffer_parameters&) {}
 
             /**
              * @brief write arbitrary buffer of 32-bytes to GPU-memory
@@ -31,7 +29,7 @@ export namespace vk {
                                const VkImage& p_image,
                                image_extent p_extent) {}
 
-            void destroy() {}
+            void destruct() {}
 
             operator VkBuffer() { return m_handle; }
 

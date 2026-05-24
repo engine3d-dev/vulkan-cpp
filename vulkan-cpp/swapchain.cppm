@@ -91,7 +91,7 @@ export namespace vk {
                 return m_images;
             }
 
-            void destroy() {
+            void destruct() {
                 vkDestroySwapchainKHR(m_device, m_swapchain_handler, nullptr);
             }
 

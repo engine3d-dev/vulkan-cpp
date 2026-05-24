@@ -138,7 +138,7 @@ main() {
     }
 
     logical_device.wait();
-    logical_device.destroy();
+    logical_device.destruct();
 
     glfwDestroyWindow(window);
     return 0;

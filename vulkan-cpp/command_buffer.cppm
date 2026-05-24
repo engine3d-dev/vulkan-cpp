@@ -646,7 +646,7 @@ export namespace vk {
             /**
              * @brief Explicitly API to properly do command buffer cleanup
              */
-            void destroy() {
+            void destruct() {
                 vkFreeCommandBuffers(
                   m_device, m_command_pool, 1, &m_command_buffer);
                 vkDestroyCommandPool(m_device, m_command_pool, nullptr);

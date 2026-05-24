@@ -33,7 +33,7 @@ export namespace vk {
 
             [[nodiscard]] bool alive() const { return m_surface_handler; }
 
-            void destroy() {
+            void destruct() {
                 if (m_surface_handler != nullptr) {
                     vkDestroySurfaceKHR(m_instance, m_surface_handler, nullptr);
                 }

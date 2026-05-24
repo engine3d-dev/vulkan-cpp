@@ -45,7 +45,7 @@ export namespace vk {
 
             [[nodiscard]] bool alive() const { return m_framebuffer; }
 
-            void destroy() {
+            void destruct() {
                 if (m_framebuffer != nullptr) {
                     vkDestroyFramebuffer(m_device, m_framebuffer, nullptr);
                 }

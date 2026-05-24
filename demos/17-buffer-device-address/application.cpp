@@ -205,7 +205,7 @@ public:
         }
     }
 
-    void destroy() {
+    void destruct() {
         m_vertex_buffer.destruct();
         m_index_buffer.destruct();
     }
@@ -853,18 +853,18 @@ main() {
     }
 
     logical_device.wait();
-    main_swapchain.destroy();
+    main_swapchain.destruct();
 
-    texture1.destroy();
-    set1_resource.destroy();
+    texture1.destruct();
+    set1_resource.destruct();
     test_ubo.reset();
-    test_model.destroy();
+    test_model.destruct();
 
-    geometry_resource.destroy();
-    main_graphics_pipeline.destroy();
+    geometry_resource.destruct();
+    main_graphics_pipeline.destruct();
 
     for (auto& command : swapchain_command_buffers) {
-        command.destroy();
+        command.destruct();
     }
 
     for (auto& image : swapchain_images) {
@@ -875,10 +875,10 @@ main() {
         image.destruct();
     }
 
-    presentation_queue.destroy();
+    presentation_queue.destruct();
 
-    logical_device.destroy();
-    window_surface.destroy();
+    logical_device.destruct();
+    window_surface.destruct();
     glfwDestroyWindow(window);
     return 0;
 }

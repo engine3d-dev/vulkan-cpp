@@ -307,7 +307,7 @@ export namespace vk {
                 vkCmdEndRenderPass(p_current);
             }
 
-            void destroy() {
+            void destruct() {
                 vkDestroyRenderPass(m_device, m_renderpass, nullptr);
             }
 

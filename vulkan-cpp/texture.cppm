@@ -137,7 +137,7 @@ export namespace vk {
                 vkQueueSubmit(temp_graphics_queue, 1, &submit_info, nullptr);
                 vkQueueWaitIdle(temp_graphics_queue);
 
-                temp_command_buffer.destroy();
+                temp_command_buffer.destruct();
                 staging.destruct();
             }
 
@@ -232,7 +232,7 @@ export namespace vk {
                 vkQueueSubmit(temp_graphics_queue, 1, &submit_info, nullptr);
                 vkQueueWaitIdle(temp_graphics_queue);
 
-                temp_command_buffer.destroy();
+                temp_command_buffer.destruct();
                 staging.destruct();
             }
 
@@ -244,7 +244,7 @@ export namespace vk {
 
             [[nodiscard]] image_extent extent() const { return m_extent; }
 
-            void destroy() { m_image.destruct(); }
+            void destruct() { m_image.destruct(); }
 
         private:
             VkDevice m_device = nullptr;

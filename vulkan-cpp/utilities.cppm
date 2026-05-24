@@ -197,7 +197,7 @@ export namespace vk {
             vkQueueSubmit(temp_graphics_queue, 1, &submit_info, nullptr);
             vkQueueWaitIdle(temp_graphics_queue);
 
-            temp_command_buffer.destroy();
+            temp_command_buffer.destruct();
         }
         */
 

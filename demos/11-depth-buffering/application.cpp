@@ -696,20 +696,20 @@ main() {
     // }); (???)
     // this to ensure they are cleaned up in the proper order
     logical_device.wait();
-    main_swapchain.destroy();
+    main_swapchain.destruct();
 
-    texture1.destroy();
-    set0_resource.destroy();
+    texture1.destruct();
+    set0_resource.destruct();
     test_ubo.destruct();
     test_ibo.destruct();
     test_vbo.destruct();
 
     for (auto& command : swapchain_command_buffers) {
-        command.destroy();
+        command.destruct();
     }
 
     for (auto& fb : swapchain_framebuffers) {
-        fb.destroy();
+        fb.destruct();
     }
 
     for (auto& image : swapchain_images) {
@@ -720,13 +720,13 @@ main() {
         depth_img.destruct();
     }
 
-    main_graphics_pipeline.destroy();
-    geometry_resource.destroy();
-    main_renderpass.destroy();
-    presentation_queue.destroy();
+    main_graphics_pipeline.destruct();
+    geometry_resource.destruct();
+    main_renderpass.destruct();
+    presentation_queue.destruct();
 
-    logical_device.destroy();
-    window_surface.destroy();
+    logical_device.destruct();
+    window_surface.destruct();
     glfwDestroyWindow(window);
     return 0;
 }

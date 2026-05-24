@@ -557,7 +557,7 @@ export namespace vk {
             }
 
             //! @brief explicit cleanup performed on vk::pipeline
-            void destroy() {
+            void destruct() {
                 if (m_pipeline_layout != nullptr) {
                     vkDestroyPipelineLayout(
                       m_device, m_pipeline_layout, nullptr);

@@ -131,7 +131,7 @@ export namespace vk {
             }
 
             //! @brief used for explicit cleanup for this resource
-            void destroy() {
+            void destruct() {
                 for (auto& handle : m_shader_module_handlers) {
                     if (handle.module != nullptr) {
                         vkDestroyShaderModule(m_device, handle.module, nullptr);

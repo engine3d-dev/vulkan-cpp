@@ -262,25 +262,25 @@ main() {
     // }); (???)
     // this to ensure they are cleaned up in the proper order
     logical_device.wait();
-    main_swapchain.destroy();
+    main_swapchain.destruct();
 
     for (auto& command : swapchain_command_buffers) {
-        command.destroy();
+        command.destruct();
     }
 
     for (auto& fb : swapchain_framebuffers) {
-        fb.destroy();
+        fb.destruct();
     }
 
     for (auto& image : swapchain_images) {
         image.destruct();
     }
 
-    main_renderpass.destroy();
-    presentation_queue.destroy();
+    main_renderpass.destruct();
+    presentation_queue.destruct();
 
-    logical_device.destroy();
-    window_surface.destroy();
+    logical_device.destruct();
+    window_surface.destruct();
     glfwDestroyWindow(window);
     return 0;
 }

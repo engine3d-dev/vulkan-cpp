@@ -59,7 +59,7 @@ export namespace vk {
 
             [[nodiscard]] queue_family family() const { return m_queue_family; }
 
-            void destroy() {
+            void destruct() {
                 if (m_device != nullptr) {
                     vkDestroyDevice(m_device, nullptr);
                 }

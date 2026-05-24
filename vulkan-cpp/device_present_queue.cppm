@@ -152,7 +152,7 @@ export namespace vk {
                 }
             }
 
-            void destroy() {
+            void destruct() {
                 vkDeviceWaitIdle(m_device);
                 vkDestroySemaphore(m_device, m_presentation_completed, nullptr);
                 vkDestroySemaphore(m_device, m_work_completed, nullptr);

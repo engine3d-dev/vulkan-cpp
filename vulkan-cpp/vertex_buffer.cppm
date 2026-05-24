@@ -91,7 +91,7 @@ export namespace vk {
                 vkQueueSubmit(temp_graphics_queue, 1, &submit_info, nullptr);
                 vkQueueWaitIdle(temp_graphics_queue);
 
-                copy_command_buffer.destroy();
+                copy_command_buffer.destruct();
 
                 // Cleaning up staging buffer after using it
                 staging_buffer.destruct();
@@ -102,7 +102,7 @@ export namespace vk {
             void construct(const VkDevice& p_device,
                            std::span<const vertex_input> p_vertices,
                            const buffer_parameters& p_params) {
-                
+
                 // Can be used to invalidate 3D mesh vertices
                 // Staging buffer
                 const uint32_t transfer =
@@ -164,7 +164,7 @@ export namespace vk {
                 vkQueueSubmit(temp_graphics_queue, 1, &submit_info, nullptr);
                 vkQueueWaitIdle(temp_graphics_queue);
 
-                copy_command_buffer.destroy();
+                copy_command_buffer.destruct();
 
                 // cleanup staging buffer -- no longer used
                 staging_buffer.destruct();

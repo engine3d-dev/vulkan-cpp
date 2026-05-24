@@ -335,25 +335,7 @@ main() {
         float time = std::chrono::duration<float, std::chrono::seconds::period>(
                        current_time - start_time)
                        .count();
-        //    global_uniform ubo = {
-        //         .model = glm::rotate(glm::mat4(1.0f),
-        //                              time * glm::radians(90.0f),
-        //                              glm::vec3(0.0f, 0.0f, 1.0f)),
-        //         .view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f),
-        //                             glm::vec3(0.0f, 0.0f, 0.0f),
-        //                             glm::vec3(0.0f, 0.0f, 1.0f)),
-        //         .proj = glm::perspective(glm::radians(90.f),
-        //                                  (float)swapchain_extent.width /
-        //                                    (float)swapchain_extent.height,
-        //                                  0.1f,
-        //                                  10.0f)
-        //     };
-
-        // if(glfwGetKey(main_window, GLFW_KEY))
-        // glm::vec3 up = glm::rotate(to_quaternion, atlas::math::up());
-        // glm::vec3 forward = glm::rotate(to_quaternion,
-        // atlas::math::backward()); glm::vec3 right =
-        // glm::rotate(to_quaternion, atlas::math::right());
+        
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
             position.z += 1.f;
         }
@@ -366,6 +348,7 @@ main() {
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
             position.x -= 1.f;
         }
+
         global_uniform ubo = {};
         ubo.proj = glm::mat4(1.f);
         ubo.proj = glm::perspective(
@@ -398,14 +381,14 @@ main() {
 
     // this to ensure they are cleaned up in the proper order
     logical_device.wait();
-    main_swapchain.destroy();
+    main_swapchain.destruct();
 
     for (auto& command : swapchain_command_buffers) {
-        command.destroy();
+        command.destruct();
     }
 
     for (auto& fb : swapchain_framebuffers) {
-        fb.destroy();
+        fb.destruct();
     }
 
     for (auto& image : swapchain_images) {
@@ -416,12 +399,12 @@ main() {
         depth_img.destruct();
     }
 
-    skybox.destroy();
-    main_renderpass.destroy();
-    presentation_queue.destroy();
+    skybox.destruct();
+    main_renderpass.destruct();
+    presentation_queue.destruct();
 
-    logical_device.destroy();
-    window_surface.destroy();
+    logical_device.destruct();
+    window_surface.destruct();
     glfwDestroyWindow(window);
     return 0;
 }

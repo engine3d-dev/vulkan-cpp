@@ -52,7 +52,7 @@ public:
     }
 
     // ~environment_map() {
-    //     destroy();
+    //     destruct();
     // }
 
     void create_hdr_skybox(const std::filesystem::path& p_filename) {
@@ -162,7 +162,7 @@ public:
         vkQueueSubmit(graphics_queue, 1, &submit_info, nullptr);
         vkQueueWaitIdle(graphics_queue);
 
-        upload_cmd.destroy();
+        upload_cmd.destruct();
         staging_buffer.destruct();
         stbi_set_flip_vertically_on_load(false);
     }
@@ -420,9 +420,6 @@ public:
         identity.proj_view[1][1] *= -1;
         std::span<const uint8_t> bytes(reinterpret_cast<uint8_t*>(&identity),
                                        1);
-        std::println("Before transfer!");
-        // m_skybox_ubo.transfer(bytes);
-        std::println("After transfer!");
 
         // set=0 bindings:
         //  - binding 0: UBO (vertex)
@@ -570,15 +567,15 @@ public:
     //! @brief Retreving the sample image of the environment map.
     [[nodiscard]] vk::sample_image image() const { return m_skybox_image; }
 
-    void destroy() {
+    void destruct() {
 
         m_skybox_image.destruct();
         if (m_skybox_pipeline->alive()) {
-            m_skybox_pipeline->destroy();
+            m_skybox_pipeline->destruct();
         }
-        m_skybox_descriptors.destroy();
+        m_skybox_descriptors.destruct();
         m_skybox_ubo.destruct();
-        m_skybox_shaders.destroy();
+        m_skybox_shaders.destruct();
         m_skybox_vbo.destruct();
     }
 
