@@ -14,7 +14,6 @@
 #include <print>
 #include <span>
 #include <filesystem>
-import vk;
 
 #include <chrono>
 #define GLM_FORCE_RADIANS
@@ -26,6 +25,14 @@ import vk;
 #include <stdio.h>
 
 #include <tiny_obj_loader.h>
+#include <expected>
+
+#ifndef STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+#endif
+
+import vk;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 debug_callback(
@@ -200,8 +207,8 @@ public:
     }
 
     void destroy() {
-        m_vertex_buffer.destroy();
-        m_index_buffer.destroy();
+        m_vertex_buffer.destruct();
+        m_index_buffer.destruct();
     }
 
 private:
@@ -234,6 +241,81 @@ get_instance_extensions() {
 
     return extension_names;
 }
+
+
+/**
+ * @brief STBI-specific implementation of the vk::image interface
+ */
+class stb_image : public vk::image {
+public:
+    stb_image() = delete;
+
+    stb_image(std::string_view p_path, vk::texture_params p_params) {
+        image_load(p_path, p_params);
+    }
+
+    ~stb_image() = default;
+
+protected:
+    bool image_load(std::string_view p_path,
+                    vk::texture_params p_params) override {
+        int w = 0;
+        int h = 0;
+        int channels = 0;
+
+        stbi_uc* image_pixel_data =
+          stbi_load(p_path.data(), &w, &h, &channels, STBI_rgb_alpha);
+
+        if (!image_pixel_data) {
+            return false;
+        }
+
+        const VkFormat texture_format =
+          static_cast<VkFormat>(vk::format::r8g8b8a8_unorm);
+        int bytes_per_pixel = vk::bytes_per_texture_format(texture_format);
+
+        m_extent = {
+            .width = static_cast<uint32_t>(w),
+            .height = static_cast<uint32_t>(h),
+        };
+
+        // Retrieving total size of bytes of the dimensions of the image and
+        // accounting for pixels of the image
+        uint32_t size_bytes =
+          m_extent.width * m_extent.height * bytes_per_pixel;
+
+        // Retrieving total image size to the count of the image layers
+        uint32_t size = size_bytes * p_params.layer_count;
+
+        vk::image_params image_options = {
+            .extent = m_extent,
+            .format = texture_format,
+            .memory_mask = p_params.memory_mask,
+            .usage = static_cast<uint32_t>(vk::image_usage::transfer_dst_bit) |
+                     static_cast<uint32_t>(vk::image_usage::sampled_bit),
+            .mip_levels = p_params.mip_levels,
+            .layer_count = p_params.layer_count,
+        };
+
+        m_bytes.reserve(size);
+        std::span<uint8_t> bytes_view =
+          std::span<uint8_t>(image_pixel_data, size);
+
+        m_bytes.assign(bytes_view.begin(), bytes_view.end());
+
+        stbi_image_free(image_pixel_data);
+
+        return true;
+    }
+
+    std::span<const uint8_t> image_read() const override { return m_bytes; }
+
+    vk::image_extent image_extent() const override { return m_extent; }
+
+private:
+    vk::image_extent m_extent{};
+    std::vector<uint8_t> m_bytes{};
+};
 
 int
 main() {
@@ -286,20 +368,9 @@ main() {
     // Setting up vk instance
     vk::instance api_instance(config, debug_callback_info);
 
-    if (api_instance.alive()) {
-        std::println("\napi_instance alive and initiated!!!");
-    }
-
-    vk::physical_enumeration enumerate_devices{
-        .device_type = vk::physical_gpu::discrete,
-    };
-
-    // Specifically set for the mac m1 series platform
-#if defined(__APPLE__)
-    enumerate_devices.device_type = vk::physical_gpu::integrated;
-#endif
-
-    vk::physical_device physical_device(api_instance, enumerate_devices);
+    std::expected<vk::physical_device, VkResult> physical_device_expected =
+      api_instance.enumerate_physical_device(vk::physical_gpu::integrated);
+    vk::physical_device physical_device = physical_device_expected.value();
 
     // selecting depth format
     std::array<vk::format, 3> format_support = {
@@ -315,11 +386,6 @@ main() {
     VkFormat depth_format =
       physical_device.request_depth_format(format_support);
 
-    vk::queue_indices queue_indices = physical_device.family_indices();
-    std::println("Graphics Queue Family Index = {}", queue_indices.graphics);
-    std::println("Compute Queue Family Index = {}", queue_indices.compute);
-    std::println("Transfer Queue Family Index = {}", queue_indices.transfer);
-
     // setting up logical device
     std::array<float, 1> priorities = { 0.f };
 
@@ -332,19 +398,7 @@ main() {
     std::array<const char*, 1> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 #endif
 
-    vk::device_features device_features{
-        vk::descriptor_indexing_feature{ {
-          .descriptorBindingSampledImageUpdateAfterBind = true,
-          .descriptorBindingPartiallyBound = true,
-          .descriptorBindingVariableDescriptorCount = true,
-        } },
-        vk::dynamic_rendering_feature{ {
-          .dynamicRendering = true,
-        } },
-    };
-
     vk::device_params logical_device_params = {
-        .features = device_features.data(),
         .queue_priorities = priorities,
         .extensions = extensions,
         .queue_family_index = 0,
@@ -353,21 +407,14 @@ main() {
     vk::device logical_device(physical_device, logical_device_params);
 
     vk::surface window_surface(api_instance, window);
-    std::println("Starting implementation of the swapchain!!!");
 
     vk::surface_params surface_properties =
       physical_device.request_surface(window_surface);
 
-    if (surface_properties.format.format != VK_FORMAT_UNDEFINED) {
-        std::println("Surface Format.format is not undefined!!!");
-    }
-
     vk::swapchain_params enumerate_swapchain_settings = {
         .width = (uint32_t)width,
         .height = (uint32_t)height,
-        .present_index =
-          physical_device.family_indices()
-            .graphics, // presentation index just uses the graphics index
+        .present_index = 0,
     };
     vk::swapchain main_swapchain(logical_device,
                                  window_surface,
@@ -428,7 +475,7 @@ main() {
     for (size_t i = 0; i < swapchain_command_buffers.size(); i++) {
         vk::command_params settings = {
             .levels = vk::command_levels::primary,
-            .queue_index = enumerate_swapchain_settings.present_index,
+            .queue_index = 0,
             .flags = vk::command_pool_flags::reset,
         };
 
@@ -466,8 +513,6 @@ main() {
 
     vk::renderpass main_renderpass(logical_device, renderpass_attachments);
 
-    std::println("renderpass created!!!");
-
     // Setting up swapchain framebuffers
 
     std::vector<vk::framebuffer> swapchain_framebuffers(image_count);
@@ -491,9 +536,6 @@ main() {
           vk::framebuffer(logical_device, framebuffer_info);
     }
 
-    std::println("Created VkFramebuffer's with size = {}",
-                 swapchain_framebuffers.size());
-
     // setting up presentation queue to display commands to the screen
     vk::queue_params enumerate_present_queue{
         .family = 0,
@@ -504,8 +546,6 @@ main() {
 
     // gets set with the renderpass
     std::array<float, 4> color = { 0.f, 0.5f, 0.5f, 1.f };
-
-    // std::println("Start implementing graphics pipeline!!!");
 
     // Now creating a vulkan graphics pipeline for the shader loading
     std::array<vk::shader_source, 2> shader_sources = {
@@ -659,13 +699,14 @@ main() {
     };
 
     vk::texture_params config_texture = {
-        .memory_mask =
-          physical_device.memory_properties(static_cast<vk::memory_property>(
-            vk::memory_property::host_visible_bit |
-            vk::memory_property::host_cached_bit)),
+        .memory_mask = physical_device.memory_properties(
+          vk::memory_property::host_visible_bit |
+          vk::memory_property::host_cached_bit),
     };
+
+    stb_image img = stb_image("asset_samples/viking_room.png", config_texture);
     vk::texture texture1(logical_device,
-                         std::filesystem::path("asset_samples/viking_room.png"),
+                         &img,
                          config_texture);
 
     std::array<vk::write_image, 1> samplers = {
@@ -784,7 +825,7 @@ main() {
     texture1.destroy();
     set0_resource.destroy();
     set1_resource.destroy();
-    test_ubo.destroy();
+    test_ubo.destruct();
     test_model.destroy();
 
     for (auto& command : swapchain_command_buffers) {
@@ -796,11 +837,11 @@ main() {
     }
 
     for (auto& image : swapchain_images) {
-        image.destroy();
+        image.destruct();
     }
 
     for (auto& depth_img : swapchain_depth_images) {
-        depth_img.destroy();
+        depth_img.destruct();
     }
 
     main_graphics_pipeline.destroy();
@@ -811,6 +852,5 @@ main() {
     logical_device.destroy();
     window_surface.destroy();
     glfwDestroyWindow(window);
-    api_instance.destroy();
     return 0;
 }

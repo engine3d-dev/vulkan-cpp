@@ -151,9 +151,6 @@ export namespace vk {
 
             ~pipeline() = default;
 
-            pipeline(const pipeline&) = delete;
-            pipeline& operator=(const pipeline&) = delete;
-
             /**
              * @brief explicit API for creating a VkPipeline and
              * VkPipelineLayout handle

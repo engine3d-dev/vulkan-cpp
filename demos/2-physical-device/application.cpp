@@ -13,6 +13,7 @@
 #include <array>
 #include <print>
 #include <span>
+#include <expected>
 import vk;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
@@ -103,18 +104,18 @@ main() {
         std::println("\napi_instance alive and initiated!!!");
     }
 
-    // setting up physical device
-    vk::physical_enumeration enumerate_devices{
-        .device_type = vk::physical_gpu::integrated
-    };
+    // Selecting a specific physical device
+    std::expected<vk::physical_device, VkResult> physical_device_expected =
+      api_instance.enumerate_physical_device(vk::physical_gpu::integrated);
+    vk::physical_device physical_device = physical_device_expected.value();
 
-    vk::physical_device device(api_instance, enumerate_devices);
+    std::println("Device name: {}", physical_device.properties().deviceName);
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
     }
 
     glfwDestroyWindow(window);
-    api_instance.destroy();
+    api_instance.destruct();
     return 0;
 }

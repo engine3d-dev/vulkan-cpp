@@ -27,6 +27,7 @@ module;
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 #include <print>
+#include <optional>
 
 export module environment_map;
 import vk;
@@ -162,7 +163,7 @@ public:
         vkQueueWaitIdle(graphics_queue);
 
         upload_cmd.destroy();
-        staging_buffer.destroy();
+        staging_buffer.destruct();
         stbi_set_flip_vertically_on_load(false);
     }
 
@@ -537,7 +538,7 @@ public:
             .dynamic_states = dyn,
         };
 
-        m_skybox_pipeline = vk::pipeline(m_device, pipe_info);
+        m_skybox_pipeline = std::make_optional<vk::pipeline>(m_device, pipe_info);
     }
 
     void update_uniform(const skybox_uniform& p_ubo) {
@@ -545,9 +546,9 @@ public:
     }
 
     void bind(vk::command_buffer p_current) {
-        m_skybox_pipeline.bind(p_current);
+        m_skybox_pipeline->bind(p_current);
         std::array<VkDescriptorSet, 1> descriptors = { m_skybox_descriptors };
-        p_current.bind_descriptors(m_skybox_pipeline.layout(),
+        p_current.bind_descriptors(m_skybox_pipeline->layout(),
                                    VK_PIPELINE_BIND_POINT_GRAPHICS,
                                    descriptors);
         // m_skybox_vbo.bind(p_current);
@@ -570,14 +571,14 @@ public:
 
     void destroy() {
 
-        m_skybox_image.destroy();
-        if (m_skybox_pipeline.alive()) {
-            m_skybox_pipeline.destroy();
+        m_skybox_image.destruct();
+        if (m_skybox_pipeline->alive()) {
+            m_skybox_pipeline->destroy();
         }
         m_skybox_descriptors.destroy();
-        m_skybox_ubo.destroy();
+        m_skybox_ubo.destruct();
         m_skybox_shaders.destroy();
-        m_skybox_vbo.destroy();
+        m_skybox_vbo.destruct();
     }
 
     //! TODO: Logic for converting the HDR image handles to a skybox
@@ -592,7 +593,7 @@ private:
     vk::shader_resource m_skybox_shaders{};
     vk::uniform_buffer m_skybox_ubo{};
     vk::descriptor_resource m_skybox_descriptors{};
-    vk::pipeline m_skybox_pipeline{};
+    std::optional<vk::pipeline> m_skybox_pipeline{};
     vk::vertex_buffer m_skybox_vbo;
     uint64_t m_skybox_vbo_size = 0;
 };
