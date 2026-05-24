@@ -23,8 +23,6 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 
-#include <stdio.h>
-
 #include <tiny_obj_loader.h>
 
 import vk;

@@ -23,8 +23,6 @@ import vk;
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 
-#include <stdio.h>
-
 #include <tiny_obj_loader.h>
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
