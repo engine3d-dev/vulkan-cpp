@@ -495,7 +495,6 @@ main() {
             .memory_mask = physical_device.memory_properties(
               vk::memory_property::device_local_bit),
             .aspect = vk::image_aspect_flags::depth_bit,
-            // .usage = vk::image_usage::depth_stencil_bit,
             .usage = vk::image_usage::depth_stencil_bit,
             .mip_levels = 1,
             .layer_count = 1,
