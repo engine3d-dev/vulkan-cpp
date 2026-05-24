@@ -29,8 +29,8 @@ export namespace vk {
 
             ~buffer32() = default;
 
-
-            void construct(uint64_t p_device_size, const buffer_parameters& p_params) {
+            void construct(uint64_t p_device_size,
+                           const buffer_parameters& p_params) {
                 VkBufferCreateInfo buffer_ci = {
                     .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
                     .pNext = nullptr,
