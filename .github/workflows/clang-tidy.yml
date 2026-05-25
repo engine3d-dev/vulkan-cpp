@@ -23,7 +23,7 @@ jobs:
           files-changed-only: true
           thread-comments: false
           # Ensure clang-tidy knows how to parse modern C++ headers/modules without a compile_commands.json
-          extra-args: '-x c++ -std=c++23' 
+          extra-args: '-x c++ -std=c++23 --config-file=.clang-tidy'
 
       - name: Fail Build on Linter Deficiencies
         # Fix evaluation check to ensure a rigorous boolean comparison
