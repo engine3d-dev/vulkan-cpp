@@ -1,0 +1,23 @@
+
+name: 🚀 Deployment
+
+# Trigger deployment CI when PRs get merged to main (production branch)
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+  workflow_call:
+
+jobs:
+  windows:
+    uses: ./.github/workflows/deploy_windows.yml
+    secrets: inherit
+
+  linux:
+    uses: ./.github/workflows/deploy_linux.yml
+    secrets: inherit
+
+  mac-armv8:
+    uses: ./.github/workflows/deploy_mac.yml
+    secrets: inherit
