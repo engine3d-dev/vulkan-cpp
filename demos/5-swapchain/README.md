@@ -118,7 +118,7 @@ for(uint32_t i = 0; i < swapchain_images.size(); i++) {
         .extent = { .width=swapchain_extent.width, .height=swapchain_extent.height },
         .format = surface_properties.format.format,
         .aspect = vk::image_aspect_flags::color_bit,
-        .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+        .usage = vk::image_usage::color_attachment_bit,
         .mip_levels = 1,
         .layer_count = 1,
         .phsyical_memory_properties = physical_device.memory_properties(),

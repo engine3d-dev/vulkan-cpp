@@ -6,24 +6,31 @@ module;
 #include <cstring>
 #include <bit>
 
-export module vk:buffer_streams32;
+export module vk:buffer32;
 
 export import :types;
 export import :utilities;
 export import :command_buffer;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
         /**
          * @brief buffer stream for streaming arbitrary buffers of 32-bytes
          */
-        class buffer_stream32 {
+        class buffer32 {
         public:
-            buffer_stream32() = default;
-            buffer_stream32(const VkDevice& p_device,
-                            uint64_t p_device_size,
-                            const buffer_parameters& p_params)
+            buffer32() = default;
+            buffer32(const VkDevice& p_device,
+                     uint64_t p_device_size,
+                     const buffer_parameters& p_params)
               : m_device(p_device) {
+                construct(p_device_size, p_params);
+            }
+
+            ~buffer32() = default;
+
+            void construct(uint64_t p_device_size,
+                           const buffer_parameters& p_params) {
                 VkBufferCreateInfo buffer_ci = {
                     .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
                     .pNext = nullptr,
@@ -34,13 +41,13 @@ export namespace vk {
                 };
 
                 vk_check(
-                  vkCreateBuffer(p_device, &buffer_ci, nullptr, &m_handle),
+                  vkCreateBuffer(m_device, &buffer_ci, nullptr, &m_handle),
                   "vkCreateBuffer");
 
-                // 2. retrieving buffer memory requirements
+                // retrieving buffer memory requirements
                 VkMemoryRequirements memory_requirements = {};
                 vkGetBufferMemoryRequirements(
-                  p_device, m_handle, &memory_requirements);
+                  m_device, m_handle, &memory_requirements);
                 uint32_t mapped_memory_requirements =
                   memory_requirements.memoryTypeBits & p_params.memory_mask;
                 uint32_t memory_index =
@@ -58,8 +65,7 @@ export namespace vk {
                     .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
                     .pNext = nullptr,
                     .objectType = VK_OBJECT_TYPE_BUFFER,
-                    .objectHandle = (uint64_t)
-                      m_handle, // specify vulkan to what object handle this is
+                    .objectHandle = reinterpret_cast<uint64_t>(m_handle),
                     .pObjectName =
                       p_params.debug_name // specify what type of buffer this is
                 };
@@ -72,19 +78,19 @@ export namespace vk {
 #endif
                 vk_check(
                   vkAllocateMemory(
-                    p_device, &memory_alloc_info, nullptr, &m_device_memory),
+                    m_device, &memory_alloc_info, nullptr, &m_device_memory),
                   "vkAllocateMemory");
 
-                // 5. bind memory resource of this buffer handle
+                // bind memory resource of this buffer handle
                 vk_check(
-                  vkBindBufferMemory(p_device, m_handle, m_device_memory, 0),
+                  vkBindBufferMemory(m_device, m_handle, m_device_memory, 0),
                   "vkBindBufferMemory");
             }
 
             /**
              * @brief write arbitrary buffer of 32-bytes to GPU-memory
              */
-            void write(std::span<const uint32_t> p_data) {
+            void transfer(std::span<const uint32_t> p_data) {
                 void* mapped = nullptr;
                 vk_check(vkMapMemory(m_device,
                                      m_device_memory,
@@ -123,7 +129,7 @@ export namespace vk {
                                        &buffer_image_copy);
             }
 
-            void destroy() {
+            void destruct() {
                 if (m_handle != nullptr) {
                     vkDestroyBuffer(m_device, m_handle, nullptr);
                 }

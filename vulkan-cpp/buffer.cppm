@@ -5,13 +5,13 @@ module;
 #include <vector>
 #include <bit>
 
-export module vk:buffer_streams;
+export module vk:buffer;
 
 export import :types;
 export import :utilities;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
         /**
          * @brief Represents a VkBuffer handler for creating VkBuffer handle
          *
@@ -19,12 +19,12 @@ export namespace vk {
          * GPU memory
          *
          */
-        class buffer_stream {
+        class buffer {
         public:
-            buffer_stream() = default;
+            buffer() = default;
 
             /**
-             * @brief constructs a buffer_stream to write streams of data to GPU
+             * @brief constructs a buffer to write streams of data to GPU
              * memory
              *
              * @param p_device is the logical device to construct the buffer
@@ -33,11 +33,17 @@ export namespace vk {
              * @param p_params are additional parameters for the buffer
              * handles
              */
-            buffer_stream(const VkDevice& p_device,
-                          uint64_t p_device_size,
-                          const buffer_parameters& p_params)
+            buffer(const VkDevice& p_device,
+                   uint64_t p_device_size,
+                   const buffer_parameters& p_params)
               : m_device(p_device) {
+                construct(p_device_size, p_params);
+            }
 
+            ~buffer() = default;
+
+            void construct(uint64_t p_device_size,
+                           const buffer_parameters& p_params) {
                 VkBufferCreateInfo buffer_ci = {
                     .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
                     .pNext = nullptr,
@@ -48,13 +54,13 @@ export namespace vk {
                 };
 
                 vk_check(
-                  vkCreateBuffer(p_device, &buffer_ci, nullptr, &m_handle),
+                  vkCreateBuffer(m_device, &buffer_ci, nullptr, &m_handle),
                   "vkCreateBuffer");
 
                 // retrieving buffer memory requirements
                 VkMemoryRequirements memory_requirements = {};
                 vkGetBufferMemoryRequirements(
-                  p_device, m_handle, &memory_requirements);
+                  m_device, m_handle, &memory_requirements);
                 uint32_t mapped_memory_requirements =
                   memory_requirements.memoryTypeBits & p_params.memory_mask;
                 uint32_t memory_index =
@@ -86,12 +92,12 @@ export namespace vk {
 #endif
                 vk_check(
                   vkAllocateMemory(
-                    p_device, &memory_alloc_info, nullptr, &m_device_memory),
+                    m_device, &memory_alloc_info, nullptr, &m_device_memory),
                   "vkAllocateMemory");
 
                 // 5. bind memory resource of this buffer handle
                 vk_check(
-                  vkBindBufferMemory(p_device, m_handle, m_device_memory, 0),
+                  vkBindBufferMemory(m_device, m_handle, m_device_memory, 0),
                   "vkBindBufferMemory");
             }
 
@@ -130,7 +136,7 @@ export namespace vk {
              * Example Usage:
              *
              * ```C++
-             * buffer_streams staging_buffer(logical_device, ...);
+             * buffers staging_buffer(logical_device, ...);
              *
              * std::array<uint8_t, 4> white_color = { 0xFF, 0xFF, 0xFF, 0xFF };
              * staging_buffer.transfer(white_color);
@@ -227,7 +233,7 @@ export namespace vk {
              *
              * ```C++
              *
-             * vk::buffer_stream staging_buffer(logical_device, {...});
+             * vk::buffer staging_buffer(logical_device, {...});
              *
              * std::array<vk::buffer_image_copy, 1> copy_regions = {
              *      vk::buffer_image_copy{
@@ -269,7 +275,7 @@ export namespace vk {
                   image_copies.data());
             }
 
-            void destroy() {
+            void destruct() {
                 if (m_handle != nullptr) {
                     vkDestroyBuffer(m_device, m_handle, nullptr);
                 }

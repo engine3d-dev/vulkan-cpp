@@ -14,7 +14,7 @@
 #include <print>
 #include <span>
 #include <filesystem>
-import vk;
+#include <expected>
 
 #include <chrono>
 #define GLM_FORCE_RADIANS
@@ -23,9 +23,9 @@ import vk;
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 
-#include <stdio.h>
-
 #include <tiny_obj_loader.h>
+
+import vk;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 debug_callback(
@@ -163,8 +163,8 @@ public:
         vk::buffer_parameters vertex_params = {
             .memory_mask = p_physical.memory_properties(property_flags),
             .property_flags = vk::memory_property::device_local_bit,
-            .usage = static_cast<uint32_t>(vk::buffer_usage::transfer_dst_bit) |
-                     static_cast<uint32_t>(vk::buffer_usage::vertex_buffer_bit),
+            .usage = vk::buffer_usage::transfer_dst_bit |
+                     vk::buffer_usage::vertex_buffer_bit,
         };
 
         vk::buffer_parameters index_params = {
@@ -172,7 +172,7 @@ public:
             .property_flags = static_cast<vk::memory_property>(
               vk::memory_property::host_visible_bit |
               vk::memory_property::host_cached_bit),
-            .usage = static_cast<uint32_t>(vk::buffer_usage::index_buffer_bit),
+            .usage = vk::buffer_usage::index_buffer_bit,
         };
 
         m_vertex_buffer = vk::vertex_buffer(p_device, vertices, vertex_params);
@@ -199,9 +199,9 @@ public:
         }
     }
 
-    void destroy() {
-        m_vertex_buffer.destroy();
-        m_index_buffer.destroy();
+    void destruct() {
+        m_vertex_buffer.destruct();
+        m_index_buffer.destruct();
     }
 
 private:
@@ -295,12 +295,9 @@ main() {
     }
 
     // setting up physical device
-    vk::physical_enumeration enumerate_devices{
-        .device_type = vk::physical_gpu::integrated,
-    };
-    vk::physical_device physical_device(api_instance, enumerate_devices);
-
-    vk::queue_indices queue_indices = physical_device.family_indices();
+    std::expected<vk::physical_device, VkResult> physical_device_expected =
+      api_instance.enumerate_physical_device(vk::physical_gpu::integrated);
+    vk::physical_device physical_device = physical_device_expected.value();
 
     // setting up logical device
     std::array<float, 1> priorities = { 0.f };
@@ -324,8 +321,6 @@ main() {
 
     // We provide a selection of format support that we want to check is
     // supported on current hardware device.
-    // VkFormat depth_format =
-    //   vk::select_depth_format(physical_device, format_support);
     VkFormat depth_format =
       physical_device.request_depth_format(format_support);
 
@@ -339,7 +334,7 @@ main() {
         .features = device_features.data(),
         .queue_priorities = priorities,
         .extensions = extensions,
-        .queue_family_index = queue_indices.graphics,
+        .queue_family_index = 0,
     };
 
     vk::device logical_device(physical_device, logical_device_params);
@@ -352,9 +347,7 @@ main() {
     vk::swapchain_params enumerate_swapchain_settings = {
         .width = static_cast<uint32_t>(width),
         .height = static_cast<uint32_t>(height),
-        .present_index =
-          physical_device.family_indices()
-            .graphics, // presentation index just uses the graphics index
+        .present_index = 0,
     };
     vk::swapchain main_swapchain(logical_device,
                                  window_surface,
@@ -399,7 +392,7 @@ main() {
             .memory_mask = physical_device.memory_properties(
               vk::memory_property::device_local_bit),
             .aspect = vk::image_aspect_flags::depth_bit,
-            .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+            .usage = vk::image_usage::depth_stencil_bit,
             .mip_levels = 1,
             .layer_count = 1,
         };
@@ -412,7 +405,7 @@ main() {
     for (size_t i = 0; i < swapchain_command_buffers.size(); i++) {
         vk::command_params settings = {
             .levels = vk::command_levels::primary,
-            .queue_index = enumerate_swapchain_settings.present_index,
+            .queue_index = 0,
             .flags = vk::command_pool_flags::reset,
         };
 
@@ -433,10 +426,14 @@ main() {
 
     // Loading graphics pipeline
     std::array<vk::shader_source, 2> shader_sources = {
-        vk::shader_source{ .filename = "shader_samples/sample1/test.vert.spv",
-                           .stage = vk::shader_stage::vertex },
-        vk::shader_source{ .filename = "shader_samples/sample1/test.frag.spv",
-                           .stage = vk::shader_stage::fragment },
+        vk::shader_source{
+          .filename = "shader_samples/sample1/test.vert.spv",
+          .stage = vk::shader_stage::vertex,
+        },
+        vk::shader_source{
+          .filename = "shader_samples/sample1/test.frag.spv",
+          .stage = vk::shader_stage::fragment,
+        },
     };
 
     // To render triangle, we do not need to set any vertex attributes
@@ -581,28 +578,27 @@ main() {
     }
 
     logical_device.wait();
-    main_swapchain.destroy();
+    main_swapchain.destruct();
 
-    geometry_resource.destroy();
-    main_graphics_pipeline.destroy();
+    geometry_resource.destruct();
+    main_graphics_pipeline.destruct();
 
     for (auto& command : swapchain_command_buffers) {
-        command.destroy();
+        command.destruct();
     }
 
     for (auto& image : swapchain_images) {
-        image.destroy();
+        image.destruct();
     }
 
     for (auto& image : swapchain_depth_images) {
-        image.destroy();
+        image.destruct();
     }
 
-    presentation_queue.destroy();
+    presentation_queue.destruct();
 
-    logical_device.destroy();
-    window_surface.destroy();
+    logical_device.destruct();
+    window_surface.destruct();
     glfwDestroyWindow(window);
-    api_instance.destroy();
     return 0;
 }

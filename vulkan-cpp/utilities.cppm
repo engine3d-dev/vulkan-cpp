@@ -12,7 +12,7 @@ export module vk:utilities;
 import :types;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
 
         void vk_check(const VkResult& p_result, const std::string& p_name) {
             if (p_result != VK_SUCCESS) {
@@ -117,6 +117,14 @@ export namespace vk {
                                              static_cast<T>(p_rhs));
         }
 
+        inline image_usage operator|(image_usage p_lhs, image_usage p_rhs) {
+            // Lets us truncate the underlying type of the enum (class) to allow
+            // it to be bitwise OR'd
+            using T = std::underlying_type_t<image_usage>;
+            return static_cast<image_usage>(static_cast<T>(p_lhs) |
+                                            static_cast<T>(p_rhs));
+        }
+
         inline image_aspect_flags operator|(image_aspect_flags p_lhs,
                                             image_aspect_flags p_rhs) {
             // Lets us truncate the underlying type of the enum (class) to allow
@@ -197,7 +205,7 @@ export namespace vk {
             vkQueueSubmit(temp_graphics_queue, 1, &submit_info, nullptr);
             vkQueueWaitIdle(temp_graphics_queue);
 
-            temp_command_buffer.destroy();
+            temp_command_buffer.destruct();
         }
         */
 

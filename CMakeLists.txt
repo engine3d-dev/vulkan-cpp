@@ -46,10 +46,10 @@ target_sources(${PROJECT_NAME} PUBLIC
     vulkan-cpp/sample_image.cppm
     vulkan-cpp/shader_resource.cppm
     vulkan-cpp/pipeline.cppm
-    vulkan-cpp/buffer_streams.cppm
+    vulkan-cpp/buffer.cppm
     vulkan-cpp/vertex_buffer.cppm
-    vulkan-cpp/buffer_streams16.cppm
-    vulkan-cpp/buffer_streams32.cppm
+    vulkan-cpp/buffer16.cppm
+    vulkan-cpp/buffer32.cppm
     vulkan-cpp/index_buffer.cppm
     vulkan-cpp/uniform_buffer.cppm
     vulkan-cpp/descriptor_resource.cppm

@@ -14,6 +14,7 @@ build_application(
     tinyobjloader
 
     LINK_PACKAGES
+    stb::stb
     vulkan-cpp
     tinyobjloader
     Vulkan::Vulkan

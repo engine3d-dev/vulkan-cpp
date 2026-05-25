@@ -8,7 +8,7 @@ export import :types;
 export import :utilities;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
         /**
          * @name device
          * @brief represents a vulkan logical device
@@ -59,7 +59,7 @@ export namespace vk {
 
             [[nodiscard]] queue_family family() const { return m_queue_family; }
 
-            void destroy() {
+            void destruct() {
                 if (m_device != nullptr) {
                     vkDestroyDevice(m_device, nullptr);
                 }

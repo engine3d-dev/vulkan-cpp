@@ -11,7 +11,7 @@ export import :types;
 export import :utilities;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
         struct command_inherit_info {
             VkRenderPass renderpass = nullptr;
             uint32_t subpass_index = 0;
@@ -536,8 +536,8 @@ export namespace vk {
              * Example Usage:
              *
              * ```C++
-             * vk::buffer_stream staging_buffer(logical_device, ...);
-             * vk::buffer_stream vertex_buffer(logical_device, ...);
+             * vk::buffer staging_buffer(logical_device, ...);
+             * vk::buffer vertex_buffer(logical_device, ...);
              *
              * vk::command_buffer primary_command(logical_device, ...);
              *
@@ -611,7 +611,7 @@ export namespace vk {
                     const auto viewport = p_params[i];
                     viewports[i] = {
                         .x = viewport.x,
-                        .y = viewport.x,
+                        .y = viewport.y,
                         .width = viewport.width,
                         .height = viewport.height,
                         .minDepth = viewport.min_depth,
@@ -646,7 +646,7 @@ export namespace vk {
             /**
              * @brief Explicitly API to properly do command buffer cleanup
              */
-            void destroy() {
+            void destruct() {
                 vkFreeCommandBuffers(
                   m_device, m_command_pool, 1, &m_command_buffer);
                 vkDestroyCommandPool(m_device, m_command_pool, nullptr);

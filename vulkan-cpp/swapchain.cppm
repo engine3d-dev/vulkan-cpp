@@ -12,7 +12,7 @@ export import :utilities;
 export import :device_queue;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
 
         class swapchain {
         public:
@@ -91,7 +91,7 @@ export namespace vk {
                 return m_images;
             }
 
-            void destroy() {
+            void destruct() {
                 vkDestroySwapchainKHR(m_device, m_swapchain_handler, nullptr);
             }
 

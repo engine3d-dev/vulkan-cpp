@@ -2,6 +2,11 @@
 
 Custom Vulkan abstraction layer with native C++20 modules support using LLVM.
 
+[![✅CI](https://github.com/engine3d-dev/vulkan-cpp/actions/workflows/ci.yml/badge.svg)](https://github.com/engine3d-dev/vulkan-cpp/actions/workflows/ci.yml)
+[![GitHub stars](https://img.shields.io/github/stars/engine3d-dev/vulkan-cpp.svg)](https://github.com/engine3d-dev/vulkan-cpp/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/engine3d-dev/vulkan-cpp.svg)](https://github.com/engine3d-dev/vulkan-cpp/network)
+[![GitHub issues](https://img.shields.io/github/issues/engine3d-dev/vulkan-cpp.svg)](https://github.com/engine3d-dev/vulkan-cpp/issues)
+
 > [!TIP]
 > vulkan-cpp assumes you have some knowledge of graphics APIs such as OpenGL or Direct3D
 

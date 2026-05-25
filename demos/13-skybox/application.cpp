@@ -14,7 +14,6 @@
 #include <print>
 #include <span>
 #include <filesystem>
-import vk;
 
 #include <chrono>
 #define GLM_FORCE_RADIANS
@@ -22,8 +21,15 @@ import vk;
 #include <glm/gtc/matrix_transform.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
+#include <expected>
 
 #include <tiny_obj_loader.h>
+#ifndef STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+#endif
+
+import vk;
 import environment_map;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
@@ -116,20 +122,9 @@ main() {
     // Setting up vk instance
     vk::instance api_instance(config, debug_callback_info);
 
-    if (api_instance.alive()) {
-        std::println("\napi_instance alive and initiated!!!");
-    }
-
-    vk::physical_enumeration enumerate_devices{
-        .device_type = vk::physical_gpu::discrete,
-    };
-
-    // Specifically set for the mac m1 series platform
-#if defined(__APPLE__)
-    enumerate_devices.device_type = vk::physical_gpu::integrated;
-#endif
-
-    vk::physical_device physical_device(api_instance, enumerate_devices);
+    std::expected<vk::physical_device, VkResult> physical_device_expected =
+      api_instance.enumerate_physical_device(vk::physical_gpu::integrated);
+    vk::physical_device physical_device = physical_device_expected.value();
 
     // selecting depth format
     std::array<vk::format, 3> format_support = {
@@ -143,17 +138,14 @@ main() {
     VkFormat depth_format =
       physical_device.request_depth_format(format_support);
 
-    vk::queue_indices queue_indices = physical_device.family_indices();
-    std::println("Graphics Queue Family Index = {}", queue_indices.graphics);
-    std::println("Compute Queue Family Index = {}", queue_indices.compute);
-    std::println("Transfer Queue Family Index = {}", queue_indices.transfer);
-
     // setting up logical device
     std::array<float, 1> priorities = { 0.f };
 
 #if defined(__APPLE__)
-    std::array<const char*, 2> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-                                              "VK_KHR_portability_subset" };
+    std::array<const char*, 2> extensions = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        "VK_KHR_portability_subset",
+    };
 #else
     std::array<const char*, 1> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 #endif
@@ -167,21 +159,14 @@ main() {
     vk::device logical_device(physical_device, logical_device_params);
 
     vk::surface window_surface(api_instance, window);
-    std::println("Starting implementation of the swapchain!!!");
 
     vk::surface_params surface_properties =
       physical_device.request_surface(window_surface);
 
-    if (surface_properties.format.format != VK_FORMAT_UNDEFINED) {
-        std::println("Surface Format.format is not undefined!!!");
-    }
-
     vk::swapchain_params enumerate_swapchain_settings = {
-        .width = (uint32_t)width,
-        .height = (uint32_t)height,
-        .present_index =
-          physical_device.family_indices()
-            .graphics, // presentation index just uses the graphics index
+        .width = static_cast<uint32_t>(width),
+        .height = static_cast<uint32_t>(height),
+        .present_index = 0,
     };
     vk::swapchain main_swapchain(logical_device,
                                  window_surface,
@@ -210,10 +195,9 @@ main() {
             .format = surface_properties.format.format,
             .memory_mask = physical_device.memory_properties(vk::memory_property::device_local_bit),
             .aspect = vk::image_aspect_flags::color_bit,
-            .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+            .usage = vk::image_usage::color_attachment_bit,
             .mip_levels = 1,
             .layer_count = 1,
-            // .phsyical_memory_properties = physical_device.memory_properties(),
         };
 
         swapchain_images[i] =
@@ -221,13 +205,15 @@ main() {
 
         // Creating Images for depth buffering
         vk::image_params image_config = {
-            .extent = { .width = swapchain_extent.width,
-                        .height = swapchain_extent.height },
+            .extent = {
+                .width = swapchain_extent.width,
+                .height = swapchain_extent.height,
+            },
             .format = depth_format,
             .memory_mask = physical_device.memory_properties(
               vk::memory_property::device_local_bit),
             .aspect = vk::image_aspect_flags::depth_bit,
-            .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+            .usage = vk::image_usage::depth_stencil_bit,
             .mip_levels = 1,
             .layer_count = 1,
         };
@@ -278,8 +264,6 @@ main() {
 
     vk::renderpass main_renderpass(logical_device, renderpass_attachments);
 
-    std::println("renderpass created!!!");
-
     // Setting up swapchain framebuffers
 
     std::vector<vk::framebuffer> swapchain_framebuffers(image_count);
@@ -303,9 +287,6 @@ main() {
           vk::framebuffer(logical_device, framebuffer_info);
     }
 
-    std::println("Created VkFramebuffer's with size = {}",
-                 swapchain_framebuffers.size());
-
     // setting up presentation queue to display commands to the screen
     vk::queue_params enumerate_present_queue{
         .family = 0,
@@ -317,21 +298,12 @@ main() {
     // gets set with the renderpass
     std::array<float, 4> color = { 0.f, 0.5f, 0.5f, 1.f };
 
-    // std::vector<std::string> faces = {
-    //     "asset_samples/skybox/right.jpg",
-    //     "asset_samples/skybox/left.jpg",
-    //     "asset_samples/skybox/top.jpg",
-    //     "asset_samples/skybox/bottom.jpg",
-    //     "asset_samples/skybox/front.jpg",
-    //     "asset_samples/skybox/back.jpg"
-    // };
     environment_map skybox = environment_map(
       logical_device,
       std::filesystem::path("asset_samples/skybox/monkstown_castle_4k.hdr"),
       physical_device,
       main_renderpass);
 
-    // editor camera properties
     float field_of_view = 45.f;
     glm::vec3 position = { 3.5f, 4.90f, 36.40f };
     glm::vec3 scale{ 1.f };
@@ -363,25 +335,7 @@ main() {
         float time = std::chrono::duration<float, std::chrono::seconds::period>(
                        current_time - start_time)
                        .count();
-        //    global_uniform ubo = {
-        //         .model = glm::rotate(glm::mat4(1.0f),
-        //                              time * glm::radians(90.0f),
-        //                              glm::vec3(0.0f, 0.0f, 1.0f)),
-        //         .view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f),
-        //                             glm::vec3(0.0f, 0.0f, 0.0f),
-        //                             glm::vec3(0.0f, 0.0f, 1.0f)),
-        //         .proj = glm::perspective(glm::radians(90.f),
-        //                                  (float)swapchain_extent.width /
-        //                                    (float)swapchain_extent.height,
-        //                                  0.1f,
-        //                                  10.0f)
-        //     };
 
-        // if(glfwGetKey(main_window, GLFW_KEY))
-        // glm::vec3 up = glm::rotate(to_quaternion, atlas::math::up());
-        // glm::vec3 forward = glm::rotate(to_quaternion,
-        // atlas::math::backward()); glm::vec3 right =
-        // glm::rotate(to_quaternion, atlas::math::right());
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
             position.z += 1.f;
         }
@@ -394,6 +348,7 @@ main() {
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
             position.x -= 1.f;
         }
+
         global_uniform ubo = {};
         ubo.proj = glm::mat4(1.f);
         ubo.proj = glm::perspective(
@@ -426,31 +381,30 @@ main() {
 
     // this to ensure they are cleaned up in the proper order
     logical_device.wait();
-    main_swapchain.destroy();
+    main_swapchain.destruct();
 
     for (auto& command : swapchain_command_buffers) {
-        command.destroy();
+        command.destruct();
     }
 
     for (auto& fb : swapchain_framebuffers) {
-        fb.destroy();
+        fb.destruct();
     }
 
     for (auto& image : swapchain_images) {
-        image.destroy();
+        image.destruct();
     }
 
     for (auto& depth_img : swapchain_depth_images) {
-        depth_img.destroy();
+        depth_img.destruct();
     }
 
-    skybox.destroy();
-    main_renderpass.destroy();
-    presentation_queue.destroy();
+    skybox.destruct();
+    main_renderpass.destruct();
+    presentation_queue.destruct();
 
-    logical_device.destroy();
-    window_surface.destroy();
+    logical_device.destruct();
+    window_surface.destruct();
     glfwDestroyWindow(window);
-    api_instance.destroy();
     return 0;
 }

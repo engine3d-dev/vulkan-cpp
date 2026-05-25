@@ -11,7 +11,7 @@ export import :types;
 export import :utilities;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
         /**
          * @name renderpass
          *
@@ -307,7 +307,7 @@ export namespace vk {
                 vkCmdEndRenderPass(p_current);
             }
 
-            void destroy() {
+            void destruct() {
                 vkDestroyRenderPass(m_device, m_renderpass, nullptr);
             }
 

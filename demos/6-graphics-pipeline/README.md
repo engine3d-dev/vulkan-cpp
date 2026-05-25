@@ -345,10 +345,10 @@ while (!glfwWindowShouldClose(window)) {
 }
 
 // make sure to destroy child objects of Vulkan before the actual logical device.
-main_graphics_pipeline.destroy();
-geometry_resource.destroy();
+main_graphics_pipeline.destruct();
+geometry_resource.destruct();
 
-logical_device.destroy();
+logical_device.destruct();
 ```
 
 # Final Result

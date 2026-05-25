@@ -13,7 +13,7 @@ export import :uniform_buffer;
 export import :sample_image;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
         /**
          * @param slot is the slot specific to the number slot for the
          * descriptor. Ex. layout (set = 0)
@@ -85,14 +85,14 @@ export namespace vk {
              *
              * std::array<vk::descriptor_entry, 2> entries = {
              *   vk::descriptor_entry{
-             *      .type = vk::buffer::uniform, .binding_point = {
+             *      .type = vk::descriptor_type::uniform, .binding_point = {
              *      .binding = 0,
              *      .stage = vk::shader_stage::vertex,
              *    },
              *    .descriptor_count = 1,
              *  },
              *  vk::descriptor_entry{
-             *   .type = vk::buffer::combined_image_sampler,
+             *   .type = vk::descriptor_type::combined_image_sampler,
              *   .binding_point = {
              *      .binding = 1,
              *      .stage = vk::shader_stage::fragment,
@@ -385,7 +385,7 @@ export namespace vk {
                 return m_descriptor_layout;
             }
 
-            void destroy() {
+            void destruct() {
                 if (m_descriptor_pool != nullptr) {
                     vkDestroyDescriptorPool(
                       m_device, m_descriptor_pool, nullptr);

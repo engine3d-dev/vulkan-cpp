@@ -12,7 +12,7 @@ export import :types;
 export import :utilities;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
 
         struct input_assembly_state {
             primitive_topology topology = primitive_topology::triangle_list;
@@ -148,6 +148,8 @@ export namespace vk {
               : m_device(p_device) {
                 configure(p_params);
             }
+
+            ~pipeline() = default;
 
             /**
              * @brief explicit API for creating a VkPipeline and
@@ -530,8 +532,7 @@ export namespace vk {
             void push_constant(const VkCommandBuffer& p_current,
                                const T& p_data,
                                shader_stage p_stage,
-                               uint32_t p_offset,
-                               uint32_t p_range) {
+                               uint32_t p_offset) {
 
                 // Perform compile-time checks if push constant data exceeds
                 // maximum size of data to be transferred via push constant
@@ -543,7 +544,7 @@ export namespace vk {
                                    m_pipeline_layout,
                                    static_cast<VkShaderStageFlags>(p_stage),
                                    p_offset,
-                                   p_range,
+                                   sizeof(T),
                                    &p_data);
             }
 
@@ -556,7 +557,7 @@ export namespace vk {
             }
 
             //! @brief explicit cleanup performed on vk::pipeline
-            void destroy() {
+            void destruct() {
                 if (m_pipeline_layout != nullptr) {
                     vkDestroyPipelineLayout(
                       m_device, m_pipeline_layout, nullptr);

@@ -1,10 +1,7 @@
-name: Deploy to Windows
+name: Windows Deployment
 
-on:
-  pull_request:
-    types: [closed]
-    branches:
-      - main  # Only trigger for PRs merged into main
+
+on: [workflow_call]
 
 jobs:
   windows_x86_64:
@@ -55,4 +52,4 @@ jobs:
       
       - name: Uploading vulkan-cpp to engine3d-conan remote repositories
         shell: pwsh
-        run: conan upload vulkan-cpp/5.0 --r=engine3d-conan --confirm
+        run: conan upload vulkan-cpp/6.0 --r=engine3d-conan --confirm

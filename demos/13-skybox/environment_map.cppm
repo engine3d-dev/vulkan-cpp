@@ -27,6 +27,7 @@ module;
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 #include <print>
+#include <optional>
 
 export module environment_map;
 import vk;
@@ -51,7 +52,7 @@ public:
     }
 
     // ~environment_map() {
-    //     destroy();
+    //     destruct();
     // }
 
     void create_hdr_skybox(const std::filesystem::path& p_filename) {
@@ -83,10 +84,10 @@ public:
             .property_flags = static_cast<vk::memory_property>(
               vk::memory_property::host_visible_bit |
               vk::memory_property::host_cached_bit),
-            .usage = static_cast<uint32_t>(vk::buffer_usage::transfer_src_bit),
+            .usage = vk::buffer_usage::transfer_src_bit,
         };
 
-        vk::buffer_stream staging_buffer = vk::buffer_stream(
+        vk::buffer staging_buffer = vk::buffer(
           m_device, static_cast<uint32_t>(image_size), staging_buffer_params);
 
         // Creating image handle to storing the HDR
@@ -161,8 +162,8 @@ public:
         vkQueueSubmit(graphics_queue, 1, &submit_info, nullptr);
         vkQueueWaitIdle(graphics_queue);
 
-        upload_cmd.destroy();
-        staging_buffer.destroy();
+        upload_cmd.destruct();
+        staging_buffer.destruct();
         stbi_set_flip_vertically_on_load(false);
     }
 
@@ -326,17 +327,14 @@ public:
                               { 0.0f, 0.0f } }
         };
 
-        const uint32_t property =
-          static_cast<uint32_t>(vk::buffer_usage::transfer_dst_bit) |
-          static_cast<uint32_t>(vk::buffer_usage::vertex_buffer_bit);
         vk::buffer_parameters vertex_params = {
             .memory_mask = m_physical_device->memory_properties(
               vk::memory_property::host_visible_bit |
               vk::memory_property::host_cached_bit),
             .property_flags = vk::memory_property::host_visible_bit |
                               vk::memory_property::host_cached_bit,
-            .usage = static_cast<uint32_t>(vk::buffer_usage::transfer_dst_bit |
-                                           vk::buffer_usage::vertex_buffer_bit),
+            .usage = vk::buffer_usage::transfer_dst_bit |
+                     vk::buffer_usage::vertex_buffer_bit,
         };
         m_skybox_vbo_size = vertices.size();
         m_skybox_vbo = vk::vertex_buffer(m_device, vertices, vertex_params);
@@ -408,8 +406,7 @@ public:
             // m_physical_device->memory_properties(static_cast<vk::memory_property>(property)),
             .memory_mask = m_physical_device->memory_properties(
               vk::memory_property::host_cached_bit),
-            .usage =
-              static_cast<uint32_t>(vk::buffer_usage::uniform_buffer_bit),
+            .usage = vk::buffer_usage::uniform_buffer_bit,
         };
         m_skybox_ubo =
           vk::uniform_buffer(m_device, sizeof(skybox_uniform), uniform_params);
@@ -419,23 +416,20 @@ public:
         identity.proj_view[1][1] *= -1;
         std::span<const uint8_t> bytes(reinterpret_cast<uint8_t*>(&identity),
                                        1);
-        std::println("Before transfer!");
-        // m_skybox_ubo.transfer(bytes);
-        std::println("After transfer!");
 
         // set=0 bindings:
         //  - binding 0: UBO (vertex)
         //  - binding 1: samplerCube (fragment)
         std::array<vk::descriptor_entry, 2> entries = {
             vk::descriptor_entry{
-              .type = vk::buffer::uniform,
+              .type = vk::descriptor_type::uniform,
               .binding_point =
                 vk::descriptor_binding_point{
                   .binding = 0, .stage = vk::shader_stage::vertex },
               .descriptor_count = 1,
             },
             vk::descriptor_entry{
-              .type = vk::buffer::combined_image_sampler,
+              .type = vk::descriptor_type::combined_image_sampler,
               .binding_point =
                 vk::descriptor_binding_point{
                   .binding = 1, .stage = vk::shader_stage::fragment },
@@ -537,7 +531,8 @@ public:
             .dynamic_states = dyn,
         };
 
-        m_skybox_pipeline = vk::pipeline(m_device, pipe_info);
+        m_skybox_pipeline =
+          std::make_optional<vk::pipeline>(m_device, pipe_info);
     }
 
     void update_uniform(const skybox_uniform& p_ubo) {
@@ -545,9 +540,9 @@ public:
     }
 
     void bind(vk::command_buffer p_current) {
-        m_skybox_pipeline.bind(p_current);
+        m_skybox_pipeline->bind(p_current);
         std::array<VkDescriptorSet, 1> descriptors = { m_skybox_descriptors };
-        p_current.bind_descriptors(m_skybox_pipeline.layout(),
+        p_current.bind_descriptors(m_skybox_pipeline->layout(),
                                    VK_PIPELINE_BIND_POINT_GRAPHICS,
                                    descriptors);
         // m_skybox_vbo.bind(p_current);
@@ -568,16 +563,16 @@ public:
     //! @brief Retreving the sample image of the environment map.
     [[nodiscard]] vk::sample_image image() const { return m_skybox_image; }
 
-    void destroy() {
+    void destruct() {
 
-        m_skybox_image.destroy();
-        if (m_skybox_pipeline.alive()) {
-            m_skybox_pipeline.destroy();
+        m_skybox_image.destruct();
+        if (m_skybox_pipeline->alive()) {
+            m_skybox_pipeline->destruct();
         }
-        m_skybox_descriptors.destroy();
-        m_skybox_ubo.destroy();
-        m_skybox_shaders.destroy();
-        m_skybox_vbo.destroy();
+        m_skybox_descriptors.destruct();
+        m_skybox_ubo.destruct();
+        m_skybox_shaders.destruct();
+        m_skybox_vbo.destruct();
     }
 
     //! TODO: Logic for converting the HDR image handles to a skybox
@@ -592,7 +587,7 @@ private:
     vk::shader_resource m_skybox_shaders{};
     vk::uniform_buffer m_skybox_ubo{};
     vk::descriptor_resource m_skybox_descriptors{};
-    vk::pipeline m_skybox_pipeline{};
+    std::optional<vk::pipeline> m_skybox_pipeline{};
     vk::vertex_buffer m_skybox_vbo;
     uint64_t m_skybox_vbo_size = 0;
 };

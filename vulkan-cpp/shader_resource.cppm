@@ -12,7 +12,7 @@ export import :types;
 export import :utilities;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
 
         /**
          * @param sources holds data the shader source and stage the source it
@@ -131,7 +131,7 @@ export namespace vk {
             }
 
             //! @brief used for explicit cleanup for this resource
-            void destroy() {
+            void destruct() {
                 for (auto& handle : m_shader_module_handlers) {
                     if (handle.module != nullptr) {
                         vkDestroyShaderModule(m_device, handle.module, nullptr);

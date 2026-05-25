@@ -5,22 +5,20 @@ module;
 #include <array>
 #include <cstring>
 
-export module vk:buffer_streams16;
+export module vk:buffer16;
 
 export import :types;
 export import :utilities;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
         /**
          * @brief buffer stream for streaming arbitrary buffers of 32-bytes
          */
-        class buffer_stream16 {
+        class buffer16 {
         public:
-            buffer_stream16() = default;
-            buffer_stream16(const VkDevice&,
-                            uint64_t,
-                            const buffer_parameters&) {}
+            buffer16() = default;
+            buffer16(const VkDevice&, uint64_t, const buffer_parameters&) {}
 
             /**
              * @brief write arbitrary buffer of 32-bytes to GPU-memory
@@ -31,7 +29,7 @@ export namespace vk {
                                const VkImage& p_image,
                                image_extent p_extent) {}
 
-            void destroy() {}
+            void destruct() {}
 
             operator VkBuffer() { return m_handle; }
 

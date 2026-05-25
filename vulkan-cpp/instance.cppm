@@ -12,7 +12,7 @@ import :utilities;
 import :physical_device;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
         /**
          * @brief vk::instance represents VkInstance to initialize the vulkan
          * API.

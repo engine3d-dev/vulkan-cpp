@@ -8,7 +8,7 @@ export import :types;
 export import :utilities;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
         /**
          * @name vk::framebuffer
          *
@@ -45,7 +45,7 @@ export namespace vk {
 
             [[nodiscard]] bool alive() const { return m_framebuffer; }
 
-            void destroy() {
+            void destruct() {
                 if (m_framebuffer != nullptr) {
                     vkDestroyFramebuffer(m_device, m_framebuffer, nullptr);
                 }
