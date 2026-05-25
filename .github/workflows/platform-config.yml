@@ -1,0 +1,168 @@
+name: Platform Configuration
+
+on:
+    workflow_call:
+        outputs:
+            cache-key-linux:
+                description: "Cached Key for the Ubuntu Environment"
+                value: ${{ jobs.ubuntu-setup.outputs.cache-key }}
+            cache-key-windows:
+                description: "Cached Key for the Windows Environment"
+                value: ${{ jobs.windows-setup.outputs.cache-key }}
+            cache-key-mac:
+                description: "Cached Key for the Apple Silicon Armv8 Environment"
+                value: ${{ jobs.armv8-setup.outputs.cache-key }}
+
+jobs:
+  ubuntu-setup:
+    runs-on: ubuntu-latest
+    outputs:
+      cache-key: ${{ steps.cache-info.outputs.key }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Note: We append a hardcoded version or file hash to trigger rebuilds when configs change
+      - name: Generate Cache Key Info
+        id: cache-info
+        run: echo "key=ubuntu-setup-${{ runner.os }}-${{ github.run_id }}" >> $GITHUB_OUTPUT
+
+      - name: Check Cache
+        id: cache-env
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/share/pipx
+            ~/.conan2
+            ${{ github.workspace }}/vulkan_sdk
+          key: ${{ steps.cache-info.outputs.key }}
+          restore-keys: |
+            ubuntu-setup-${{ runner.os }}-
+
+      - name: Install System Prerequisites
+        if: steps.cache-env.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libc++-20-dev libc++abi-20-dev pipx software-properties-common
+          sudo add-apt-repository ppa:deadsnakes/ppa -y
+
+      - name: Install Vulkan SDK
+        if: steps.cache-env.outputs.cache-hit != 'true'
+        uses: humbletim/setup-vulkan-sdk@v1.2.1
+        with:
+          vulkan-query-version: 1.4.304.1
+          vulkan-components: Vulkan-Headers, Vulkan-Loader
+          destination: ${{ github.workspace }}/vulkan_sdk
+
+      - name: Install and Configure Conan
+        if: steps.cache-env.outputs.cache-hit != 'true'
+        run: |
+          pipx install "conan>=2.18.1"
+          export PATH="$HOME/.local/bin:$PATH"
+          conan config install https://github.com/engine3d-dev/conan-config.git
+          conan atlas setup
+  
+  windows-setup:
+    runs-on: windows-latest
+    outputs:
+      cache-key: ${{ steps.cache-info.outputs.key }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Windows runners use PowerShell (pwsh) by default, using the $ENV:GITHUB_OUTPUT syntax
+      - name: Generate Cache Key Info
+        id: cache-info
+        shell: pwsh
+        run: echo "key=windows-setup-${{ runner.os }}-${{ github.run_id }}" >> $ENV:GITHUB_OUTPUT
+
+      - name: Check Cache
+        id: cache-env
+        uses: actions/cache@v4
+        with:
+          path: |
+            AppData\Local\pip\Cache
+            .conan2
+            vulkan_sdk
+          key: ${{ steps.cache-info.outputs.key }}
+          restore-keys: |
+            windows-setup-${{ runner.os }}-
+
+      - name: Installing Choco & Git
+        if: steps.cache-env.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          Set-ExecutionPolicy Bypass -Scope Process -Force
+          [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+          iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+          choco install git -y
+
+      - name: Install Vulkan SDK
+        if: steps.cache-env.outputs.cache-hit != 'true'
+        uses: humbletim/setup-vulkan-sdk@v1.2.1
+        with:
+          vulkan-query-version: 1.4.304.1
+          vulkan-components: Vulkan-Headers, Vulkan-Loader
+          destination: ${{ github.workspace }}\vulkan_sdk
+
+      - name: Pip installing conan
+        if: steps.cache-env.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: pip install conan
+
+      - name: Setting up Conan configuration
+        if: steps.cache-env.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          conan config install https://github.com/engine3d-dev/conan-config.git
+          conan atlas setup
+    
+  armv8-setup:
+    runs-on: macos-latest
+    outputs:
+      cache-key: ${{ steps.cache-info.outputs.key }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate Cache Key Info
+        id: cache-info
+        run: echo "key=armv8-setup-${{ runner.os }}-${{ github.run_id }}" >> $GITHUB_OUTPUT
+
+      - name: Check Cache
+        id: cache-env
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/share/pipx
+            ~/.conan2
+            ${{ github.workspace }}/vulkan_sdk
+          key: ${{ steps.cache-info.outputs.key }}
+          restore-keys: |
+            armv8-setup-${{ runner.os }}-
+
+      - name: Install Homebrew & Core Tooling
+        if: steps.cache-env.outputs.cache-hit != 'true'
+        run: |
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          brew install python pipx
+
+      - name: Install Vulkan SDK
+        if: steps.cache-env.outputs.cache-hit != 'true'
+        uses: humbletim/setup-vulkan-sdk@v1.2.1
+        with:
+          vulkan-query-version: 1.4.304.1
+          vulkan-components: Vulkan-Headers, Vulkan-Loader
+          destination: ${{ github.workspace }}/vulkan_sdk
+
+      - name: Installing conan & clang-tidy
+        if: steps.cache-env.outputs.cache-hit != 'true'
+        run: |
+          pipx install "conan>=2.18.2"
+          pipx upgrade conan
+          sudo ln -s $(brew --prefix llvm)/bin/clang-tidy /usr/local/bin/
+          /usr/sbin/softwareupdate --install-rosetta --agree-to-license
+
+      - name: Setting up Conan configuration
+        if: steps.cache-env.outputs.cache-hit != 'true'
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          conan config install https://github.com/engine3d-dev/conan-config.git
+          conan atlas setup

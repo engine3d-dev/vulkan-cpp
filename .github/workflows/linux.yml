@@ -5,35 +5,52 @@ on: [workflow_call]
 
 
 jobs:
+    setup-environments:
+      uses: ./.github/workflows/platform-config.yml
+      secrets: inherit
     linux-build:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
 
-            - name: Install LLVM's C++ Standard Library
-              run: sudo apt-get install libc++-20-dev libc++abi-20-dev
+            # - name: Install LLVM's C++ Standard Library
+            #   run: sudo apt-get install libc++-20-dev libc++abi-20-dev
 
-            - name: Installing pipx
-              run: sudo apt install pipx
+            # - name: Installing pipx
+            #   run: sudo apt install pipx
 
-            - name: Installing Prerequisites for Linux
-              run: |
-                  sudo apt-get update
-                  sudo apt install software-properties-common -y
-                  sudo add-apt-repository ppa:deadsnakes/ppa
+            # - name: Installing Prerequisites for Linux
+            #   run: |
+            #       sudo apt-get update
+            #       sudo apt install software-properties-common -y
+            #       sudo add-apt-repository ppa:deadsnakes/ppa
 
-            - name: Install Vulkan SDK
-              uses: humbletim/setup-vulkan-sdk@v1.2.1
+            # - name: Install Vulkan SDK
+            #   uses: humbletim/setup-vulkan-sdk@v1.2.1
+            #   with:
+            #     vulkan-query-version: 1.4.304.1
+            #     vulkan-components: Vulkan-Headers, Vulkan-Loader
+            #     vulkan-use-cache: true
+
+            # - name: Installing Conan
+            #   run: pipx install "conan>=2.18.1"
+
+            # - name: Setting up Conan Profiles
+            #   run: conan config install -sf profiles/x86_64/linux/ -tf profiles https://github.com/engine3d-dev/conan-config.git
+            - name: Restore Ubuntu Environment Cache
+              uses: actions/cache@v4
               with:
-                vulkan-query-version: 1.4.304.1
-                vulkan-components: Vulkan-Headers, Vulkan-Loader
-                vulkan-use-cache: true
+                path: |
+                  ~/.local/share/pipx
+                  ~/.conan2
+                  ${{ github.workspace }}/vulkan_sdk
+                key: ${{ needs.setup-environments.outputs.cache-key-ubuntu }}
 
-            - name: Installing Conan
-              run: pipx install "conan>=2.18.1"
-
-            - name: Setting up Conan Profiles
-              run: conan config install -sf profiles/x86_64/linux/ -tf profiles https://github.com/engine3d-dev/conan-config.git
+            - name: Expose Tools to Ubuntu Environment
+              run: |
+                echo "$HOME/.local/bin" >> $GITHUB_PATH
+                echo "${{ github.workspace }}/vulkan_sdk/bootstrapped/bin" >> $GITHUB_PATH
+                echo "VULKAN_SDK=${{ github.workspace }}/vulkan_sdk/bootstrapped" >> $GITHUB_ENV
 
             - name: Setting up Conan
               run: |
