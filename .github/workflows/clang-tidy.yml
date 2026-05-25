@@ -18,7 +18,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           style: '' # Disables clang-format so it strictly runs clang-tidy
-          extensions: 'cpp,cppm,h,hpp' # Added headers and cppm modules
+          config-file: '.clang-tidy'
+          extensions: 'cpp,cppm,h,hpp' # common C++ file extensions
           files-changed-only: true
           thread-comments: false
           # Ensure clang-tidy knows how to parse modern C++ headers/modules without a compile_commands.json
