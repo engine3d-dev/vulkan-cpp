@@ -13,6 +13,7 @@
 #include <array>
 #include <print>
 #include <span>
+#include <expected>
 import vk;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
@@ -103,25 +104,10 @@ main() {
         std::println("\napi_instance alive and initiated!!!");
     }
 
-    // setting up physical device
-    vk::physical_enumeration enumerate_devices{
-        .device_type = vk::physical_gpu::integrated,
-    };
-    vk::physical_device physical_device(api_instance, enumerate_devices);
-
-    // selecting depth format
-    std::array<vk::format, 3> format_support = {
-        vk::format::d32_sfloat,
-        vk::format::d32_sfloat_s8_uint,
-        vk::format::d24_unorm_s8_uint
-    };
-
-    // We provide a selection of format support that we want to check is
-    // supported on current hardware device.
-    VkFormat depth_format =
-      vk::select_depth_format(physical_device, format_support);
-
-    vk::queue_indices queue_indices = physical_device.family_indices();
+    // Selecting a specific physical device
+    std::expected<vk::physical_device, VkResult> physical_device_expected =
+      api_instance.enumerate_physical_device(vk::physical_gpu::integrated);
+    vk::physical_device physical_device = physical_device_expected.value();
 
     // setting up logical device
     std::array<float, 1> priorities = { 0.f };
@@ -146,7 +132,7 @@ main() {
     // Presentation queue family uses graphics queue
     vk::queue_params present_queue_enumerate = {
         .family = 0,
-        .index = queue_indices.graphics,
+        .index = 0,
     };
     vk::device_queue presesnt_queue(logical_device, present_queue_enumerate);
 
@@ -155,10 +141,9 @@ main() {
     }
 
     logical_device.wait();
-    logical_device.destroy();
+    logical_device.destruct();
 
-    window_surface.destroy();
+    window_surface.destruct();
     glfwDestroyWindow(window);
-    api_instance.destroy();
     return 0;
 }

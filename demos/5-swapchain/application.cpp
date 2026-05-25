@@ -13,6 +13,7 @@
 #include <array>
 #include <print>
 #include <span>
+#include <expected>
 import vk;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
@@ -107,20 +108,10 @@ main() {
         std::println("\napi_instance alive and initiated!!!");
     }
 
-    // setting up physical device
-    vk::physical_enumeration enumerate_devices{
-        .device_type = vk::physical_gpu::integrated,
-    };
-    vk::physical_device physical_device(api_instance, enumerate_devices);
-
-    // selecting depth format
-    std::array<vk::format, 3> format_support = {
-        vk::format::d32_sfloat,
-        vk::format::d32_sfloat_s8_uint,
-        vk::format::d24_unorm_s8_uint
-    };
-
-    vk::queue_indices queue_indices = physical_device.family_indices();
+    // Selecting a specific physical device
+    std::expected<vk::physical_device, VkResult> physical_device_expected =
+      api_instance.enumerate_physical_device(vk::physical_gpu::integrated);
+    vk::physical_device physical_device = physical_device_expected.value();
 
     // setting up logical device
     std::array<float, 1> priorities = { 0.f };
@@ -135,7 +126,7 @@ main() {
     vk::device_params logical_device_params = {
         .queue_priorities = priorities,
         .extensions = extensions,
-        .queue_family_index = queue_indices.graphics,
+        .queue_family_index = 0,
     };
 
     vk::device logical_device(physical_device, logical_device_params);
@@ -143,14 +134,12 @@ main() {
     vk::surface window_surface(api_instance, window);
 
     vk::surface_params surface_properties =
-      vk::enumerate_surface(physical_device, window_surface);
+      physical_device.request_surface(window_surface);
 
     vk::swapchain_params enumerate_swapchain_settings = {
         .width = static_cast<uint32_t>(width),
         .height = static_cast<uint32_t>(height),
-        .present_index =
-          physical_device.family_indices()
-            .graphics, // presentation index just uses the graphics index
+        .present_index = 0,
     };
     vk::swapchain main_swapchain(logical_device,
                                  window_surface,
@@ -174,11 +163,12 @@ main() {
             .extent = { .width = swapchain_extent.width,
                         .height = swapchain_extent.height },
             .format = surface_properties.format.format,
+            .memory_mask = physical_device.memory_properties(
+              vk::memory_property::device_local_bit),
             .aspect = vk::image_aspect_flags::color_bit,
             .usage = vk::image_usage::color_attachment_bit,
             .mip_levels = 1,
             .layer_count = 1,
-            .phsyical_memory_properties = physical_device.memory_properties(),
         };
 
         swapchain_images[i] =
@@ -190,7 +180,7 @@ main() {
     for (size_t i = 0; i < swapchain_command_buffers.size(); i++) {
         vk::command_params settings = {
             .levels = vk::command_levels::primary,
-            .queue_index = enumerate_swapchain_settings.present_index,
+            .queue_index = 0,
             .flags = vk::command_pool_flags::reset,
         };
 
@@ -230,9 +220,6 @@ main() {
           vk::framebuffer(logical_device, framebuffer_info);
     }
 
-    std::println("Created VkFramebuffer's with size = {}",
-                 swapchain_framebuffers.size());
-
     // setting up presentation queue to display commands to the screen
     vk::queue_params enumerate_present_queue{
         .family = 0,
@@ -254,13 +241,12 @@ main() {
 
         // renderpass begin/end must be within a recording command buffer
         vk::renderpass_begin_params begin_renderpass = {
-            .current_command = current,
             .extent = swapchain_extent,
             .current_framebuffer = swapchain_framebuffers[current_frame],
             .color = color,
             .subpass = vk::subpass_contents::inline_bit
         };
-        main_renderpass.begin(begin_renderpass);
+        main_renderpass.begin(current, begin_renderpass);
 
         main_renderpass.end(current);
         current.end();
@@ -276,30 +262,25 @@ main() {
     // }); (???)
     // this to ensure they are cleaned up in the proper order
     logical_device.wait();
-    main_swapchain.destroy();
+    main_swapchain.destruct();
 
     for (auto& command : swapchain_command_buffers) {
-        command.destroy();
+        command.destruct();
     }
 
     for (auto& fb : swapchain_framebuffers) {
-        fb.destroy();
+        fb.destruct();
     }
 
     for (auto& image : swapchain_images) {
-        image.destroy();
+        image.destruct();
     }
 
-    // for (auto& depth_image : swapchain_depth_images) {
-    //     depth_image.destroy();
-    // }
+    main_renderpass.destruct();
+    presentation_queue.destruct();
 
-    main_renderpass.destroy();
-    presentation_queue.destroy();
-
-    logical_device.destroy();
-    window_surface.destroy();
+    logical_device.destruct();
+    window_surface.destruct();
     glfwDestroyWindow(window);
-    api_instance.destroy();
     return 0;
 }

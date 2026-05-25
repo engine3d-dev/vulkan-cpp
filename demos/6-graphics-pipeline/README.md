@@ -8,11 +8,11 @@ The vulkan tutorial website goes over more in-depth of the responsibility of the
 
 # Process of the Graphics Pipeline
 
-This section will briefly touch on the graphics pipeline and the process behind it.
+In this section will briefly begin to introduce the graphics pipeline using the vulkan-cpp abstraction, `vk::pipeline` class.
 
-This is the following graphics sequence diagram:
+The sequence diagram shows stages for the graphics pipeline:
 
-![NOTE]
+> [!NOTE]
 > Credit to the vulkan web-page that can be seen used in this [link](https://vulkan-tutorial.com/Drawing_a_triangle/Graphics_pipeline_basics/Introduction)
 
 <!-- ![alt text](vulkan_simplified_pipeline.svg) -->
@@ -57,48 +57,43 @@ These normalized device coordinates are `homogeneous coordinates` that map the f
 
 # Graphics Pipeline Concepts
 
-## Programmable Stages
+## How to use `vk::pipeline`?
 
-Diagrams marked green are process in the graphics pipeline you can upload your code to modify its parameters.
+Now, in this section will show you how to setup the graphics pipeline using vulkan-cpp parameters to construct the `vk::pipeline` object.
 
-Which involve:
-* Offload code to the GPU
-* Sending uniform data such as (textures, lighting, ray tracing, etc)
-* Process data on multiple GPU cores simultaneously to process objects in parallel.
+### What are optional parameters to use?
+Noting the geometry and tesselation shader parameters are **optional** to be set if you do not plan to do operations that require you have computations involving the topology of your geometry.
 
-## Optional Stages
+Whereas the **fragment** shaders can be disabled in situations such as shadow-mapping generations.
 
-These are stages that can be entirely optional. Optional because they are not required for a variety of different reasons.
+# Constructing the actual Graphics Pipeline
 
-Stages involved are:
-* `geometry` and `tessellation` can be disabled if you plan to deal with simpler geometry.
-* `fragment shaders` can be disabled, if you need depth values only. Useful for `shadow-mapping` generation.
-
-# Building the Graphics Pipeline
-
-![NOTE]
+> [!NOTE]
 > `vk::pipeline` implementation is still in-progress as I have not exposed the other stages quite yet. That will be worked in exposing soon.
 
-Previously in demo 5. We focused on how to setup the swapchain, command buffers, images, and framebuffers to make sure we can send some data to the screen. Which was changing the background color to a specific color.
+Previously in demo 5 focused in setting up the swapchain, command buffers, images, and framebuffers to ensure we can at least be able to change the background color to a different color.
 
-In this demo, we are going to try and get a triangle drawn to the screen. Which wont focus too much in getting transforms to work, we will focus in specifying the raw vertices to the GPU to draw the triangle.
+To indicate the changes we have made are working with no additional errors from the validation layers.
 
-Since the triangle, we will not be applying any transformations. We will specify the positions of the three vertices directly as normalized device coordinates to create the following shape:
+Goal for this demo, where we setup the graphics pipeline is to finally get us a triangle to render to the screen.
 
 <img width="275" height="215" alt="triangle_coordinates_colors" src="https://github.com/user-attachments/assets/2a80ab09-669d-4298-927e-e8f6e0a545a1" />
 
-# Loading Shaders
+## Loading Shaders using `vk::shader_resource`
 
-In Vulkan before building the graphics pipeline. You need to specify both the source to the shader compiled code and the stage this shader is being compiled as.
+The graphics pipeline handle requires there to be a shader to be loaded with. This will load into the shader module handles using the `vk::shader_resource` abstraction.
 
-Since Vulkan does not have a runtime shader compiler that comes with it, you have to compile your glsl shader to spirv binary format.
+The shader resource class helps with loading in the shaders and associating the stage and loading in N amount of handles with the shaders specified.
 
-In this case, you'd compile `shader_samples/sample1/test.vert` to `shader_samples/sample1/test.vert.spv`. Same needs to happen compiling `sample1/test.frag` to `shader_samples/sample1/test.frag.spv`
+You should be able to copy shaders, `test.vert` and `test.frag` glsl shaders into your project location. For the demos, which are contained in a folder called `shader_samples/sample1/`.
 
-## Vertex Shader
+Here are what each of the shaders contain:
 
-In the next demo, we will actually use a vertex buffer to store these vertices. For now we will type in the raw vertices in the vertex shader. If you
-look at the `shader_samples/sample1/test.vert` shader. As shown below:
+## Vertex Shader (Update)
+
+In the next and incoming demos, we would typically have these vertices handled via vertex attributes. For getting this triangle to render. The next demo will cover vertex buffers that will show how to get vertex attributes working.
+
+For now, the vertices will be hardcoded.
 
 ```glsl
 #version 450
@@ -117,12 +112,9 @@ void main() {
 
 ## Fragment Shader
 
-In the fragment shader is what forms using the position vertices you pass from the vertex shader. Then fills that area onto the screen with fragments.
+The fragment shader is what processes the vertices of your 3D geometry, in this case the triangle for this demo.
 
-The fragment shader is involved in executing on those fragments to produce color and depth for the framebuffer (or framebuffers).
-
-A simple fragment shader outputs color gradient. Adding this into your vertex shader.
-
+Here is what the current fragment shader code looks like:
 ```glsl
 
 #version 450
@@ -147,7 +139,7 @@ void main() {
 }
 ```
 
-In the fragment shader, add the following code:
+In that same fragment shader, add the following code:
 
 ```glsl
 
@@ -170,24 +162,29 @@ Where `layout(location = 0)` modifier specifies index of the framebuffer. The co
 
 ## Compiling Shaders
 
-I have mentioned that previously vulkan does not know what to do with your shader source code and expects only the final binary blob that is after compiling the source code.
 
-To compile the shaders to SPIRV-bytecode, you should already have glsl install and be able to reference similarily to your platform-specific file paths.
+If you have used OpenGL, it would provide API's to automatically compile your shaders to `.spv`, BUT in Vulkan this responsibility will be on you. the developer. Therefore, before you can load in your shaders. You are going to need to compile your shaders to .spv
+
+For context, `.spv` is the binary format of the compiled-down shader code.
 
 ```bash
 glslc.exe shader_samples/sample1/test.vert -o shader_samples/sample1/test.vert.spv
 glslc.exe shader_samples/sample1/test.frag -o shader_samples/sample1/test.frag.spv
 ```
 
-## Finalized Setting up Shaders
+<!-- Now, that you have setup the glsl shaders to specify what data it should expect to render the triangle on the GPU. We will now continue to building the graphics pipeline. -->
 
-Now, that you have setup the glsl shaders to specify what data it should expect to render the triangle on the GPU. We will now continue to building the graphics pipeline.
+## Setting up `vk::shader_source`
 
-## Loading Shader Modules
+<!-- In vulkan-cpp you only need to specify the .spv shader sources and their stages.
 
-In vulkan-cpp you only need to specify the .spv shader sources and their stages.
+Here is how you specify the shader sources: -->
 
-Here is how you specify the shader sources:
+Now, the shaders are compiled to `.spv`. In this section, I am going to show how to load the spirv compiled binaries.
+
+Each `vk::shader_source` contains the location to the individual binaries along with the stage of the shader they are used for.
+
+This is important to distinction to know how these shaders are going to be utilized.
 
 ```C++
 std::array<vk::shader_source, 2> shader_sources = {
@@ -202,13 +199,11 @@ std::array<vk::shader_source, 2> shader_sources = {
 };
 ```
 
-## Creating `vk::shader_resource`
+## Initializing the `vk::shader_resource`
 
-Before you create the shader_resource, you need to specify the `logical device` and the `vk::shader_resource_info`.
+Now, the shader sources are already configured. Now use pass that into `vk::shader_resource_info`.
 
-The shader resource information are parameters required to be specified for the shader resource such as vertex attributes.
-
-Here is how to specify the parameters:
+For this demo, we will now initialize the `vk::shader_resource`. Firstly passing the `shader_info` parameters to the constructor. Followed by passing the logical device as the first parameter.
 
 ```C++
 vk::shader_resource_info shader_info = {
@@ -221,43 +216,96 @@ vk::shader_resource geometry_resource(logical_device, shader_info);
 
 The `vk::shader_resource` does allow you to set the vertex attributes as the following below. Though for the triangle, it will be brought up in the next few demos.
 
+If you have no vertex attributes that needs to be set. Then you can completely ignore invoking this API.
+
+This is what the API looks like. In later demos, we will cover how you may setup the vertex attributes for `vk::shader_resource`.
+
 ```C++
 geoemetry_resource.vertex_attributes(...);
 ```
 
-## Creating the Graphics Pipeline
+## Configuring the Graphics Pipeline
 
-In vulkan-cpp, it is quite simple to create a graphics pipeline. vulkan-cpp was designed to be quite simple in the workflow for specifying work through Vulkan. This includes specifying the graphics pipeline.
+In vulkan-cpp, I tried to consider ways of approaching the design for the graphics pipeline for simplifying steps needed to configure the graphics pipeline.
 
-In the `vk::shader_resource` implementation is supposed to be wrapper for creating the raw `VkShaderModule` handles needed to be specified by the vulkan-cpp graphics pipeline. Specifically `vk::pipeline`.
+Parmaters to configure `vk::pipeline` with:
+* `VkRenderPass`.
+* `span<const VkShaderModule>`
+* `span<const VertexAttributeDescription>`
+* `span<const VertexAttributeBindingDescription>`
 
-Now, that you have created the shader sources and loaded them into the vulkan shader handles. Here is how you setup the graphics pipeline.
+Which are provided to you by the `vk::shader_resource` class.
 
-The `vk::shader_resource` gives you access to the handles created.
+### Parameters for `vk::pipeline`
 
-These are handles returned in that order:
+When configuring the graphics pipeline, there are an extensive amount of parameters. Which are set to default values that can be changed.
 
-* span<const VkShaderModule>
-* span<const VertexAttributeDescription>
-* span<const VertexAttributeBindingDescription>
+These are the list of parameters that need to be set for the graphics pipeline set to default values.
 
 ```C++
-vk::pipeline_settings pipeline_configuration = {
+struct pipeline_params {
+    VkRenderPass renderpass = nullptr;
+    std::span<const shader_handle> shader_modules{};
+    std::span<const VkVertexInputAttributeDescription>
+        vertex_attributes;
+    std::span<const VkVertexInputBindingDescription>
+        vertex_bind_attributes;
+    std::span<VkDescriptorSetLayout> descriptor_layouts;
+
+    input_assembly_state input_assembly;
+    viewport_state viewport;
+    rasterization_state rasterization;
+    multisample_state multisample;
+    color_blend_state color_blend;
+    bool depth_stencil_enabled = false;
+    depth_stencil_state depth_stencil;
+    std::span<dynamic_state> dynamic_states = {};
+};
+```
+
+For this demo, we are only going to be setting the color blend states and the dynamic states.
+
+### Color Blend States
+
+These parameters tell the rasterization (when enabled) how to access any color attachments during rendering operations.
+
+`vk::color_blend_attachment_state` defaults `.blend_enabled` to true. This can be used to enable alpha blending via transparency.
+
+### Dynamic States
+
+Enabling parameters `vk::dynamic_state::viewport` and `vk::dynamic_state::scissor`, this allows the graphics pipeline handles to handle dynamically changing when resizing the window and updating the graphics pipeline handles.
+
+
+```C++
+// Sets up the default color blend attachment state
+std::array<vk::color_blend_attachment_state, 1> color_blend_attachments = {
+    vk::color_blend_attachment_state{},
+};
+
+// Setting up graphics pipeline to having a dynamic state
+// So we are not needing to invalidate and have the driver be responsible for that.
+std::array<vk::dynamic_state, 2> dynamic_states = {
+    vk::dynamic_state::viewport, vk::dynamic_state::scissor
+};
+
+vk::pipeline_params pipeline_params = {
     .renderpass = main_renderpass,
     .shader_modules = geometry_resource.handles(),
     .vertex_attributes = geometry_resource.vertex_attributes(),
-    .vertex_bind_attributes = geometry_resource.vertex_bind_attributes()
+    .vertex_bind_attributes = geometry_resource.vertex_bind_attributes(),
+    .color_blend = {
+        .attachments = color_blend_attachments,
+    },
+    .dynamic_states = dynamic_states,
 };
-vk::pipeline main_graphics_pipeline(logical_device, pipeline_configuration);
+vk::pipeline main_graphics_pipeline(logical_device, pipeline_params);
 ```
 
-# Finally Created the Graphics Pipeline
+# Graphics Pipeline Instantiated
 
-As soon the graphics pipeline as been created using `vk::pipeline`. This demo will introduce a few of the `vk::pipeline` API's.
+Now the graphics pipeline has been initialized and to check you can print out using the `.alive` API to see if the handle was initialized successfully. As it should return true if it initialized successfully.
 
-`vk::pipeline` gives you a `.bind(const VkCommandBuffer&)` API. This just means making a particular resource available to be used by the GPU. This is a common operation done in Computer Graphics.
-
-Here is the additional code to add in the mainloop:
+Now, let us go ahead and start using the `vk::pipeline` API's, which includes calling the bind and draw call API to render our first triangle
 
 ```C++
 
@@ -266,22 +314,29 @@ while (!glfwWindowShouldClose(window)) {
     uint32_t current_frame = presentation_queue.acquire_next_image();
     vk::command_buffer current = swapchain_command_buffers[current_frame];
 
-    // Binding to make resources available and accessible by the GPU
-    // Add
+    // ...
+    // current.begin(...)
+    // main_renderpass.begin(current, ...)
+
+    // NEW: Using graphics pipeline bind API to bind resource to the command buffer
     main_graphics_pipeline.bind(current);
 
-    // Draw call to render to the screen
-    // Add
+    // NEW: Add draw call here
+    // vkCmdDraw(VkCommandBuffer, vertexCount, instanceCount, firstVertex, firstInstance)
     vkCmdDraw(current, 3, 1, 0, 0);
 
-    // ....
+    // main_renderpass.end(current)
+    // current.end();
+    // ...
 }
 
 ```
 
-# Cleanup
+# Post Cleanup
 
-After you have created the graphics pipeline. Do not forget to do the post cleanup after the mainloop call.
+After creating the graphics pipeline, be sure to invoke the `.destroy` API to ensure the handles are destroyed properly.
+
+> [!NOTE] This will be replaced to fully using RAII to automate cleanup for your objects.
 
 ```C++
 
@@ -290,14 +345,16 @@ while (!glfwWindowShouldClose(window)) {
 }
 
 // make sure to destroy child objects of Vulkan before the actual logical device.
-main_graphics_pipeline.destroy();
-geometry_resource.destroy();
+main_graphics_pipeline.destruct();
+geometry_resource.destruct();
 
-logical_device.destroy();
+logical_device.destruct();
 ```
 
 # Final Result
 
-As soon those two lines of code have been added. This is what the final result should look like:
+If you followed this demo tutorial correctly with no given issue.
+
+You should be able to see this triangle get rendered:
 
 <img width="790" height="617" alt="Screenshot 2025-12-06 201645" src="https://github.com/user-attachments/assets/ae89b34c-76d3-436d-8f09-91cb575ed44d" />

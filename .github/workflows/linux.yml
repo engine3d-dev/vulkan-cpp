@@ -1,10 +1,11 @@
-name: Linux Platform Build
+name: Linux
 
-on: [pull_request]
+# workflow_call to have linux.yml be able to be invoked by ci.yml
+on: [workflow_call]
+
 
 jobs:
     linux-build:
-        name: "Linux-Build"
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -47,4 +48,3 @@ jobs:
             
             - name: Creating MinSizeRel build for vulkan-cpp
               run: conan atlas create . -s build_type=MinSizeRel
-

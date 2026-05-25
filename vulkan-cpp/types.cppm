@@ -10,8 +10,10 @@ module;
 
 export module vk:types;
 
+import :feature_extensions;
+
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
         enum format : uint32_t {
             // Core Formats
             undefined = VK_FORMAT_UNDEFINED,
@@ -484,6 +486,12 @@ export namespace vk {
             std::string description;
         };
 
+        struct allocation_params {
+            // uint32_t size=0;
+            uint32_t memory_supported_mask = 0;
+            // uint32_t memory_index=0;
+        };
+
         //! @brief Defines the enum types for a selection of gpu device
         // types to select according to your hardware specs
 
@@ -492,10 +500,14 @@ export namespace vk {
          * types to select according to your hardware specs
          *
          * @param other      - device does not match any other available types
-         * @param integrated - the device is typically embedded in or tightly coupled with the host.
-         * @param discrete   - the device is typically a separate processor connected to the host via an interlink.
-         * @param virtual    - the device is typically a virtual node in a virtualization environment.
-         * @param type_cpu   - the device is typically running on the same processor as the host
+         * @param integrated - the device is typically embedded in or tightly
+         * coupled with the host.
+         * @param discrete   - the device is typically a separate processor
+         * connected to the host via an interlink.
+         * @param virtual    - the device is typically a virtual node in a
+         * virtualization environment.
+         * @param type_cpu   - the device is typically running on the same
+         * processor as the host
          */
         enum class physical_gpu : uint8_t {
             other = VK_PHYSICAL_DEVICE_TYPE_OTHER,
@@ -518,6 +530,7 @@ export namespace vk {
         struct surface_params {
             VkSurfaceCapabilitiesKHR capabilities;
             VkSurfaceFormatKHR format;
+            uint32_t image_size = 0; // requested surface image size
         };
 
         struct queue_params {
@@ -532,47 +545,13 @@ export namespace vk {
         };
 
         struct device_params {
+            void* features{};
             std::span<float> queue_priorities{};
             std::span<const char*>
               extensions{}; // Can add VK_KHR_SWAPCHAIN_EXTENSION_NAME to this
                             // extension
             uint32_t queue_family_index = 0;
         };
-
-        // raw image handlers
-        // struct image {
-        //     VkImage image = nullptr;
-        //     VkImageView view = nullptr;
-        // };
-
-        // sampler + raw image handlers
-        // struct sampled_image {
-        //     VkImage image = nullptr;
-        //     VkImageView view = nullptr;
-        //     VkSampler sampler = nullptr;
-        //     VkDeviceMemory device_memory = nullptr;
-        // };
-
-        //! @brief enumeration if an image is provided
-        // struct swapchain_image_enumeration {
-        //     VkImage image = nullptr;
-        //     VkFormat format;
-        //     // VkImageAspectFlags aspect;
-        //     image_aspect_flags aspect;
-        //     uint32_t layer_count = 0;
-        //     uint32_t mip_levels = 1;
-        // };
-
-        // Image enumeration for creating a brand new VkImage/VkImageView
-        // handlers struct image_enumeration {
-        //     uint32_t width = -1;
-        //     uint32_t height = -1;
-        //     VkFormat format;
-        //     // VkImageAspectFlags aspect;
-        //     image_aspect_flags aspect;
-        //     uint32_t layer_count = 1;
-        //     uint32_t mip_levels = 1;
-        // };
 
         /**
          * @param renderpass vulkan requires framebuffers to know renderpasses
@@ -658,8 +637,10 @@ export namespace vk {
             mailbox_khr = VK_PRESENT_MODE_MAILBOX_KHR,
             fifo_khr = VK_PRESENT_MODE_FIFO_KHR,
             fifo_relaxed_khr = VK_PRESENT_MODE_FIFO_RELAXED_KHR,
-            shared_demand_refresh_khr = VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR,
-            shared_continuous_refresh_khr = VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR
+            shared_demand_refresh_khr =
+              VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR,
+            shared_continuous_refresh_khr =
+              VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR
         };
 
         struct swapchain_params {
@@ -741,6 +722,25 @@ export namespace vk {
             shader_read_only_optimal = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
         };
 
+        enum class resolved_mode_flags : uint32_t {
+            none = VK_RESOLVE_MODE_NONE,
+            sample_zero_bit = VK_RESOLVE_MODE_SAMPLE_ZERO_BIT,
+            average_bit = VK_RESOLVE_MODE_AVERAGE_BIT,
+            min_bit = VK_RESOLVE_MODE_MIN_BIT,
+            max_bit = VK_RESOLVE_MODE_MAX_BIT,
+            // external_format_downsample_bit =
+            //   VK_RESOLVE_MODE_EXTERNAL_FORMAT_DOWNSAMPLE_BIT_ANDROID,
+            // custom_bit = VK_RESOLVE_MODE_CUSTOM_BIT_EXT,
+            none_khr = VK_RESOLVE_MODE_NONE_KHR,
+            sample_zero_bit_khr = VK_RESOLVE_MODE_SAMPLE_ZERO_BIT_KHR,
+            average_bit_khr = VK_RESOLVE_MODE_AVERAGE_BIT_KHR,
+            min_bit_khr = VK_RESOLVE_MODE_MIN_BIT_KHR,
+            max_bit_khr = VK_RESOLVE_MODE_MAX_BIT_KHR,
+
+            external_format_downsample_android =
+              VK_RESOLVE_MODE_EXTERNAL_FORMAT_DOWNSAMPLE_ANDROID
+        };
+
         enum primitive_topology : uint8_t {
             point_light = VK_PRIMITIVE_TOPOLOGY_POINT_LIST,
             line_light = VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
@@ -748,10 +748,14 @@ export namespace vk {
             triangle_list = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
             triangle_strip = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,
             triangle_fan = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN,
-            line_list_with_adjacent = VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY,
-            line_strip_with_adjacent = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY,
-            triangle_list_with_adjacent = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY,
-            triangle_strip_with_adjacent = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY,
+            line_list_with_adjacent =
+              VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY,
+            line_strip_with_adjacent =
+              VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY,
+            triangle_list_with_adjacent =
+              VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY,
+            triangle_strip_with_adjacent =
+              VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY,
             patch_list = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST
         };
 
@@ -775,10 +779,10 @@ export namespace vk {
         };
 
         enum class blend_factor : uint8_t {
-            zero=VK_BLEND_FACTOR_ZERO,
-            one=VK_BLEND_FACTOR_ONE,
-            src_color=VK_BLEND_FACTOR_SRC_COLOR,
-            one_minus_src_color=VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR,
+            zero = VK_BLEND_FACTOR_ZERO,
+            one = VK_BLEND_FACTOR_ONE,
+            src_color = VK_BLEND_FACTOR_SRC_COLOR,
+            one_minus_src_color = VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR,
             dst_color = VK_BLEND_FACTOR_DST_COLOR,
             one_minus_dst_color = VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR,
             src_alpha = VK_BLEND_FACTOR_SRC_ALPHA,
@@ -805,84 +809,98 @@ export namespace vk {
             index_buffer_bit = VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
             vertex_buffer_bit = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
             indirect_buffer_bit = VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT,
-            shader_device_address_bit = VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+            shader_device_address_bit =
+              VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
             video_decode_src_bit_khr = VK_BUFFER_USAGE_VIDEO_DECODE_SRC_BIT_KHR,
             video_decode_dst_bit_khr = VK_BUFFER_USAGE_VIDEO_DECODE_DST_BIT_KHR,
-            transform_feedback_buffer_bit_ext = VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT,
-            transform_feedback_counter_buffer_bit_ext = VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT,
-            conditoinal_rendering_bit_ext = VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT,
-            #ifdef VK_ENABLE_BETA_EXTENSIONS
-            execution_graph_scratch_bit_amdx = VK_BUFFER_USAGE_EXECUTION_GRAPH_SCRATCH_BIT_AMDX,
-            #endif
-            acceleration_structure_build_input_read_only_bit_khr = VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR,
-            acceleration_structure_storage_bit_khr = VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR,
-            shader_binding_table_bit_khr = VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR,
+            transform_feedback_buffer_bit_ext =
+              VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT,
+            transform_feedback_counter_buffer_bit_ext =
+              VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT,
+            conditoinal_rendering_bit_ext =
+              VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT,
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+            execution_graph_scratch_bit_amdx =
+              VK_BUFFER_USAGE_EXECUTION_GRAPH_SCRATCH_BIT_AMDX,
+#endif
+            acceleration_structure_build_input_read_only_bit_khr =
+              VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR,
+            acceleration_structure_storage_bit_khr =
+              VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR,
+            shader_binding_table_bit_khr =
+              VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR,
             video_encode_dst_bit_khr = VK_BUFFER_USAGE_VIDEO_ENCODE_DST_BIT_KHR,
             encode_src_bit_khr = VK_BUFFER_USAGE_VIDEO_ENCODE_SRC_BIT_KHR,
-            sampler_descriptor_buffer_bit_ext = VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT,
-            descriptor_buffer_bit_ext = VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT,
-            descriptors_descriptor_buffer_bit_ext = VK_BUFFER_USAGE_PUSH_DESCRIPTORS_DESCRIPTOR_BUFFER_BIT_EXT,
-            micromap_build_input_read_only_bit_ext = VK_BUFFER_USAGE_MICROMAP_BUILD_INPUT_READ_ONLY_BIT_EXT,
+            sampler_descriptor_buffer_bit_ext =
+              VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT,
+            descriptor_buffer_bit_ext =
+              VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT,
+            descriptors_descriptor_buffer_bit_ext =
+              VK_BUFFER_USAGE_PUSH_DESCRIPTORS_DESCRIPTOR_BUFFER_BIT_EXT,
+            micromap_build_input_read_only_bit_ext =
+              VK_BUFFER_USAGE_MICROMAP_BUILD_INPUT_READ_ONLY_BIT_EXT,
             micromap_storage_bit_ext = VK_BUFFER_USAGE_MICROMAP_STORAGE_BIT_EXT,
             // tile_memory_bit_qcom = VK_BUFFER_USAGE_TILE_MEMORY_BIT_QCOM,
             ray_tracing_bit_nv = VK_BUFFER_USAGE_RAY_TRACING_BIT_NV,
-            shader_device_address_bit_ext = VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_EXT,
-            shader_device_address_bit_khr = VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_KHR,
+            shader_device_address_bit_ext =
+              VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_EXT,
+            shader_device_address_bit_khr =
+              VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_KHR,
             flags_bit_max_enum = VK_BUFFER_USAGE_FLAG_BITS_MAX_ENUM
         };
 
         enum class blend_op : uint32_t {
-            add                    = VK_BLEND_OP_ADD,
-            subtract               = VK_BLEND_OP_SUBTRACT,
-            reverse_subtract       = VK_BLEND_OP_REVERSE_SUBTRACT,
-            min                    = VK_BLEND_OP_MIN,
-            max                    = VK_BLEND_OP_MAX,
-            zero_ext               = VK_BLEND_OP_ZERO_EXT,
-            src_ext                = VK_BLEND_OP_SRC_EXT,
-            dst_ext                = VK_BLEND_OP_DST_EXT,
-            src_over_ext           = VK_BLEND_OP_SRC_OVER_EXT,
-            dst_over_ext           = VK_BLEND_OP_DST_OVER_EXT,
-            src_in_ext             = VK_BLEND_OP_SRC_IN_EXT,
-            dst_in_ext             = VK_BLEND_OP_DST_IN_EXT,
-            src_out_ext            = VK_BLEND_OP_SRC_OUT_EXT,
-            dst_out_ext            = VK_BLEND_OP_DST_OUT_EXT,
-            src_atop_ext           = VK_BLEND_OP_SRC_ATOP_EXT,
-            dst_atop_ext           = VK_BLEND_OP_DST_ATOP_EXT,
-            xor_ext                = VK_BLEND_OP_XOR_EXT,
-            multiply_ext           = VK_BLEND_OP_MULTIPLY_EXT,
-            screen_ext             = VK_BLEND_OP_SCREEN_EXT,
-            overlay_ext            = VK_BLEND_OP_OVERLAY_EXT,
-            darken_ext             = VK_BLEND_OP_DARKEN_EXT,
-            lighten_ext            = VK_BLEND_OP_LIGHTEN_EXT,
-            colordodge_ext         = VK_BLEND_OP_COLORDODGE_EXT,
-            colorburn_ext          = VK_BLEND_OP_COLORBURN_EXT,
-            hardlight_ext          = VK_BLEND_OP_HARDLIGHT_EXT,
-            softlight_ext          = VK_BLEND_OP_SOFTLIGHT_EXT,
-            difference_ext         = VK_BLEND_OP_DIFFERENCE_EXT,
-            exclusion_ext          = VK_BLEND_OP_EXCLUSION_EXT,
-            invert_ext             = VK_BLEND_OP_INVERT_EXT,
-            invert_rgb_ext         = VK_BLEND_OP_INVERT_RGB_EXT,
-            lineardodge_ext        = VK_BLEND_OP_LINEARDODGE_EXT,
-            linearburn_ext         = VK_BLEND_OP_LINEARBURN_EXT,
-            vividlight_ext         = VK_BLEND_OP_VIVIDLIGHT_EXT,
-            linearlight_ext        = VK_BLEND_OP_LINEARLIGHT_EXT,
-            pinlight_ext           = VK_BLEND_OP_PINLIGHT_EXT,
-            hardmix_ext            = VK_BLEND_OP_HARDMIX_EXT,
-            hsl_hue_ext            = VK_BLEND_OP_HSL_HUE_EXT,
-            hsl_saturation_ext     = VK_BLEND_OP_HSL_SATURATION_EXT,
-            hsl_color_ext          = VK_BLEND_OP_HSL_COLOR_EXT,
-            hsl_luminosity_ext     = VK_BLEND_OP_HSL_LUMINOSITY_EXT,
-            plus_ext               = VK_BLEND_OP_PLUS_EXT,
-            plus_clamped_ext       = VK_BLEND_OP_PLUS_CLAMPED_EXT,
+            add = VK_BLEND_OP_ADD,
+            subtract = VK_BLEND_OP_SUBTRACT,
+            reverse_subtract = VK_BLEND_OP_REVERSE_SUBTRACT,
+            min = VK_BLEND_OP_MIN,
+            max = VK_BLEND_OP_MAX,
+            zero_ext = VK_BLEND_OP_ZERO_EXT,
+            src_ext = VK_BLEND_OP_SRC_EXT,
+            dst_ext = VK_BLEND_OP_DST_EXT,
+            src_over_ext = VK_BLEND_OP_SRC_OVER_EXT,
+            dst_over_ext = VK_BLEND_OP_DST_OVER_EXT,
+            src_in_ext = VK_BLEND_OP_SRC_IN_EXT,
+            dst_in_ext = VK_BLEND_OP_DST_IN_EXT,
+            src_out_ext = VK_BLEND_OP_SRC_OUT_EXT,
+            dst_out_ext = VK_BLEND_OP_DST_OUT_EXT,
+            src_atop_ext = VK_BLEND_OP_SRC_ATOP_EXT,
+            dst_atop_ext = VK_BLEND_OP_DST_ATOP_EXT,
+            xor_ext = VK_BLEND_OP_XOR_EXT,
+            multiply_ext = VK_BLEND_OP_MULTIPLY_EXT,
+            screen_ext = VK_BLEND_OP_SCREEN_EXT,
+            overlay_ext = VK_BLEND_OP_OVERLAY_EXT,
+            darken_ext = VK_BLEND_OP_DARKEN_EXT,
+            lighten_ext = VK_BLEND_OP_LIGHTEN_EXT,
+            colordodge_ext = VK_BLEND_OP_COLORDODGE_EXT,
+            colorburn_ext = VK_BLEND_OP_COLORBURN_EXT,
+            hardlight_ext = VK_BLEND_OP_HARDLIGHT_EXT,
+            softlight_ext = VK_BLEND_OP_SOFTLIGHT_EXT,
+            difference_ext = VK_BLEND_OP_DIFFERENCE_EXT,
+            exclusion_ext = VK_BLEND_OP_EXCLUSION_EXT,
+            invert_ext = VK_BLEND_OP_INVERT_EXT,
+            invert_rgb_ext = VK_BLEND_OP_INVERT_RGB_EXT,
+            lineardodge_ext = VK_BLEND_OP_LINEARDODGE_EXT,
+            linearburn_ext = VK_BLEND_OP_LINEARBURN_EXT,
+            vividlight_ext = VK_BLEND_OP_VIVIDLIGHT_EXT,
+            linearlight_ext = VK_BLEND_OP_LINEARLIGHT_EXT,
+            pinlight_ext = VK_BLEND_OP_PINLIGHT_EXT,
+            hardmix_ext = VK_BLEND_OP_HARDMIX_EXT,
+            hsl_hue_ext = VK_BLEND_OP_HSL_HUE_EXT,
+            hsl_saturation_ext = VK_BLEND_OP_HSL_SATURATION_EXT,
+            hsl_color_ext = VK_BLEND_OP_HSL_COLOR_EXT,
+            hsl_luminosity_ext = VK_BLEND_OP_HSL_LUMINOSITY_EXT,
+            plus_ext = VK_BLEND_OP_PLUS_EXT,
+            plus_clamped_ext = VK_BLEND_OP_PLUS_CLAMPED_EXT,
             plus_clamped_alpha_ext = VK_BLEND_OP_PLUS_CLAMPED_ALPHA_EXT,
-            plus_darker_ext        = VK_BLEND_OP_PLUS_DARKER_EXT,
-            minus_ext              = VK_BLEND_OP_MINUS_EXT,
-            minus_clamped_ext      = VK_BLEND_OP_MINUS_CLAMPED_EXT,
-            contrast_ext           = VK_BLEND_OP_CONTRAST_EXT,
-            invert_ovg_ext         = VK_BLEND_OP_INVERT_OVG_EXT,
-            red_ext                = VK_BLEND_OP_RED_EXT,
-            green_ext              = VK_BLEND_OP_GREEN_EXT,
-            blue_ext               = VK_BLEND_OP_BLUE_EXT
+            plus_darker_ext = VK_BLEND_OP_PLUS_DARKER_EXT,
+            minus_ext = VK_BLEND_OP_MINUS_EXT,
+            minus_clamped_ext = VK_BLEND_OP_MINUS_CLAMPED_EXT,
+            contrast_ext = VK_BLEND_OP_CONTRAST_EXT,
+            invert_ovg_ext = VK_BLEND_OP_INVERT_OVG_EXT,
+            red_ext = VK_BLEND_OP_RED_EXT,
+            green_ext = VK_BLEND_OP_GREEN_EXT,
+            blue_ext = VK_BLEND_OP_BLUE_EXT
         };
 
         // VkColorComponentFlags
@@ -894,112 +912,145 @@ export namespace vk {
         };
 
         enum class logical_op : uint8_t {
-            clear           = VK_LOGIC_OP_CLEAR,
-            bit_and         = VK_LOGIC_OP_AND,
-            and_reverse     = VK_LOGIC_OP_AND_REVERSE,
-            copy            = VK_LOGIC_OP_COPY,
-            and_inverted    = VK_LOGIC_OP_AND_INVERTED,
-            no_op           = VK_LOGIC_OP_NO_OP,
-            bit_xor         = VK_LOGIC_OP_XOR,
-            bit_or          = VK_LOGIC_OP_OR,
-            nor             = VK_LOGIC_OP_NOR,
-            equivalent      = VK_LOGIC_OP_EQUIVALENT,
-            invert          = VK_LOGIC_OP_INVERT,
-            or_reverse      = VK_LOGIC_OP_OR_REVERSE,
-            copy_inverted   = VK_LOGIC_OP_COPY_INVERTED,
-            or_inverted     = VK_LOGIC_OP_OR_INVERTED,
-            nand            = VK_LOGIC_OP_NAND,
-            set             = VK_LOGIC_OP_SET
+            clear = VK_LOGIC_OP_CLEAR,
+            bit_and = VK_LOGIC_OP_AND,
+            and_reverse = VK_LOGIC_OP_AND_REVERSE,
+            copy = VK_LOGIC_OP_COPY,
+            and_inverted = VK_LOGIC_OP_AND_INVERTED,
+            no_op = VK_LOGIC_OP_NO_OP,
+            bit_xor = VK_LOGIC_OP_XOR,
+            bit_or = VK_LOGIC_OP_OR,
+            nor = VK_LOGIC_OP_NOR,
+            equivalent = VK_LOGIC_OP_EQUIVALENT,
+            invert = VK_LOGIC_OP_INVERT,
+            or_reverse = VK_LOGIC_OP_OR_REVERSE,
+            copy_inverted = VK_LOGIC_OP_COPY_INVERTED,
+            or_inverted = VK_LOGIC_OP_OR_INVERTED,
+            nand = VK_LOGIC_OP_NAND,
+            set = VK_LOGIC_OP_SET
         };
 
         enum class compare_op : uint8_t {
-            never            = VK_COMPARE_OP_NEVER,
-            less             = VK_COMPARE_OP_LESS,
-            equal            = VK_COMPARE_OP_EQUAL,
-            less_or_equal    = VK_COMPARE_OP_LESS_OR_EQUAL,
-            greater          = VK_COMPARE_OP_GREATER,
-            not_equal        = VK_COMPARE_OP_NOT_EQUAL,
+            never = VK_COMPARE_OP_NEVER,
+            less = VK_COMPARE_OP_LESS,
+            equal = VK_COMPARE_OP_EQUAL,
+            less_or_equal = VK_COMPARE_OP_LESS_OR_EQUAL,
+            greater = VK_COMPARE_OP_GREATER,
+            not_equal = VK_COMPARE_OP_NOT_EQUAL,
             greater_or_equal = VK_COMPARE_OP_GREATER_OR_EQUAL,
-            always           = VK_COMPARE_OP_ALWAYS
+            always = VK_COMPARE_OP_ALWAYS
         };
 
-        // VkDynamicState 
+        // VkDynamicState
         enum class dynamic_state : uint32_t {
-            viewport                         = VK_DYNAMIC_STATE_VIEWPORT,
-            scissor                          = VK_DYNAMIC_STATE_SCISSOR,
-            line_width                       = VK_DYNAMIC_STATE_LINE_WIDTH,
-            depth_bias                       = VK_DYNAMIC_STATE_DEPTH_BIAS,
-            blend_constants                  = VK_DYNAMIC_STATE_BLEND_CONSTANTS,
-            depth_bounds                     = VK_DYNAMIC_STATE_DEPTH_BOUNDS,
-            stencil_compare_mask             = VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK,
-            stencil_write_mask               = VK_DYNAMIC_STATE_STENCIL_WRITE_MASK,
-            stencil_reference                = VK_DYNAMIC_STATE_STENCIL_REFERENCE,
-            cull_mode                        = VK_DYNAMIC_STATE_CULL_MODE,
-            front_face                       = VK_DYNAMIC_STATE_FRONT_FACE,
-            primitive_topology               = VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY,
-            viewport_with_count              = VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT,
-            scissor_with_count               = VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT,
-            vertex_input_binding_stride      = VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE,
-            depth_test_enable                = VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE,
-            depth_write_enable               = VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE,
-            depth_compare_op                 = VK_DYNAMIC_STATE_DEPTH_COMPARE_OP,
-            depth_bounds_test_enable         = VK_DYNAMIC_STATE_DEPTH_BOUNDS_TEST_ENABLE,
-            stencil_test_enable              = VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE,
-            stencil_op                       = VK_DYNAMIC_STATE_STENCIL_OP,
-            rasterizer_discard_enable        = VK_DYNAMIC_STATE_RASTERIZER_DISCARD_ENABLE,
-            depth_bias_enable                = VK_DYNAMIC_STATE_DEPTH_BIAS_ENABLE,
-            primitive_restart_enable         = VK_DYNAMIC_STATE_PRIMITIVE_RESTART_ENABLE,
-            line_stipple                     = VK_DYNAMIC_STATE_LINE_STIPPLE,
-            patch_control_points_ext         = VK_DYNAMIC_STATE_PATCH_CONTROL_POINTS_EXT,
-            logic_op_ext                     = VK_DYNAMIC_STATE_LOGIC_OP_EXT,
-            color_write_enable_ext           = VK_DYNAMIC_STATE_COLOR_WRITE_ENABLE_EXT,
-            depth_clamp_enable_ext           = VK_DYNAMIC_STATE_DEPTH_CLAMP_ENABLE_EXT,
-            polygon_mode_ext                 = VK_DYNAMIC_STATE_POLYGON_MODE_EXT,
-            rasterization_samples_ext        = VK_DYNAMIC_STATE_RASTERIZATION_SAMPLES_EXT,
-            sample_mask_ext                  = VK_DYNAMIC_STATE_SAMPLE_MASK_EXT,
-            alpha_to_coverage_enable_ext     = VK_DYNAMIC_STATE_ALPHA_TO_COVERAGE_ENABLE_EXT,
-            alpha_to_one_enable_ext          = VK_DYNAMIC_STATE_ALPHA_TO_ONE_ENABLE_EXT,
-            logic_op_enable_ext              = VK_DYNAMIC_STATE_LOGIC_OP_ENABLE_EXT,
-            color_blend_enable_ext           = VK_DYNAMIC_STATE_COLOR_BLEND_ENABLE_EXT,
-            color_blend_equation_ext         = VK_DYNAMIC_STATE_COLOR_BLEND_EQUATION_EXT,
-            color_write_mask_ext             = VK_DYNAMIC_STATE_COLOR_WRITE_MASK_EXT,
-            tessellation_domain_origin_ext   = VK_DYNAMIC_STATE_TESSELLATION_DOMAIN_ORIGIN_EXT,
-            rasterization_stream_ext         = VK_DYNAMIC_STATE_RASTERIZATION_STREAM_EXT,
-            conservative_raster_mode_ext     = VK_DYNAMIC_STATE_CONSERVATIVE_RASTERIZATION_MODE_EXT,
-            extra_primitive_overestim_ext    = VK_DYNAMIC_STATE_EXTRA_PRIMITIVE_OVERESTIMATION_SIZE_EXT,
-            depth_clip_enable_ext            = VK_DYNAMIC_STATE_DEPTH_CLIP_ENABLE_EXT,
-            sample_locations_enable_ext      = VK_DYNAMIC_STATE_SAMPLE_LOCATIONS_ENABLE_EXT,
-            color_blend_advanced_ext         = VK_DYNAMIC_STATE_COLOR_BLEND_ADVANCED_EXT,
-            provoking_vertex_mode_ext        = VK_DYNAMIC_STATE_PROVOKING_VERTEX_MODE_EXT,
-            line_rasterization_mode_ext      = VK_DYNAMIC_STATE_LINE_RASTERIZATION_MODE_EXT,
-            line_stipple_enable_ext          = VK_DYNAMIC_STATE_LINE_STIPPLE_ENABLE_EXT,
-            depth_clip_negative_one_ext      = VK_DYNAMIC_STATE_DEPTH_CLIP_NEGATIVE_ONE_TO_ONE_EXT,
-            viewport_w_scaling_nv            = VK_DYNAMIC_STATE_VIEWPORT_W_SCALING_NV,
-            discard_rectangle_ext            = VK_DYNAMIC_STATE_DISCARD_RECTANGLE_EXT,
-            discard_rectangle_enable_ext     = VK_DYNAMIC_STATE_DISCARD_RECTANGLE_ENABLE_EXT,
-            discard_rectangle_mode_ext       = VK_DYNAMIC_STATE_DISCARD_RECTANGLE_MODE_EXT,
-            sample_locations_ext             = VK_DYNAMIC_STATE_SAMPLE_LOCATIONS_EXT,
-            ray_tracing_stack_size_khr       = VK_DYNAMIC_STATE_RAY_TRACING_PIPELINE_STACK_SIZE_KHR,
-            shading_rate_palette_nv          = VK_DYNAMIC_STATE_VIEWPORT_SHADING_RATE_PALETTE_NV,
-            coarse_sample_order_nv           = VK_DYNAMIC_STATE_VIEWPORT_COARSE_SAMPLE_ORDER_NV,
-            exclusive_scissor_enable_nv      = VK_DYNAMIC_STATE_EXCLUSIVE_SCISSOR_ENABLE_NV,
-            exclusive_scissor_nv             = VK_DYNAMIC_STATE_EXCLUSIVE_SCISSOR_NV,
-            fragment_shading_rate_khr        = VK_DYNAMIC_STATE_FRAGMENT_SHADING_RATE_KHR,
-            vertex_input_ext                 = VK_DYNAMIC_STATE_VERTEX_INPUT_EXT,
-            viewport_swizzle_nv              = VK_DYNAMIC_STATE_VIEWPORT_SWIZZLE_NV,
-            coverage_to_color_enable_nv      = VK_DYNAMIC_STATE_COVERAGE_TO_COLOR_ENABLE_NV,
-            coverage_to_color_location_nv    = VK_DYNAMIC_STATE_COVERAGE_TO_COLOR_LOCATION_NV,
-            coverage_modulation_mode_nv      = VK_DYNAMIC_STATE_COVERAGE_MODULATION_MODE_NV,
-            coverage_modulation_table_en_nv  = VK_DYNAMIC_STATE_COVERAGE_MODULATION_TABLE_ENABLE_NV,
-            coverage_modulation_table_nv     = VK_DYNAMIC_STATE_COVERAGE_MODULATION_TABLE_NV,
-            shading_rate_image_enable_nv     = VK_DYNAMIC_STATE_SHADING_RATE_IMAGE_ENABLE_NV,
-            representative_frag_test_nv      = VK_DYNAMIC_STATE_REPRESENTATIVE_FRAGMENT_TEST_ENABLE_NV,
-            coverage_reduction_mode_nv       = VK_DYNAMIC_STATE_COVERAGE_REDUCTION_MODE_NV,
-            attachment_feedback_loop_ext     = VK_DYNAMIC_STATE_ATTACHMENT_FEEDBACK_LOOP_ENABLE_EXT,
-            depth_clamp_range_ext            = VK_DYNAMIC_STATE_DEPTH_CLAMP_RANGE_EXT
+            viewport = VK_DYNAMIC_STATE_VIEWPORT,
+            scissor = VK_DYNAMIC_STATE_SCISSOR,
+            line_width = VK_DYNAMIC_STATE_LINE_WIDTH,
+            depth_bias = VK_DYNAMIC_STATE_DEPTH_BIAS,
+            blend_constants = VK_DYNAMIC_STATE_BLEND_CONSTANTS,
+            depth_bounds = VK_DYNAMIC_STATE_DEPTH_BOUNDS,
+            stencil_compare_mask = VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK,
+            stencil_write_mask = VK_DYNAMIC_STATE_STENCIL_WRITE_MASK,
+            stencil_reference = VK_DYNAMIC_STATE_STENCIL_REFERENCE,
+            cull_mode = VK_DYNAMIC_STATE_CULL_MODE,
+            front_face = VK_DYNAMIC_STATE_FRONT_FACE,
+            primitive_topology = VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY,
+            viewport_with_count = VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT,
+            scissor_with_count = VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT,
+            vertex_input_binding_stride =
+              VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE,
+            depth_test_enable = VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE,
+            depth_write_enable = VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE,
+            depth_compare_op = VK_DYNAMIC_STATE_DEPTH_COMPARE_OP,
+            depth_bounds_test_enable =
+              VK_DYNAMIC_STATE_DEPTH_BOUNDS_TEST_ENABLE,
+            stencil_test_enable = VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE,
+            stencil_op = VK_DYNAMIC_STATE_STENCIL_OP,
+            rasterizer_discard_enable =
+              VK_DYNAMIC_STATE_RASTERIZER_DISCARD_ENABLE,
+            depth_bias_enable = VK_DYNAMIC_STATE_DEPTH_BIAS_ENABLE,
+            primitive_restart_enable =
+              VK_DYNAMIC_STATE_PRIMITIVE_RESTART_ENABLE,
+            line_stipple = VK_DYNAMIC_STATE_LINE_STIPPLE,
+            patch_control_points_ext =
+              VK_DYNAMIC_STATE_PATCH_CONTROL_POINTS_EXT,
+            logic_op_ext = VK_DYNAMIC_STATE_LOGIC_OP_EXT,
+            color_write_enable_ext = VK_DYNAMIC_STATE_COLOR_WRITE_ENABLE_EXT,
+            depth_clamp_enable_ext = VK_DYNAMIC_STATE_DEPTH_CLAMP_ENABLE_EXT,
+            polygon_mode_ext = VK_DYNAMIC_STATE_POLYGON_MODE_EXT,
+            rasterization_samples_ext =
+              VK_DYNAMIC_STATE_RASTERIZATION_SAMPLES_EXT,
+            sample_mask_ext = VK_DYNAMIC_STATE_SAMPLE_MASK_EXT,
+            alpha_to_coverage_enable_ext =
+              VK_DYNAMIC_STATE_ALPHA_TO_COVERAGE_ENABLE_EXT,
+            alpha_to_one_enable_ext = VK_DYNAMIC_STATE_ALPHA_TO_ONE_ENABLE_EXT,
+            logic_op_enable_ext = VK_DYNAMIC_STATE_LOGIC_OP_ENABLE_EXT,
+            color_blend_enable_ext = VK_DYNAMIC_STATE_COLOR_BLEND_ENABLE_EXT,
+            color_blend_equation_ext =
+              VK_DYNAMIC_STATE_COLOR_BLEND_EQUATION_EXT,
+            color_write_mask_ext = VK_DYNAMIC_STATE_COLOR_WRITE_MASK_EXT,
+            tessellation_domain_origin_ext =
+              VK_DYNAMIC_STATE_TESSELLATION_DOMAIN_ORIGIN_EXT,
+            rasterization_stream_ext =
+              VK_DYNAMIC_STATE_RASTERIZATION_STREAM_EXT,
+            conservative_raster_mode_ext =
+              VK_DYNAMIC_STATE_CONSERVATIVE_RASTERIZATION_MODE_EXT,
+            extra_primitive_overestim_ext =
+              VK_DYNAMIC_STATE_EXTRA_PRIMITIVE_OVERESTIMATION_SIZE_EXT,
+            depth_clip_enable_ext = VK_DYNAMIC_STATE_DEPTH_CLIP_ENABLE_EXT,
+            sample_locations_enable_ext =
+              VK_DYNAMIC_STATE_SAMPLE_LOCATIONS_ENABLE_EXT,
+            color_blend_advanced_ext =
+              VK_DYNAMIC_STATE_COLOR_BLEND_ADVANCED_EXT,
+            provoking_vertex_mode_ext =
+              VK_DYNAMIC_STATE_PROVOKING_VERTEX_MODE_EXT,
+            line_rasterization_mode_ext =
+              VK_DYNAMIC_STATE_LINE_RASTERIZATION_MODE_EXT,
+            line_stipple_enable_ext = VK_DYNAMIC_STATE_LINE_STIPPLE_ENABLE_EXT,
+            depth_clip_negative_one_ext =
+              VK_DYNAMIC_STATE_DEPTH_CLIP_NEGATIVE_ONE_TO_ONE_EXT,
+            viewport_w_scaling_nv = VK_DYNAMIC_STATE_VIEWPORT_W_SCALING_NV,
+            discard_rectangle_ext = VK_DYNAMIC_STATE_DISCARD_RECTANGLE_EXT,
+            discard_rectangle_enable_ext =
+              VK_DYNAMIC_STATE_DISCARD_RECTANGLE_ENABLE_EXT,
+            discard_rectangle_mode_ext =
+              VK_DYNAMIC_STATE_DISCARD_RECTANGLE_MODE_EXT,
+            sample_locations_ext = VK_DYNAMIC_STATE_SAMPLE_LOCATIONS_EXT,
+            ray_tracing_stack_size_khr =
+              VK_DYNAMIC_STATE_RAY_TRACING_PIPELINE_STACK_SIZE_KHR,
+            shading_rate_palette_nv =
+              VK_DYNAMIC_STATE_VIEWPORT_SHADING_RATE_PALETTE_NV,
+            coarse_sample_order_nv =
+              VK_DYNAMIC_STATE_VIEWPORT_COARSE_SAMPLE_ORDER_NV,
+            exclusive_scissor_enable_nv =
+              VK_DYNAMIC_STATE_EXCLUSIVE_SCISSOR_ENABLE_NV,
+            exclusive_scissor_nv = VK_DYNAMIC_STATE_EXCLUSIVE_SCISSOR_NV,
+            fragment_shading_rate_khr =
+              VK_DYNAMIC_STATE_FRAGMENT_SHADING_RATE_KHR,
+            vertex_input_ext = VK_DYNAMIC_STATE_VERTEX_INPUT_EXT,
+            viewport_swizzle_nv = VK_DYNAMIC_STATE_VIEWPORT_SWIZZLE_NV,
+            coverage_to_color_enable_nv =
+              VK_DYNAMIC_STATE_COVERAGE_TO_COLOR_ENABLE_NV,
+            coverage_to_color_location_nv =
+              VK_DYNAMIC_STATE_COVERAGE_TO_COLOR_LOCATION_NV,
+            coverage_modulation_mode_nv =
+              VK_DYNAMIC_STATE_COVERAGE_MODULATION_MODE_NV,
+            coverage_modulation_table_en_nv =
+              VK_DYNAMIC_STATE_COVERAGE_MODULATION_TABLE_ENABLE_NV,
+            coverage_modulation_table_nv =
+              VK_DYNAMIC_STATE_COVERAGE_MODULATION_TABLE_NV,
+            shading_rate_image_enable_nv =
+              VK_DYNAMIC_STATE_SHADING_RATE_IMAGE_ENABLE_NV,
+            representative_frag_test_nv =
+              VK_DYNAMIC_STATE_REPRESENTATIVE_FRAGMENT_TEST_ENABLE_NV,
+            coverage_reduction_mode_nv =
+              VK_DYNAMIC_STATE_COVERAGE_REDUCTION_MODE_NV,
+            attachment_feedback_loop_ext =
+              VK_DYNAMIC_STATE_ATTACHMENT_FEEDBACK_LOOP_ENABLE_EXT,
+            depth_clamp_range_ext = VK_DYNAMIC_STATE_DEPTH_CLAMP_RANGE_EXT
         };
 
-        enum buffer : uint8_t {
+        enum descriptor_type : uint8_t {
             uniform =
               VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, // represents
                                                  // VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
@@ -1014,7 +1065,7 @@ export namespace vk {
                                                // VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE
         };
 
-        enum image_usage : uint32_t {
+        enum class image_usage : uint32_t {
             transfer_src_bit = VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
             transfer_dst_bit = VK_IMAGE_USAGE_TRANSFER_DST_BIT,
             sampled_bit = VK_IMAGE_USAGE_SAMPLED_BIT,
@@ -1077,10 +1128,10 @@ export namespace vk {
          *        - instance-based specification next data entry
          *
          */
-        enum class input_rate : uint8_t {
-            vertex,
-            instance,
-            max_enum,
+        enum class input_rate : uint32_t {
+            vertex = VK_VERTEX_INPUT_RATE_VERTEX,
+            instance = VK_VERTEX_INPUT_RATE_INSTANCE,
+            max_enum = VK_VERTEX_INPUT_RATE_MAX_ENUM,
         };
 
         //! @brief Equivalent to doing VkSampleCountFlagBits but simplified
@@ -1179,6 +1230,20 @@ export namespace vk {
               VK_PIPELINE_BIND_POINT_MAX_ENUM // VK_PIPELINE_BIND_POINT_MAX_ENUM
         };
 
+        struct viewport_params {
+            float x = 0.f;
+            float y = 0.f;
+            float width = 0.f;
+            float height = 0.f;
+            float min_depth = 0.f;
+            float max_depth = 1.f;
+        };
+
+        struct scissor_params {
+            VkOffset2D offset;
+            VkExtent2D extent;
+        };
+
         /**
          * @brief Specifies a specific attachment that a renderpass may operate
          * using
@@ -1199,8 +1264,41 @@ export namespace vk {
             image_layout final_layout;
         };
 
+        /**
+         *
+         * @brief Rendering attachment specifically used for performing
+         * attachments specifically for dynamic rendering.
+         *
+         */
+        struct rendering_attachment {
+            VkImageView image_view = nullptr;
+            image_layout layout;
+            resolved_mode_flags resolve_mode;
+            VkImageView resolve_image_view = nullptr;
+            image_layout resolve_image_layout;
+            attachment_load load;
+            attachment_store store;
+            VkClearValue clear_values;
+            VkClearValue depth_values;
+        };
+
+        /**
+         *
+         * @brief Performing begin/end semantics for rendering specifically when
+         * dynamic rendering has been enabled.
+         *
+         */
+        struct rendering_begin_parameters {
+            uint32_t rendering_flags = 0;
+            VkRect2D render_area{};
+            uint32_t layer_count = 1;
+            uint32_t view_mask = 0;
+            std::span<const rendering_attachment> color_attachments{};
+            const rendering_attachment depth_attachment{};
+            const rendering_attachment stencil_attachment{};
+        };
+
         struct renderpass_begin_params {
-            VkCommandBuffer current_command = nullptr;
             VkExtent2D extent;
             VkFramebuffer current_framebuffer = nullptr;
             std::array<float, 4> color;
@@ -1224,71 +1322,80 @@ export namespace vk {
         };
 
         /**
-         * @brief memory_property is a representation of vulkan's
-         * VkMemoryPropertyFlags.
+         * @brief Wrapper enum class for VkMemoryPropertyFlags
+         *
+         * Defines the physical locations and CPU-to-GPU access behavior for
+         * allocated memory heaps.
          *
          * @param device_local_bit
-         *
-         * Meaning: indicates memory allocated with this type is most efficient
-         * for the GPU to access. \n
-         *
-         * Implications: The memory with this bit typically
-         * resides on the GPU's VRAM. Accessing memory directly from GPU's since
-         * its faster. \n
-         *
-         * Usage: For resources that are primarily accessed by the GPU in the
-         * case of textures, vertex buffers, and framebuffers. If a memory type
-         * has this bit associated with it, the heap memory will also have be
-         * set along with VK_MEMORY_HEAP_DEVICE_LOCAL_BIT. \n
+         * - Used for high-speed GPU access.
+         * - Memory that is physically located on the GPU VRAM.
+         * - Usage: Performant-critical resources such as vertex buffers,
+         * framebuffers, textures, etc. CPU access is usually impossible unless
+         * Bar-Resize is used.
          *
          * @param host_visible_bit
-         *
-         * Meaning: Indicates memory alloated can be mapped to host's (CPU)
-         * address space using the vkMapMemory API. \n
-         *
-         * Implications: ALlows CPU to directly
-         * read from and write to memory. Crucial for transferring data between
-         * CPU to GPU. \n
-         *
-         * Usage: Use-case is for staging buffers, where data initially
-         * uploaded from CPU before being copied to device-local memory or for
-         * resourcfes that need frequent CPU updates. \n
+         * - Used for CPU-to-GPU transfers.
+         * - Memory can be mapped to CPU-address space via vkMapMemory
+         * - Usage: staging buffers. Allowing CPU to view and write data,
+         * the GPU will start to use.
          *
          * @param host_coherent_bit
-         *
-         * Meaning: Indicates host cache managemnet commands
-         * (vkFlushMappedMemoryRanges  and vkInvalidateMappedMemoryRanges) are
-         * not needed. Writes made by host will automatically become visible to
-         * the device, and writes made by device will automatically be visible
-         * to the host. \n
-         *
-         * Implications: Simplifies memory synchronization between CPU and GPU.
-         * Though can lead to slower CPU access if it means bypassing the CPU
-         * caches or involving more complex cache coherence protocols. \n
-         *
-         * Usage: Used with 'VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT' for easy data
-         * transfers, especially for frequent updated data where manual flushing
-         * would be cumbersome. \n
-         *
+         * - Used for automatic synchronization
+         * - Removes need for manual cache flushing/invalidation.
+         * - Implies writing from CPU are automatically visible to the GPU (and
+         * vice-versa).
+         * - Usage: Combined with `host_visible_bit` for frequent updated data
+         * (like uniform buffers) to avoid complex manual sync calls.
          *
          * @param host_cached_bit
+         * - Used for fast CPU reads.
+         * - Memory stored in CPU's L1/L2/L3 cache heirarchy.
+         * - Implies massive performance boost for CPU reads. Without this, CPU
+         * reads from host-visible memory which can be slow.
+         * - Usage: Use when needing for Readback information such as retrieving
+         * computed data on the GPU or analyzing results done in the compute
+         * shaders, even.
          *
-         * Meaning: Indicates memory allocated with this type is cached on the
-         * host (CPU). \n
+         * Additional Considerations: In cases `host_coherent_bit` is NOT set,
+         * MUST manually call `vkInvalidateMappedMemoryRanges` before reading to
+         * ensure the CPU cache isn't hoilding onto outdated data.
          *
-         * Implications: Host memory accesses (read/writes) to this memory
-         * type will go through CPU cache heirarchy. Significantly improves
-         * performance where random access patterns. If not set on
-         * `HOST_VISIBLE` memory, CPU accesses are often uncached and
-         * write-combined, meanming writes should be sequential and reads should
-         * be avoided for good performance. \n
+         * @param lazily_allocated_bit
+         * - Used for memory virtualization (mobile/tile-based optimziation).
+         * - GPU doesn't actually allocated physical VRAM for this until the
+         * moment it is accessed.
+         * - Implies data stays "on-chip" (like depth-buffer or renderpass), it
+         * may never be written to VRAM at all.
+         * - Can be used to save massive amounts of battery/bandwidth on mobile
+         * GPU's.
+         * - Usage: Strictly for "Transient Attachments" (Depth/Stencil or MSAA
+         * buffers) which are created and destroyed in a single renderpass.
          *
-         * Usage: Does well for CPU-side reading of data written to GPU
-         * (screenshots or feedback data) and for CPU-side writing of data to be
-         * accessed randomly. Flag usually implies explicit cache management
-         * (flushing/invalidating) is required if `HOST_COHERENT_BIT` is not
-         * also set. \n
+         * @param device_protected_bit
+         * - Content Security (DRM)
+         * - Places memory in a secure heap that cannot be read by the CPU or
+         * non-protected GPU queue's.
+         * - Prevents unauthorized memory scraping. If you try to copy this
+         * memory to a non-protected buffer, this operation will fail.
+         * - Usage: Critical data protection (video streaming/DRM) or sensitive
+         * computed data.
          *
+         * @param device_coherent_bit_amd
+         * - Performs fine-grained GPU-to-GPU synchronization (on AMD hardware).
+         * - Ensures memory writes from one GPU shader are immediately visible
+         * to other parts of the GPU without explicit cache flushes.
+         * - Usage: GPGPU or compute-heavy tasks on specifically AMD hardware
+         * where manual barriers overhead is too high.
+         *
+         * @param rdma_capable_bit_nv
+         * - Performs direct peer-to-peer transfer (to NVIDIA hardware).
+         * - Allows for external devices (like 100GB NICs or other GPUs) to
+         * read/write to this memory directly via Remote Direct Memory Access.
+         * - Bypasses the GPU entirely for network-to-GPU transfers, reducing
+         * latency close to near zero.
+         * - Usage: Can be used if you need to set the memory property for
+         * ultra-low latecy videop streaming
          *
          */
         enum memory_property : uint32_t {
@@ -1304,6 +1411,18 @@ export namespace vk {
               VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD,
             rdma_capable_bit_nv = VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV,
             flag_bits_max_enum = VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM
+        };
+
+        enum memory_allocate_flags : uint64_t {
+            device_mask_bit = VK_MEMORY_ALLOCATE_DEVICE_MASK_BIT,
+            device_address_bit = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT,
+            device_address_capture_replay_bit =
+              VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT,
+            // zero_initialize_bit = VK_MEMORY_ALLOCATE_ZERO_INITIALIZE_BIT_EXT,
+            device_mask_bit_khr = VK_MEMORY_ALLOCATE_DEVICE_MASK_BIT_KHR,
+            device_address_bit_khr = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT,
+            device_address_capture_replay_bit_khr =
+              VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_CAPTURE_REPLAY_BIT
         };
 
         enum class shader_stage {
@@ -1358,6 +1477,27 @@ export namespace vk {
                                                                  // VK_DESCRIPTOR_SET_LAYOUT_CREATE_FLAG_BITS_MAX_ENUM
         };
 
+        enum class descriptor_layout_flags : uint32_t {
+            none = 0x00000000,
+            update_after_bind_pool =
+              VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT,
+        };
+
+        enum class descriptor_bind_flags : uint32_t {
+            update_after_bind =
+              VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT, // represents
+                                                           // VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT
+            update_unused_while_pending =
+              VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT, // represents
+                                                                     // VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT
+            partially_bound_bit =
+              VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT, // represents
+                                                         // VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT
+            variable_descriptor_count_bit =
+              VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT, // represents
+                                                                   // VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT
+        };
+
         //! @brief high-level specification for a shader source
         struct shader_source {
             std::string filename;
@@ -1402,40 +1542,16 @@ export namespace vk {
             VkBuffer dst;
         };
 
-        struct vertex_params {
-            VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
-            std::span<vertex_input> vertices;
-            std::string debug_name;
-            PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT =
-              nullptr;
-        };
-
-        struct index_params {
-            VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
-            std::span<uint32_t> indices;
-            std::string debug_name;
-            PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT =
-              nullptr;
-        };
-
-        struct uniform_params {
-            // VkPhysicalDevice physical_handle=nullptr;
-            VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
-            uint32_t size_bytes = 0;
-            std::string debug_name;
-            PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT =
-              nullptr;
-        };
-
         struct descriptor_binding_point {
             uint32_t binding;
             shader_stage stage;
         };
 
         struct descriptor_entry {
-            buffer type;
+            descriptor_type type;
             descriptor_binding_point binding_point;
             uint32_t descriptor_count;
+            descriptor_bind_flags flags;
         };
 
         struct write_image {
@@ -1464,40 +1580,54 @@ export namespace vk {
         struct image_extent {
             uint32_t width = 1;
             uint32_t height = 1;
+            uint32_t depth = 1;
         };
 
         struct image_params {
-            image_extent extent;
-            VkFormat format;
+            image_extent extent{};
+            VkFormat format = VK_FORMAT_UNDEFINED;
             memory_property property = memory_property::device_local_bit;
+            uint32_t memory_mask = 0;
             image_aspect_flags aspect = image_aspect_flags::color_bit;
-            // VkImageUsageFlags usage;
-            uint32_t usage;
+            image_usage usage;
             VkImageCreateFlags image_flags = 0;
             VkImageViewType view_type = VK_IMAGE_VIEW_TYPE_2D;
             uint32_t mip_levels = 1;
             uint32_t layer_count = 1;
             uint32_t array_layers = 1;
-            VkPhysicalDeviceMemoryProperties phsyical_memory_properties;
             filter_range range{
                 .min = VK_FILTER_LINEAR,
                 .max = VK_FILTER_LINEAR,
             };
-            // VkSamplerAddressMode address_mode_u =
-            // VK_SAMPLER_ADDRESS_MODE_REPEAT; VkSamplerAddressMode
-            // addrses_mode_v = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            // VkSamplerAddressMode addrses_mode_w =
-            // VK_SAMPLER_ADDRESS_MODE_REPEAT;
             uint32_t address_mode_u = sampler_address_mode::repeat;
             uint32_t addrses_mode_v = sampler_address_mode::repeat;
             uint32_t addrses_mode_w = sampler_address_mode::repeat;
         };
 
+        // TODO: Remove redundant struct and replace with vk::image_params
+        struct texture_params {
+            uint32_t memory_mask = 0;
+            uint32_t mip_levels = 1;
+            uint32_t layer_count = 1;
+        };
+
+        struct buffer_image_copy {
+            uint32_t offset = 0;
+            uint32_t row_length = 0;
+            uint32_t image_height = 0;
+            image_aspect_flags aspect_mask = image_aspect_flags::color_bit;
+            uint32_t mip_level = 0;
+            uint32_t base_array_layer = 0;
+            uint32_t layer_count = 1;
+            image_extent image_offset{};
+            image_extent image_extent{};
+        };
+
         struct buffer_parameters {
-            VkDeviceSize device_size = 0;
-            VkPhysicalDeviceMemoryProperties physical_memory_properties;
+            uint32_t memory_mask = 0;
             memory_property property_flags;
-            VkBufferUsageFlags usage;
+            buffer_usage usage;
+            memory_allocate_flags allocate_flags;
             VkSharingMode share_mode = VK_SHARING_MODE_EXCLUSIVE;
             const char* debug_name = nullptr;
             PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectNameEXT =

@@ -13,6 +13,7 @@
 #include <array>
 #include <print>
 #include <span>
+#include <expected>
 import vk;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
@@ -104,32 +105,9 @@ main() {
     }
 
     // setting up physical device
-    vk::physical_enumeration enumerate_devices{
-        .device_type = vk::physical_gpu::integrated,
-    };
-    vk::physical_device physical_device(api_instance, enumerate_devices);
-
-    // selecting depth format
-    std::array<vk::format, 3> format_support = {
-        vk::format::d32_sfloat,
-        vk::format::d32_sfloat_s8_uint,
-        vk::format::d24_unorm_s8_uint
-    };
-
-    // We provide a selection of format support that we want to check is
-    // supported on current hardware device.
-    VkFormat depth_format =
-      vk::select_depth_format(physical_device, format_support);
-
-    if (depth_format != VK_FORMAT_UNDEFINED) {
-        std::println("Depth format specifically was able to be found!!!");
-    }
-
-    vk::queue_indices queue_indices = physical_device.family_indices();
-    std::println("Graphics Queue Family Index = {}",
-                 (int)queue_indices.graphics);
-    std::println("Compute Queue Family Index = {}", queue_indices.compute);
-    std::println("Transfer Queue Family Index = {}", queue_indices.transfer);
+    std::expected<vk::physical_device, VkResult> physical_device_expected =
+      api_instance.enumerate_physical_device(vk::physical_gpu::integrated);
+    vk::physical_device physical_device = physical_device_expected.value();
 
     // setting up logical device
     std::array<float, 1> priorities = { 0.f };
@@ -140,29 +118,28 @@ main() {
     std::array<const char*, 1> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 #endif
 
-    vk::device_params logical_device_params = {
+    vk::device_params device_params = {
         .queue_priorities = priorities,
         .extensions = extensions,
         .queue_family_index = 0,
     };
 
-    vk::device logical_device(physical_device, logical_device_params);
+    vk::device logical_device(physical_device, device_params);
 
     // Presentation queue family uses graphics queue
     vk::queue_params present_queue_enumerate = {
         .family = 0,
-        .index = queue_indices.graphics,
+        .index = 0,
     };
-    vk::device_queue presesnt_queue(logical_device, present_queue_enumerate);
+    vk::device_queue present_queue(logical_device, present_queue_enumerate);
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
     }
 
     logical_device.wait();
-    logical_device.destroy();
+    logical_device.destruct();
 
     glfwDestroyWindow(window);
-    api_instance.destroy();
     return 0;
 }

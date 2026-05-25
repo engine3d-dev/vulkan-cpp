@@ -9,7 +9,7 @@ required_conan_version = ">=2.2.0"
 
 class VulkanCppRecipe(ConanFile):
     name = "vulkan-cpp"
-    version = "5.0"
+    version = "6.0"
     license = "Apache-2.0"
     url = "https://github.com/engine3d-dev/vulkan-cpp"
     homepage = "https://github.com/engine3d-dev/vulkan-cpp"
@@ -27,7 +27,6 @@ class VulkanCppRecipe(ConanFile):
     def requirements(self):
         self.requires("glfw/3.4")
         self.requires("glm/1.0.1")
-        self.requires("stb/cci.20230920")
 
     def layout(self):
         cmake_layout(self)

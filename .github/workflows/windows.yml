@@ -1,10 +1,11 @@
-name: Windows Platform Build
+name: Windows
 
-on: [pull_request, workflow_dispatch]
+# workflow_call to have linux.yml be able to be invoked by ci.yml
+on: [workflow_call]
+
 
 jobs:
   windows-build:
-      name: "Windows-Build"
       runs-on: windows-latest
       steps:
           - uses: actions/checkout@v4

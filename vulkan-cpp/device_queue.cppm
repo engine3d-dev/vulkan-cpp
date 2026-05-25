@@ -7,9 +7,8 @@ export module vk:device_queue;
 export import :types;
 export import :utilities;
 
-
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
         /**
          * @name
          * @brief Represents a queue part of a specific logical device created
@@ -18,8 +17,10 @@ export namespace vk {
         public:
             device_queue() = default;
 
-            device_queue(const VkDevice& p_device, const queue_params& p_config) {
-                vkGetDeviceQueue(p_device, p_config.family, p_config.index, &m_queue_handler);
+            device_queue(const VkDevice& p_device,
+                         const queue_params& p_config) {
+                vkGetDeviceQueue(
+                  p_device, p_config.family, p_config.index, &m_queue_handler);
             }
 
             [[nodiscard]] bool alive() const { return m_queue_handler; }
