@@ -1,0 +1,16 @@
+name: 🛠️ Continous Integration
+
+on: [pull_request]
+
+jobs:
+  run-windows-ci:
+    uses: ./.github/workflows/windows.yml
+    secrets: inherit
+
+  run-linux-ci:
+    uses: ./.github/workflows/linux.yml
+    secrets: inherit
+
+  run-mac-ci:
+    uses: ./.github/workflows/mac.yml
+    secrets: inherit
