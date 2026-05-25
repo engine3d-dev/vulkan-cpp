@@ -14,7 +14,6 @@
 #include <print>
 #include <span>
 #include <filesystem>
-import vk;
 
 #include <chrono>
 #define GLM_FORCE_RADIANS
@@ -24,6 +23,14 @@ import vk;
 #include <glm/gtx/hash.hpp>
 
 #include <tiny_obj_loader.h>
+#include <expected>
+
+#ifndef STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+#endif
+
+import vk;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 debug_callback(
@@ -144,48 +151,68 @@ public:
                 indices.push_back(unique_vertices[vertex]);
             }
         }
-        vk::vertex_params vertex_info = { .phsyical_memory_properties =
-                                            p_physical.memory_properties(),
-                                          .vertices = vertices };
 
-        vk::index_params index_info = { .phsyical_memory_properties =
-                                          p_physical.memory_properties(),
-                                        .indices = indices };
-        m_vertex_buffer = vk::vertex_buffer(p_device, vertex_info);
-        m_index_buffer = vk::index_buffer(p_device, index_info);
+        m_has_indices = (indices.size() > 0) ? true : false;
+
+        if (m_has_indices) {
+            m_indices_size = indices.size();
+        }
+        m_indices_size = vertices.size();
+        m_indices_size = indices.size();
+
+        //! @brief Creating vertex/index buffers with host visibility flags
+        const auto property_flags = static_cast<vk::memory_property>(
+          vk::memory_property::host_visible_bit |
+          vk::memory_property::host_cached_bit);
+
+        vk::buffer_parameters vertex_params = {
+            .memory_mask = p_physical.memory_properties(property_flags),
+            .property_flags = vk::memory_property::device_local_bit,
+            .usage = vk::buffer_usage::transfer_dst_bit |
+                     vk::buffer_usage::vertex_buffer_bit,
+        };
+
+        vk::buffer_parameters index_params = {
+            .memory_mask = p_physical.memory_properties(property_flags),
+            .property_flags = static_cast<vk::memory_property>(
+              vk::memory_property::host_visible_bit |
+              vk::memory_property::host_cached_bit),
+            .usage = vk::buffer_usage::index_buffer_bit,
+        };
+
+        m_vertex_buffer = vk::vertex_buffer(p_device, vertices, vertex_params);
+        m_index_buffer = vk::index_buffer(p_device, indices, index_params);
         m_is_loaded = true;
     }
 
     [[nodiscard]] bool loaded() const { return m_is_loaded; }
 
-    void bind(const VkCommandBuffer& p_command) {
-        m_vertex_buffer.bind(p_command);
-        if (m_index_buffer.size() > 0) {
-            m_index_buffer.bind(p_command);
-        }
-    }
+    [[nodiscard]] VkBuffer vertex_handle() const { return m_vertex_buffer; }
+
+    [[nodiscard]] VkBuffer index_handle() const { return m_index_buffer; }
+
+    [[nodiscard]] bool has_indices() const { return m_has_indices; }
+
+    [[nodiscard]] uint32_t indices_size() const { return m_indices_size; }
 
     void draw(const VkCommandBuffer& p_command) {
-        if (m_index_buffer.size() > 0) {
-            vkCmdDrawIndexed(p_command,
-                             static_cast<uint32_t>(m_index_buffer.size()),
-                             1,
-                             0,
-                             0,
-                             0);
+        if (m_has_indices) {
+            vkCmdDrawIndexed(p_command, m_indices_size, 1, 0, 0, 0);
         }
         else {
-            vkCmdDraw(p_command, m_vertex_buffer.size(), 1, 0, 0);
+            vkCmdDraw(p_command, m_indices_size, 1, 0, 0);
         }
     }
 
-    void destroy() {
-        m_vertex_buffer.destroy();
-        m_index_buffer.destroy();
+    void destruct() {
+        m_vertex_buffer.destruct();
+        m_index_buffer.destruct();
     }
 
 private:
     bool m_is_loaded = false;
+    bool m_has_indices = false;
+    uint32_t m_indices_size = 0;
     vk::vertex_buffer m_vertex_buffer{};
     vk::index_buffer m_index_buffer{};
 };
@@ -212,6 +239,80 @@ get_instance_extensions() {
 
     return extension_names;
 }
+
+/**
+ * @brief STBI-specific implementation of the vk::image interface
+ */
+class stb_image : public vk::image {
+public:
+    stb_image() = delete;
+
+    stb_image(std::string_view p_path, vk::texture_params p_params) {
+        image_load(p_path, p_params);
+    }
+
+    ~stb_image() = default;
+
+protected:
+    bool image_load(std::string_view p_path,
+                    vk::texture_params p_params) override {
+        int w = 0;
+        int h = 0;
+        int channels = 0;
+
+        stbi_uc* image_pixel_data =
+          stbi_load(p_path.data(), &w, &h, &channels, STBI_rgb_alpha);
+
+        if (!image_pixel_data) {
+            return false;
+        }
+
+        const VkFormat texture_format =
+          static_cast<VkFormat>(vk::format::r8g8b8a8_unorm);
+        int bytes_per_pixel = vk::bytes_per_texture_format(texture_format);
+
+        m_extent = {
+            .width = static_cast<uint32_t>(w),
+            .height = static_cast<uint32_t>(h),
+        };
+
+        // Retrieving total size of bytes of the dimensions of the image and
+        // accounting for pixels of the image
+        uint32_t size_bytes =
+          m_extent.width * m_extent.height * bytes_per_pixel;
+
+        // Retrieving total image size to the count of the image layers
+        uint32_t size = size_bytes * p_params.layer_count;
+
+        vk::image_params image_options = {
+            .extent = m_extent,
+            .format = texture_format,
+            .memory_mask = p_params.memory_mask,
+            .usage =
+              vk::image_usage::transfer_dst_bit | vk::image_usage::sampled_bit,
+            .mip_levels = p_params.mip_levels,
+            .layer_count = p_params.layer_count,
+        };
+
+        m_bytes.reserve(size);
+        std::span<uint8_t> bytes_view =
+          std::span<uint8_t>(image_pixel_data, size);
+
+        m_bytes.assign(bytes_view.begin(), bytes_view.end());
+
+        stbi_image_free(image_pixel_data);
+
+        return true;
+    }
+
+    std::span<const uint8_t> image_read() const override { return m_bytes; }
+
+    vk::image_extent image_extent() const override { return m_extent; }
+
+private:
+    vk::image_extent m_extent{};
+    std::vector<uint8_t> m_bytes{};
+};
 
 int
 main() {
@@ -264,20 +365,9 @@ main() {
     // Setting up vk instance
     vk::instance api_instance(config, debug_callback_info);
 
-    if (api_instance.alive()) {
-        std::println("\napi_instance alive and initiated!!!");
-    }
-
-    vk::physical_enumeration enumerate_devices{
-        .device_type = vk::physical_gpu::discrete,
-    };
-
-    // Specifically set for the mac m1 series platform
-#if defined(__APPLE__)
-    enumerate_devices.device_type = vk::physical_gpu::integrated;
-#endif
-
-    vk::physical_device physical_device(api_instance, enumerate_devices);
+    std::expected<vk::physical_device, VkResult> physical_device_expected =
+      api_instance.enumerate_physical_device(vk::physical_gpu::integrated);
+    vk::physical_device physical_device = physical_device_expected.value();
 
     // selecting depth format
     std::array<vk::format, 3> format_support = {
@@ -288,20 +378,19 @@ main() {
 
     // We provide a selection of format support that we want to check is
     // supported on current hardware device.
+    // VkFormat depth_format =
+    //   vk::select_depth_format(physical_device, format_support);
     VkFormat depth_format =
-      vk::select_depth_format(physical_device, format_support);
-
-    vk::queue_indices queue_indices = physical_device.family_indices();
-    std::println("Graphics Queue Family Index = {}", queue_indices.graphics);
-    std::println("Compute Queue Family Index = {}", queue_indices.compute);
-    std::println("Transfer Queue Family Index = {}", queue_indices.transfer);
+      physical_device.request_depth_format(format_support);
 
     // setting up logical device
     std::array<float, 1> priorities = { 0.f };
 
 #if defined(__APPLE__)
-    std::array<const char*, 2> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-                                              "VK_KHR_portability_subset" };
+    std::array<const char*, 2> extensions = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        "VK_KHR_portability_subset",
+    };
 #else
     std::array<const char*, 1> extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 #endif
@@ -315,21 +404,14 @@ main() {
     vk::device logical_device(physical_device, logical_device_params);
 
     vk::surface window_surface(api_instance, window);
-    std::println("Starting implementation of the swapchain!!!");
 
     vk::surface_params surface_properties =
-      vk::enumerate_surface(physical_device, window_surface);
-
-    if (surface_properties.format.format != VK_FORMAT_UNDEFINED) {
-        std::println("Surface Format.format is not undefined!!!");
-    }
+      physical_device.request_surface(window_surface);
 
     vk::swapchain_params enumerate_swapchain_settings = {
         .width = (uint32_t)width,
         .height = (uint32_t)height,
-        .present_index =
-          physical_device.family_indices()
-            .graphics, // presentation index just uses the graphics index
+        .present_index = 0,
     };
     vk::swapchain main_swapchain(logical_device,
                                  window_surface,
@@ -351,14 +433,17 @@ main() {
     uint32_t mip_levels = 1;
     for (uint32_t i = 0; i < swapchain_images.size(); i++) {
         vk::image_params swapchain_image_config = {
-            .extent = { .width = swapchain_extent.width,
-                        .height = swapchain_extent.height },
+            .extent = {
+                .width = swapchain_extent.width,
+                .height = swapchain_extent.height,
+            },
             .format = surface_properties.format.format,
+            .memory_mask = physical_device.memory_properties(
+              vk::memory_property::device_local_bit),
             .aspect = vk::image_aspect_flags::color_bit,
-            .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+            .usage = vk::image_usage::color_attachment_bit,
             .mip_levels = 1,
             .layer_count = 1,
-            .phsyical_memory_properties = physical_device.memory_properties(),
         };
 
         swapchain_images[i] =
@@ -366,14 +451,17 @@ main() {
 
         // Creating Images for depth buffering
         vk::image_params image_config = {
-            .extent = { .width = swapchain_extent.width,
-                        .height = swapchain_extent.height },
+            .extent = {
+                .width = swapchain_extent.width,
+                .height = swapchain_extent.height,
+            },
             .format = depth_format,
+            .memory_mask = physical_device.memory_properties(
+              vk::memory_property::device_local_bit),
             .aspect = vk::image_aspect_flags::depth_bit,
-            .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+            .usage = vk::image_usage::depth_stencil_bit,
             .mip_levels = 1,
             .layer_count = 1,
-            .phsyical_memory_properties = physical_device.memory_properties(),
         };
         swapchain_depth_images[i] =
           vk::sample_image(logical_device, image_config);
@@ -384,7 +472,7 @@ main() {
     for (size_t i = 0; i < swapchain_command_buffers.size(); i++) {
         vk::command_params settings = {
             .levels = vk::command_levels::primary,
-            .queue_index = enumerate_swapchain_settings.present_index,
+            .queue_index = 0,
             .flags = vk::command_pool_flags::reset,
         };
 
@@ -422,8 +510,6 @@ main() {
 
     vk::renderpass main_renderpass(logical_device, renderpass_attachments);
 
-    std::println("renderpass created!!!");
-
     // Setting up swapchain framebuffers
 
     std::vector<vk::framebuffer> swapchain_framebuffers(image_count);
@@ -447,9 +533,6 @@ main() {
           vk::framebuffer(logical_device, framebuffer_info);
     }
 
-    std::println("Created VkFramebuffer's with size = {}",
-                 swapchain_framebuffers.size());
-
     // setting up presentation queue to display commands to the screen
     vk::queue_params enumerate_present_queue{
         .family = 0,
@@ -461,14 +544,16 @@ main() {
     // gets set with the renderpass
     std::array<float, 4> color = { 0.f, 0.5f, 0.5f, 1.f };
 
-    // std::println("Start implementing graphics pipeline!!!");
-
     // Now creating a vulkan graphics pipeline for the shader loading
     std::array<vk::shader_source, 2> shader_sources = {
-        vk::shader_source{ .filename = "shader_samples/sample5/test.vert.spv",
-                           .stage = vk::shader_stage::vertex },
-        vk::shader_source{ .filename = "shader_samples/sample5/test.frag.spv",
-                           .stage = vk::shader_stage::fragment },
+        vk::shader_source{
+          .filename = "shader_samples/sample5/test.vert.spv",
+          .stage = vk::shader_stage::vertex,
+        },
+        vk::shader_source{
+          .filename = "shader_samples/sample5/test.frag.spv",
+          .stage = vk::shader_stage::fragment,
+        },
     };
 
     // Setting up vertex attributes in the test shaders
@@ -514,26 +599,17 @@ main() {
     vk::shader_resource geometry_resource(logical_device, shader_info);
     geometry_resource.vertex_attributes(attributes);
 
-    // Setting up descriptor sets for graphics pipeline
+    // Set 0: For Uniform BUffers (or global scene data)
     std::vector<vk::descriptor_entry> entries = {
     vk::descriptor_entry{
             // specifies "layout (set = 0, binding = 0) uniform GlobalUbo"
-            .type = vk::buffer::uniform,
+            .type = vk::descriptor_type::uniform,
             .binding_point = {
                 .binding = 0,
                 .stage = vk::shader_stage::vertex,
             },
             .descriptor_count = 1,
         },
-        vk::descriptor_entry{
-            // layout (set = 0, binding = 1) uniform sampler2D
-            .type = vk::buffer::combined_image_sampler,
-            .binding_point = {
-                .binding = 1,
-                .stage = vk::shader_stage::fragment,
-            },
-            .descriptor_count = 1,
-        }
     };
     vk::descriptor_layout set0_layout = {
         .slot = 0,               // indicate specific descriptor slot 0
@@ -542,7 +618,30 @@ main() {
     };
     vk::descriptor_resource set0_resource(logical_device, set0_layout);
 
-    std::array<VkDescriptorSetLayout, 1> layouts = { set0_resource.layout() };
+    // Set 1 = For Textures
+    std::vector<vk::descriptor_entry> entries_set1 = {
+        vk::descriptor_entry{
+            // layout (set = 1, binding = 0) uniform sampler2D
+            .type = vk::descriptor_type::combined_image_sampler,
+            .binding_point = {
+                .binding = 0,
+                .stage = vk::shader_stage::fragment,
+            },
+            .descriptor_count = 1,
+        }
+    };
+    vk::descriptor_layout set1_layout = {
+        .slot = 1,               // indicate specific descriptor slot 0
+        .max_sets = image_count, // max descriptors to allocate
+        .entries = entries_set1, // descriptor layout entries description
+    };
+
+    vk::descriptor_resource set1_resource(logical_device, set1_layout);
+
+    std::array<VkDescriptorSetLayout, 2> layouts = {
+        set0_resource.layout(),
+        set1_resource.layout(),
+    };
 
     std::array<vk::color_blend_attachment_state, 1> color_blend_attachments = {
         vk::color_blend_attachment_state{},
@@ -570,26 +669,40 @@ main() {
                          logical_device,
                          physical_device);
 
-    // Setting up descriptor sets for handling uniforms
-    vk::uniform_params test_ubo_info = { .phsyical_memory_properties =
-                                           physical_device.memory_properties(),
-                                         .size_bytes = sizeof(global_uniform) };
-    vk::uniform_buffer test_ubo =
-      vk::uniform_buffer(logical_device, test_ubo_info);
-    // std::println("uniform_buffer.alive() = {}", test_ubo.alive());
-
-    std::array<vk::write_buffer, 1> uniforms0 = { vk::write_buffer{
-      .buffer = test_ubo, .offset = 0, .range = test_ubo.size_bytes() } };
-    std::array<vk::write_buffer_descriptor, 1> uniforms = {
-        vk::write_buffer_descriptor{ .dst_binding = 0, .uniforms = uniforms0 }
-    };
-
     // Loading a texture
-    vk::texture_info config_texture = {
-        .phsyical_memory_properties = physical_device.memory_properties(),
-        .filepath = std::filesystem::path("asset_samples/viking_room.png")
+
+    vk::buffer_parameters uniform_params = {
+        .memory_mask =
+          physical_device.memory_properties(static_cast<vk::memory_property>(
+            vk::memory_property::host_visible_bit |
+            vk::memory_property::host_cached_bit)),
+        .usage = vk::buffer_usage::uniform_buffer_bit,
     };
-    vk::texture texture1(logical_device, config_texture);
+    vk::uniform_buffer test_ubo = vk::uniform_buffer(
+      logical_device, sizeof(global_uniform), uniform_params);
+
+    std::array<vk::write_buffer, 1> uniforms0 = {
+        vk::write_buffer{
+          .buffer = test_ubo,
+          .offset = 0,
+          .range = static_cast<uint32_t>(test_ubo.size_bytes()),
+        },
+    };
+    std::array<vk::write_buffer_descriptor, 1> uniforms = {
+        vk::write_buffer_descriptor{
+          .dst_binding = 0,
+          .uniforms = uniforms0,
+        },
+    };
+
+    vk::texture_params config_texture = {
+        .memory_mask = physical_device.memory_properties(
+          vk::memory_property::host_visible_bit |
+          vk::memory_property::host_cached_bit),
+    };
+
+    stb_image img = stb_image("asset_samples/viking_room.png", config_texture);
+    vk::texture texture1(logical_device, &img, config_texture);
 
     std::array<vk::write_image, 1> samplers = {
         vk::write_image{
@@ -600,13 +713,15 @@ main() {
     };
 
     // Specify image descriptor images/samplers to the descriptor
-    std::array<vk::write_image_descriptor, 1> sample_images = {
+    std::array<vk::write_image_descriptor, 1> set1_samples = {
         vk::write_image_descriptor{
-          .dst_binding = 1,
+          .dst_binding = 0,
           .sample_images = samplers,
         }
     };
-    set0_resource.update(uniforms, sample_images);
+    set0_resource.update(uniforms);
+
+    set1_resource.update({}, set1_samples);
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -618,21 +733,28 @@ main() {
 
         // renderpass begin/end must be within a recording command buffer
         vk::renderpass_begin_params begin_renderpass = {
-            .current_command = current,
             .extent = swapchain_extent,
             .current_framebuffer = swapchain_framebuffers[current_frame],
             .color = color,
             .subpass = vk::subpass_contents::inline_bit
         };
-        main_renderpass.begin(begin_renderpass);
+        main_renderpass.begin(current, begin_renderpass);
 
         // Binding a graphics pipeline -- before drawing stuff
         // Inside of this graphics pipeline bind, is where you want to do the
         // drawing stuff to
         main_graphics_pipeline.bind(current);
 
-        // Must be binded before descriptor resource gets binded
-        test_model.bind(current);
+        // test_model.bind(current);
+        // std::array<VkBuffer, 1> vertex = { test_model.vertex_handle() };
+        const VkBuffer vertex = test_model.vertex_handle();
+        uint64_t offset = 0;
+        current.bind_vertex_buffers(std::span<const VkBuffer>(&vertex, 1),
+                                    std::span<uint64_t>(&offset, 1));
+
+        if (test_model.has_indices()) {
+            current.bind_index_buffers32(test_model.index_handle());
+        }
 
         static auto start_time = std::chrono::high_resolution_clock::now();
 
@@ -656,14 +778,25 @@ main() {
                                      10.0f)
         };
         ubo.proj[1][1] *= -1;
-        test_ubo.update(&ubo);
+
+        test_ubo.transfer<global_uniform>(
+          std::span<const global_uniform>(&ubo, 1));
 
         // Before we can send stuff to the GPU, since we already updated the
         // descriptor set 0 beforehand, we must bind that descriptor resource
         // before making any of the draw calls Something to note: You cannot
         // update descriptor sets in the process of a current-recording command
         // buffers or else that becomes undefined behavior
-        set0_resource.bind(current, main_graphics_pipeline.layout());
+        // set0_resource.bind(current, main_graphics_pipeline.layout());
+
+        std::array<const VkDescriptorSet, 2> descriptors = {
+            set0_resource,
+            set1_resource,
+        };
+
+        current.bind_descriptors(main_graphics_pipeline.layout(),
+                                 VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                 descriptors);
 
         // Drawing-call to render actual triangle to the screen
         // vkCmdDrawIndexed(current, static_cast<uint32_t>(indices.size()), 1,
@@ -682,37 +815,37 @@ main() {
 
     // this to ensure they are cleaned up in the proper order
     logical_device.wait();
-    main_swapchain.destroy();
+    main_swapchain.destruct();
 
-    texture1.destroy();
-    set0_resource.destroy();
-    test_ubo.destroy();
-    test_model.destroy();
+    texture1.destruct();
+    set0_resource.destruct();
+    set1_resource.destruct();
+    test_ubo.destruct();
+    test_model.destruct();
 
     for (auto& command : swapchain_command_buffers) {
-        command.destroy();
+        command.destruct();
     }
 
     for (auto& fb : swapchain_framebuffers) {
-        fb.destroy();
+        fb.destruct();
     }
 
     for (auto& image : swapchain_images) {
-        image.destroy();
+        image.destruct();
     }
 
     for (auto& depth_img : swapchain_depth_images) {
-        depth_img.destroy();
+        depth_img.destruct();
     }
 
-    main_graphics_pipeline.destroy();
-    geometry_resource.destroy();
-    main_renderpass.destroy();
-    presentation_queue.destroy();
+    main_graphics_pipeline.destruct();
+    geometry_resource.destruct();
+    main_renderpass.destruct();
+    presentation_queue.destruct();
 
-    logical_device.destroy();
-    window_surface.destroy();
+    logical_device.destruct();
+    window_surface.destruct();
     glfwDestroyWindow(window);
-    api_instance.destroy();
     return 0;
 }

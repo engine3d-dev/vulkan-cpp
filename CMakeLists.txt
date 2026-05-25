@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 4.0)
 # Generate compile commands for anyone using our libraries.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_COLOR_DIAGNOSTICS ON)
+set(CMAKE_CXX_SCAN_FOR_MODULES ON)
 
 project(vulkan-cpp LANGUAGES CXX)
 
@@ -15,13 +16,11 @@ static_library(
     glfw3
     Vulkan
     glm
-    stb
 
     LINK_PACKAGES
     glfw
     Vulkan::Vulkan
     glm::glm
-    stb::stb
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_23)
@@ -31,6 +30,7 @@ target_sources(${PROJECT_NAME} PUBLIC
     TYPE CXX_MODULES
     FILES
     vulkan-cpp/vk.cppm
+    vulkan-cpp/feature_extensions.cppm
     vulkan-cpp/types.cppm
     vulkan-cpp/utilities.cppm
     vulkan-cpp/instance.cppm
@@ -46,14 +46,16 @@ target_sources(${PROJECT_NAME} PUBLIC
     vulkan-cpp/sample_image.cppm
     vulkan-cpp/shader_resource.cppm
     vulkan-cpp/pipeline.cppm
-    vulkan-cpp/buffer_streams.cppm
+    vulkan-cpp/buffer.cppm
     vulkan-cpp/vertex_buffer.cppm
-    vulkan-cpp/buffer_streams16.cppm
-    vulkan-cpp/buffer_streams32.cppm
+    vulkan-cpp/buffer16.cppm
+    vulkan-cpp/buffer32.cppm
     vulkan-cpp/index_buffer.cppm
     vulkan-cpp/uniform_buffer.cppm
     vulkan-cpp/descriptor_resource.cppm
     vulkan-cpp/texture.cppm
+    vulkan-cpp/dyn/buffer.cppm
+    vulkan-cpp/image.cppm
 )
 
 install(

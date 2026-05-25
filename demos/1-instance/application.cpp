@@ -110,6 +110,6 @@ main() {
     }
 
     glfwDestroyWindow(window);
-    api_instance.destroy();
+    api_instance.destruct();
     return 0;
 }

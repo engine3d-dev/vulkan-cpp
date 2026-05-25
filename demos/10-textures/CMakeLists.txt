@@ -13,6 +13,7 @@ build_application(
     stb
 
     LINK_PACKAGES
+    stb::stb
     vulkan-cpp
     Vulkan::Vulkan
 )

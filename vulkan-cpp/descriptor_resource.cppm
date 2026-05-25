@@ -7,38 +7,128 @@ module;
 
 export module vk:descriptor_resource;
 
-
 export import :types;
 export import :utilities;
 export import :uniform_buffer;
 export import :sample_image;
 
 export namespace vk {
-    inline namespace v1 {
+    inline namespace v6 {
         /**
-         * @param slot is the slot specific to the number slot for the descriptor.
-         * Ex. layout (set = 0)
+         * @param slot is the slot specific to the number slot for the
+         * descriptor. Ex. layout (set = 0)
          */
         struct descriptor_layout {
             uint32_t slot = 0;
             uint32_t max_sets = 0;
             std::span<descriptor_entry> entries;
+            std::span<const uint32_t> descriptor_counts = {};
         };
 
+        /**
+         * @brief Descriptor resources are an abstraction class around the
+         * descriptor set handles.
+         *
+         * Shaders are not able to directly have access to CPU-visible uniforms.
+         * Therefore, descriptor sets are used for performing the required
+         * configuration for descriptor set handles.
+         *
+         * @brief Additional Considerations:
+         * - Block of memory dedicated to holding these handles.
+         * - Defines what memory data layout the shader expects to receive.
+         * - VkDescriptorSet is the instance handle to used during draw call
+         * operations
+         *
+         */
         class descriptor_resource {
         public:
             descriptor_resource() = default;
-            descriptor_resource(const VkDevice& p_device, const descriptor_layout& p_info) : m_device(p_device), m_slot(p_info.slot) {
-                std::vector<VkDescriptorPoolSize> pool_sizes(p_info.entries.size());
-                std::vector<VkDescriptorSetLayoutBinding> descriptor_layout_bindings(p_info.entries.size());
+
+            /**
+             * @brief Constructs a descriptor resource for configuring the
+             * handle
+             *
+             * @param p_device is the logical device used to initiate these
+             * resources.
+             * @param p_info is the configuration for creating the descriptor
+             * set.
+             * - .slot:             specifying the index to this particular
+             * resource (layout(set = N, binding = X)).
+             * - .max_sets:         Maximum number of descriptors allowed in the
+             * pool.
+             * - .entries:          Arbitrary of descriptor entries defining in
+             * each resource slot.
+             * - .type:             Buffer/Image type (e.g. uniform)
+             * - .descriptor_count: Count of elements (1 for single, >1 or
+             * arrays).
+             * - .binding_point:    Actual binding index specified in the
+             * shader.
+             * - .stage:            Shader stage allowed to access this
+             * resource.
+             *
+             *
+             * [ Descriptor Pool ]          [ Descriptor Layout ]
+             * +---------------------+      +---------------------------+
+             * | [ UBO Memory Slot ] |      | Binding 0: Uniform Buffer |
+             * | [ Sampler Slot]     |      | Binding 1: Tex Sampler    |
+             * +---------------------+      +---------------------------+
+             * |                           |
+             * \__________________________/
+             * |
+             * V
+             * [ Descriptor Set Handle]
+             *
+             *
+             * Example Usage:
+             *
+             * ```C++
+             *
+             * std::array<vk::descriptor_entry, 2> entries = {
+             *   vk::descriptor_entry{
+             *      .type = vk::descriptor_type::uniform, .binding_point = {
+             *      .binding = 0,
+             *      .stage = vk::shader_stage::vertex,
+             *    },
+             *    .descriptor_count = 1,
+             *  },
+             *  vk::descriptor_entry{
+             *   .type = vk::descriptor_type::combined_image_sampler,
+             *   .binding_point = {
+             *      .binding = 1,
+             *      .stage = vk::shader_stage::fragment,
+             *   },
+             *   .descriptor_count = 1,
+             *  },
+             * };
+             * vk::descriptor_layout layout = {
+             *      .slot = 0,
+             *      .max_sets = 2,
+             *      .entries = entries,
+             * };
+             * vk::descriptor_resource set0(logical_device, layout);
+             * ```
+             *
+             */
+            descriptor_resource(
+              const VkDevice& p_device,
+              const descriptor_layout& p_info,
+              descriptor_layout_flags p_flags = descriptor_layout_flags::none)
+              : m_device(p_device)
+              , m_slot(p_info.slot) {
+                std::vector<VkDescriptorPoolSize> pool_sizes(
+                  p_info.entries.size());
+                std::vector<VkDescriptorSetLayoutBinding>
+                  descriptor_layout_bindings(p_info.entries.size());
 
                 for (size_t i = 0; i < pool_sizes.size(); i++) {
-                    VkDescriptorType descriptor_type = static_cast<VkDescriptorType>(p_info.entries[i].type);
+                    VkDescriptorType descriptor_type =
+                      static_cast<VkDescriptorType>(p_info.entries[i].type);
                     pool_sizes[i] = {
                         .type = descriptor_type,
                         .descriptorCount =
-                        static_cast<uint32_t>(p_info.entries[i].descriptor_count) *
-                        p_info.max_sets,
+                          static_cast<uint32_t>(
+                            p_info.entries[i].descriptor_count) *
+                          p_info.max_sets,
                     };
                 }
 
@@ -46,98 +136,195 @@ export namespace vk {
                     descriptor_entry entry = p_info.entries[i];
                     descriptor_binding_point bind = entry.binding_point;
 
-                    VkDescriptorType type = static_cast<VkDescriptorType>(entry.type);
+                    VkDescriptorType type =
+                      static_cast<VkDescriptorType>(entry.type);
 
                     descriptor_layout_bindings[i] = {
                         .binding = bind.binding,
                         .descriptorType = type,
                         .descriptorCount = entry.descriptor_count,
-                        .stageFlags = static_cast<VkShaderStageFlags>(bind.stage),
+                        .stageFlags =
+                          static_cast<VkShaderStageFlags>(bind.stage),
                     };
                 }
 
                 VkDescriptorPoolCreateInfo pool_ci = {
                     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
                     .pNext = nullptr,
-                    .flags = 0,
+                    .flags = static_cast<VkDescriptorPoolCreateFlags>(
+                      (p_flags ==
+                       descriptor_layout_flags::update_after_bind_pool)
+                        ? VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT
+                        : 0),
                     .maxSets = p_info.max_sets,
                     .poolSizeCount = static_cast<uint32_t>(pool_sizes.size()),
                     .pPoolSizes = pool_sizes.data()
                 };
 
                 vk_check(vkCreateDescriptorPool(
-                        m_device, &pool_ci, nullptr, &m_descriptor_pool),
-                        "vkCreateDescriptorPool");
+                           m_device, &pool_ci, nullptr, &m_descriptor_pool),
+                         "vkCreateDescriptorPool");
+
+                // For Descriptor Indexing
+                // Enable binding flags
+
+                std::vector<VkDescriptorBindingFlags> binding_flags(
+                  p_info.entries.size());
+
+                for (uint32_t i = 0; i < binding_flags.size(); i++) {
+                    binding_flags[i] = static_cast<VkDescriptorBindingFlags>(
+                      p_info.entries[i].flags);
+                }
+
+                VkDescriptorSetLayoutBindingFlagsCreateInfo
+                  descriptor_layout_binding_flags = {
+                      .sType =
+                        VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO,
+                      .bindingCount =
+                        static_cast<uint32_t>(binding_flags.size()),
+                      .pBindingFlags = binding_flags.data(),
+                  };
 
                 VkDescriptorSetLayoutCreateInfo descriptor_layout_ci = {
-                    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-                    .pNext = nullptr,
-                    .flags = 0,
+                    .sType =
+                      VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+                    .pNext = &descriptor_layout_binding_flags,
+                    .flags =
+                      static_cast<VkDescriptorSetLayoutCreateFlags>(p_flags),
                     .bindingCount =
-                    static_cast<uint32_t>(descriptor_layout_bindings.size()),
+                      static_cast<uint32_t>(descriptor_layout_bindings.size()),
                     .pBindings = descriptor_layout_bindings.data()
                 };
 
-                vk_check(
-                vkCreateDescriptorSetLayout(
-                    m_device, &descriptor_layout_ci, nullptr, &m_descriptor_layout),
-                "vkCreateDescriptorSetLayout");
+                vk_check(vkCreateDescriptorSetLayout(m_device,
+                                                     &descriptor_layout_ci,
+                                                     nullptr,
+                                                     &m_descriptor_layout),
+                         "vkCreateDescriptorSetLayout");
+
+                VkDescriptorSetVariableDescriptorCountAllocateInfo
+                  descriptor_variable_cound_info = {
+                      .sType =
+                        VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO,
+                      .descriptorSetCount =
+                        static_cast<uint32_t>(p_info.descriptor_counts.size()),
+                      .pDescriptorCounts = p_info.descriptor_counts.data(),
+                  };
+
                 VkDescriptorSetAllocateInfo descriptor_set_alloc_info = {
                     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-                    .pNext = nullptr,
+                    .pNext = (p_info.descriptor_counts.size() == 0)
+                               ? nullptr
+                               : &descriptor_variable_cound_info,
                     .descriptorPool = m_descriptor_pool,
                     .descriptorSetCount = 1,
                     .pSetLayouts = &m_descriptor_layout
                 };
 
                 vk_check(vkAllocateDescriptorSets(m_device,
-                                                &descriptor_set_alloc_info,
-                                                &m_descriptor_set),
-                        "vkAllocateDescriptorSets");
+                                                  &descriptor_set_alloc_info,
+                                                  &m_descriptor_set),
+                         "vkAllocateDescriptorSets");
             }
 
-            void bind(const VkCommandBuffer& p_current, const VkPipelineLayout& p_pipeline_layout) {
-                vkCmdBindDescriptorSets(p_current,
-                                VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                p_pipeline_layout,
-                                m_slot,
-                                1,
-                                &m_descriptor_set,
-                                0,
-                                nullptr);
-            }
-            
-            void update(std::span<const write_buffer_descriptor> p_uniforms, std::span<const write_image_descriptor> p_images={}) {
+            /**
+             * @brief Performs the operation to actual update the descriptor set
+             * handle with the uniforms data segments.
+             *
+             * This maps the uniform VkBuffer and VkImage handles to the
+             * specific logical bindings that are associated with the shader
+             * declarations.
+             *
+             * Without setting this, the descriptor set would be implied to
+             * contain empty slots and pointing (lookup) to nothing.
+             *
+             * @brief Additional Considerations:
+             * - Cannot update a descriptor set that is currently in used by a
+             * command buffer that is "in-flight" (executing on the GPU).
+             * - Resource type (e.g. combind_image_sampler) must match what has
+             * been defined in the `descriptor layout` for that `dst_binding`.
+             * - Buffer/Image handles must remain valid until the GPU has
+             * finished executing the cmomand buffer that is using this
+             * particular descriptor set.
+             *
+             *
+             * [ CPU Uniforms Handles ]                [ GPU Descriptor ]
+             * +--------------------+           +----------------------------+
+             * | write_buffer       | --maps--> | Binding 0: Buffer Ptr      |
+             * | (Handle + Offset)  |           | (Address: 0x00FF...)       |
+             * +--------------------+           +----------------------------+
+             * | write_image        | --maps--> | Binding 1: Image Ptr       |
+             * | (View + Sampler)   |           | (Layout: shader_read_only) |
+             * +--------------------+           +----------------------------+
+             * (Mapping CPU Data)                   (Active GPU Resources)
+             *
+             * [GLSL Shader]
+             * GLSL equivalent of the active GPU resources of the "GPU
+             * Descriptor"
+             * +-----------------------------------------------+
+             * | layout(set=N, binding = 0) uniform buffer {}; |
+             * | layout(set=N, binding = 1) sampler2D texture; |
+             * +-----------------------------------------------+
+             * (Executing GPU-visible Resources)
+             *
+             * Example Usage:
+             *
+             * ```C++
+             *
+             * vk::descriptor_resource set0(logical_device, layout);
+             *
+             * // Uniform Buffers Handle
+             * std::array<vk::write_buffer, 1> uniforms0 = {
+             *  vk::write_buffer{
+             *       .buffer = test_ubo,
+             *       .offset = 0,
+             *      .range = static_cast<uint32_t>(test_ubo.size_bytes()),
+             *  },
+             * };
+             * std::array<vk::write_buffer_descriptor, 1> uniforms = {
+             *  vk::write_buffer_descriptor{
+             *      .dst_binding = 0,
+             *      .uniforms = uniforms0,
+             *  },
+             * };
+             *
+             * // View + Samplers Handle
+             * std::array<vk::write_image, 1> samplers = {
+             *   vk::write_image{
+             *      .sampler = sampler,
+             *      .view = image_view,
+             *      .layout = vk::image_layout::shader_read_only_optimal,
+             *   },
+             * };
+             *
+             * // Specify image descriptor images/samplers to the descriptor
+             * std::array<vk::write_image_descriptor, 1> sample_images = {
+             *   vk::write_image_descriptor{
+             *     .dst_binding = 1,
+             *     .sample_images = samplers,
+             *   }
+             * };
+             * set0_resource.update(uniforms, sample_images);
+             * ```
+             *
+             */
+            void update(std::span<const write_buffer_descriptor> p_uniforms,
+                        std::span<const write_image_descriptor> p_images = {}) {
                 std::vector<VkWriteDescriptorSet> write_descriptors;
 
-                // uint32_t represent the destination bindings to those resources (uniforms and sample images)
-                std::unordered_map<uint32_t, std::vector<VkDescriptorBufferInfo>> buffer_infos;
-                std::unordered_map<uint32_t, std::vector<VkDescriptorImageInfo>> image_infos;
+                // uint32_t represent the destination bindings to those
+                // resources (uniforms and sample images)
+                std::unordered_map<uint32_t,
+                                   std::vector<VkDescriptorBufferInfo>>
+                  buffer_infos;
+                std::unordered_map<uint32_t, std::vector<VkDescriptorImageInfo>>
+                  image_infos;
 
                 // handle uniforms
-                for(const auto& ubo : p_uniforms) {
-                    for(const auto& uniform : ubo.uniforms) {
-                        buffer_infos[ubo.dst_binding].emplace_back(uniform.buffer, uniform.offset, uniform.range);
-                    }
-
-                    VkWriteDescriptorSet write_descriptor = {
-                        . sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                        .pNext = nullptr,
-                        .dstSet = m_descriptor_set,
-                        .dstBinding = ubo.dst_binding,
-                        .dstArrayElement = 0,
-                        .descriptorCount = static_cast<uint32_t>(buffer_infos[ubo.dst_binding].size()),
-                        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                        .pBufferInfo = buffer_infos[ubo.dst_binding].data(),
-                    };
-
-                    write_descriptors.emplace_back(write_descriptor);
-                }
-
-                for(const auto& ubo : p_images) {
-
-                    for(const auto& sample_image : ubo.sample_images) {
-                        image_infos[ubo.dst_binding].emplace_back(sample_image.sampler, sample_image.view, static_cast<VkImageLayout>(sample_image.layout));
+                for (const auto& ubo : p_uniforms) {
+                    for (const auto& uniform : ubo.uniforms) {
+                        buffer_infos[ubo.dst_binding].emplace_back(
+                          uniform.buffer, uniform.offset, uniform.range);
                     }
 
                     VkWriteDescriptorSet write_descriptor = {
@@ -146,8 +333,34 @@ export namespace vk {
                         .dstSet = m_descriptor_set,
                         .dstBinding = ubo.dst_binding,
                         .dstArrayElement = 0,
-                        .descriptorCount = static_cast<uint32_t>(image_infos[ubo.dst_binding].size()),
-                        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                        .descriptorCount = static_cast<uint32_t>(
+                          buffer_infos[ubo.dst_binding].size()),
+                        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                        .pBufferInfo = buffer_infos[ubo.dst_binding].data(),
+                    };
+
+                    write_descriptors.emplace_back(write_descriptor);
+                }
+
+                for (const auto& ubo : p_images) {
+
+                    for (const auto& sample_image : ubo.sample_images) {
+                        image_infos[ubo.dst_binding].emplace_back(
+                          sample_image.sampler,
+                          sample_image.view,
+                          static_cast<VkImageLayout>(sample_image.layout));
+                    }
+
+                    VkWriteDescriptorSet write_descriptor = {
+                        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                        .pNext = nullptr,
+                        .dstSet = m_descriptor_set,
+                        .dstBinding = ubo.dst_binding,
+                        .dstArrayElement = 0,
+                        .descriptorCount = static_cast<uint32_t>(
+                          image_infos[ubo.dst_binding].size()),
+                        .descriptorType =
+                          VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                         .pImageInfo = image_infos[ubo.dst_binding].data(),
                     };
 
@@ -155,13 +368,15 @@ export namespace vk {
                 }
 
                 vkUpdateDescriptorSets(
-                    m_device,
-                    static_cast<uint32_t>(write_descriptors.size()),
-                    write_descriptors.data(),
-                    0,
-                    nullptr);
-                
-                // Ensures to clear up so we dont have any existing handles because they only need to exist until we've updated the descriptors
+                  m_device,
+                  static_cast<uint32_t>(write_descriptors.size()),
+                  write_descriptors.data(),
+                  0,
+                  nullptr);
+
+                // Ensures to clear up so we dont have any existing handles
+                // because they only need to exist until we've updated the
+                // descriptors
                 buffer_infos.clear();
                 image_infos.clear();
             }
@@ -170,16 +385,21 @@ export namespace vk {
                 return m_descriptor_layout;
             }
 
-            void destroy() {
+            void destruct() {
                 if (m_descriptor_pool != nullptr) {
-                    vkDestroyDescriptorPool(m_device, m_descriptor_pool, nullptr);
+                    vkDestroyDescriptorPool(
+                      m_device, m_descriptor_pool, nullptr);
                 }
 
                 if (m_descriptor_layout != nullptr) {
                     vkDestroyDescriptorSetLayout(
-                    m_device, m_descriptor_layout, nullptr);
+                      m_device, m_descriptor_layout, nullptr);
                 }
             }
+
+            operator VkDescriptorSet() const { return m_descriptor_set; }
+
+            operator VkDescriptorSet() { return m_descriptor_set; }
 
         private:
             VkDevice m_device = nullptr;

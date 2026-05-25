@@ -1,0 +1,20 @@
+name: 🛠️ CI
+
+on: [pull_request]
+
+jobs:
+  clang-format:
+    uses: ./.github/workflows/clang-format-deploy.yml
+    secrets: inherit
+
+  windows:
+    uses: ./.github/workflows/windows.yml
+    secrets: inherit
+
+  linux:
+    uses: ./.github/workflows/linux.yml
+    secrets: inherit
+
+  mac-armv8:
+    uses: ./.github/workflows/mac.yml
+    secrets: inherit
