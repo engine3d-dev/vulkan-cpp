@@ -32,8 +32,6 @@ import vk;
 #include <stb_image.h>
 #endif
 
-#include <stdio.h>
-
 static VKAPI_ATTR VkBool32 VKAPI_CALL
 debug_callback(
   [[maybe_unused]] VkDebugUtilsMessageSeverityFlagBitsEXT p_message_severity,
@@ -329,8 +327,6 @@ main() {
         std::print("glfwInit could not be initialized!\n");
         return -1;
     }
-
-    typedef unsigned long testing_flags;
 
     if (!glfwVulkanSupported()) {
         std::print("GLFW: Vulkan is not supported!");
