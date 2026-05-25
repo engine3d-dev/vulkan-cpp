@@ -3,6 +3,10 @@ name: 🛠️ Continous Integration
 on: [pull_request]
 
 jobs:
+  # Setting up this environment first
+  setup_environments:
+    uses: ./.github/workflows/platform-config.yml
+    secrets: inherit
   windows:
     uses: ./.github/workflows/windows.yml
     secrets: inherit

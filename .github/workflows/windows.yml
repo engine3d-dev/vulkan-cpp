@@ -1,44 +1,92 @@
 name: Windows
 
 # workflow_call to have linux.yml be able to be invoked by ci.yml
-on: [workflow_call]
+# on: [workflow_call]
+on:
+  workflow_call:
+    inputs:
+      cache-key:
+        required: true
+        type: string
 
+
+# jobs:
+#   setup-environments:
+#     uses: ./.github/workflows/platform-config.yml
+#     secrets: inherit
+#   windows-build:
+#       needs: setup-environments
+#       runs-on: windows-latest
+#       steps:
+#         - uses: actions/checkout@v4
+
+#         - name: Restore Windows Environment Cache
+#           uses: actions/cache@v4
+#           with:
+#             path: |
+#               AppData\Local\pip\Cache
+#               .conan2
+#               vulkan_sdk
+#             key: ${{ needs.setup-environments.outputs.cache-key-windows }}
+
+#         - name: Expose Tools to Linux Environment
+#           run: |
+#             echo "$HOME/.local/bin" >> $GITHUB_PATH
+#             echo "$HOME/.conan2" >> $GITHUB_PATH
+#             echo "${{ github.workspace }}/vulkan_sdk/bootstrapped/bin" >> $GITHUB_PATH
+#             echo "VULKAN_SDK=${{ github.workspace }}/vulkan_sdk/bootstrapped" >> $GITHUB_ENV
+
+
+#         - name: Creating Release build for vulkan-cpp
+#           shell: pwsh
+#           run: conan atlas create . -s build_type=Release
+        
+#         - name: Creating Debug build for vulkan-cpp
+#           shell: pwsh
+#           run: conan atlas create . -s build_type=Debug
+
+#         - name: Creating MinSizeRel build for vulkan-cpp
+#           shell: pwsh
+#           run: conan atlas create . -s build_type=MinSizeRel
 
 jobs:
-  setup-environments:
-    uses: ./.github/workflows/platform-config.yml
-    secrets: inherit
   windows-build:
-      needs: setup-environments
-      runs-on: windows-latest
-      steps:
-        - uses: actions/checkout@v4
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
 
-        - name: Restore Windows Environment Cache
-          uses: actions/cache@v4
-          with:
-            path: |
-              AppData\Local\pip\Cache
-              .conan2
-              vulkan_sdk
-            key: ${{ needs.setup-environments.outputs.cache-key-windows }}
+      - name: Restore Windows Environment Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~\AppData\Local\Packages\PythonSoftwareFoundation*
+            ~\AppData\Local\Programs\Python*
+            ~\.conan2
+            ${{ github.workspace }}\vulkan_sdk
+          key: ${{ inputs.cache-key }}
 
-        - name: Expose Tools to Linux Environment
-          run: |
-            echo "$HOME/.local/bin" >> $GITHUB_PATH
-            echo "$HOME/.conan2" >> $GITHUB_PATH
-            echo "${{ github.workspace }}/vulkan_sdk/bootstrapped/bin" >> $GITHUB_PATH
-            echo "VULKAN_SDK=${{ github.workspace }}/vulkan_sdk/bootstrapped" >> $GITHUB_ENV
+      - name: Expose Tools to Windows Environment
+        shell: pwsh
+        run: |
+          # Dynamically locate where conan.exe lives inside the restored paths
+          $ConanBin = (Get-ChildItem -Path ~\AppData\Local -Filter conan.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
+          if ($ConanBin) {
+              $ConanDir = Split-Path -Path $ConanBin -Parent
+              echo "$ConanDir" >> $ENV:GITHUB_PATH
+          }
+          
+          # Expose Vulkan SDK
+          echo "${{ github.workspace }}\vulkan_sdk\bootstrapped\bin" >> $ENV:GITHUB_PATH
+          echo "VULKAN_SDK=${{ github.workspace }}\vulkan_sdk\bootstrapped" >> $ENV:GITHUB_ENV
 
-
-        - name: Creating Release build for vulkan-cpp
-          shell: pwsh
-          run: conan atlas create . -s build_type=Release
+      - name: Creating Release build for vulkan-cpp
+        shell: pwsh
+        run: conan atlas create . -s build_type=Release
         
-        - name: Creating Debug build for vulkan-cpp
-          shell: pwsh
-          run: conan atlas create . -s build_type=Debug
+      - name: Creating Debug build for vulkan-cpp
+        shell: pwsh
+        run: conan atlas create . -s build_type=Debug
 
-        - name: Creating MinSizeRel build for vulkan-cpp
-          shell: pwsh
-          run: conan atlas create . -s build_type=MinSizeRel
+      - name: Creating MinSizeRel build for vulkan-cpp
+        shell: pwsh
+        run: conan atlas create . -s build_type=MinSizeRel

@@ -3,17 +3,127 @@ name: Platform Configuration
 on:
     workflow_call:
         outputs:
-            cache-key-linux:
-                description: "Cached Key for the Ubuntu Environment"
-                value: ${{ jobs.ubuntu-setup.outputs.cache-key }}
-            cache-key-windows:
+          cache-key-windows:
                 description: "Cached Key for the Windows Environment"
                 value: ${{ jobs.windows-setup.outputs.cache-key }}
-            cache-key-mac:
-                description: "Cached Key for the Apple Silicon Armv8 Environment"
-                value: ${{ jobs.armv8-setup.outputs.cache-key }}
+            # cache-key-linux:
+            #     description: "Cached Key for the Ubuntu Environment"
+            #     value: ${{ jobs.ubuntu-setup.outputs.cache-key }}
+            # cache-key-mac:
+            #     description: "Cached Key for the Apple Silicon Armv8 Environment"
+            #     value: ${{ jobs.armv8-setup.outputs.cache-key }}
 
 jobs:
+  windows-setup:
+    runs-on: windows-latest
+    outputs:
+      cache-key: ${{ steps.cache-info.outputs.key }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate Cache Key Info
+        id: cache-info
+        shell: pwsh
+        run: echo "key=windows-setup-${{ runner.os }}-${{ github.run_id }}" >> $ENV:GITHUB_OUTPUT
+
+      - name: Check Cache
+        id: cache-env
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~\AppData\Local\Packages\PythonSoftwareFoundation*
+            ~\AppData\Local\Programs\Python*
+            ~\.conan2
+            ${{ github.workspace }}\vulkan_sdk
+          key: ${{ steps.cache-info.outputs.key }}
+          restore-keys: |
+            windows-setup-${{ runner.os }}-
+
+      - name: Install Vulkan SDK
+        if: steps.cache-env.outputs.cache-hit != 'true'
+        uses: humbletim/setup-vulkan-sdk@v1.2.1
+        with:
+          vulkan-query-version: 1.4.304.1
+          vulkan-components: Vulkan-Headers, Vulkan-Loader
+          destination: ${{ github.workspace }}\vulkan_sdk
+
+      - name: Pip installing conan
+        if: steps.cache-env.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          pip install conan
+          # Find out exactly where conan.exe was installed and write it to a marker file
+          $ConanPath = (Get-Command conan.exe -ErrorAction SilentlyContinue).Source
+          if (-not $ConanPath) {
+              $ConanPath = (Get-ChildItem -Path ~\AppData\Local -Filter conan.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
+          }
+          $ConanDir = Split-Path -Path $ConanPath -Parent
+          New-Item -ItemType Directory -Force -Path .github\artifacts
+          Out-File -FilePath .github\artifacts\conan_path.txt -InputObject $ConanDir
+          
+      - name: Setting up Conan configuration
+        if: steps.cache-env.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          $ConanPath = Get-Content -Path .github\artifacts\conan_path.txt
+          & "$ConanPath\conan" config install https://github.com/engine3d-dev/conan-config.git
+          & "$ConanPath\conan" atlas setup
+
+# jobs:
+#   windows-setup:
+#     runs-on: windows-latest
+#     outputs:
+#       cache-key: ${{ steps.cache-info.outputs.key }}
+#     steps:
+#       - uses: actions/checkout@v4
+
+#       # Windows runners use PowerShell (pwsh) by default, using the $ENV:GITHUB_OUTPUT syntax
+#       - name: Generate Cache Key Info
+#         id: cache-info
+#         shell: pwsh
+#         run: echo "key=windows-setup-${{ runner.os }}-${{ github.run_id }}" >> $ENV:GITHUB_OUTPUT
+
+#       - name: Check Cache
+#         id: cache-env
+#         uses: actions/cache@v4
+#         with:
+#           path: |
+#             AppData\Local\pip\Cache
+#             .conan2
+#             vulkan_sdk
+#           key: ${{ steps.cache-info.outputs.key }}
+#           restore-keys: |
+#             windows-setup-${{ runner.os }}-
+
+#       - name: Installing Choco & Git
+#         if: steps.cache-env.outputs.cache-hit != 'true'
+#         shell: pwsh
+#         run: |
+#           Set-ExecutionPolicy Bypass -Scope Process -Force
+#           [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+#           iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+#           choco install git -y
+
+#       - name: Install Vulkan SDK
+#         if: steps.cache-env.outputs.cache-hit != 'true'
+#         uses: humbletim/setup-vulkan-sdk@v1.2.1
+#         with:
+#           vulkan-query-version: 1.4.304.1
+#           vulkan-components: Vulkan-Headers, Vulkan-Loader
+#           destination: ${{ github.workspace }}\vulkan_sdk
+
+#       - name: Pip installing conan
+#         if: steps.cache-env.outputs.cache-hit != 'true'
+#         shell: pwsh
+#         run: pip install conan
+
+#       - name: Setting up Conan configuration
+#         if: steps.cache-env.outputs.cache-hit != 'true'
+#         shell: pwsh
+#         run: |
+#           conan config install https://github.com/engine3d-dev/conan-config.git
+#           conan atlas setup
   # ubuntu-setup:
   #   runs-on: ubuntu-latest
   #   outputs:
@@ -60,60 +170,6 @@ jobs:
   #         export PATH="$HOME/.local/bin:$PATH"
   #         conan config install https://github.com/engine3d-dev/conan-config.git
   #         conan atlas setup
-  
-  windows-setup:
-    runs-on: windows-latest
-    outputs:
-      cache-key: ${{ steps.cache-info.outputs.key }}
-    steps:
-      - uses: actions/checkout@v4
-
-      # Windows runners use PowerShell (pwsh) by default, using the $ENV:GITHUB_OUTPUT syntax
-      - name: Generate Cache Key Info
-        id: cache-info
-        shell: pwsh
-        run: echo "key=windows-setup-${{ runner.os }}-${{ github.run_id }}" >> $ENV:GITHUB_OUTPUT
-
-      - name: Check Cache
-        id: cache-env
-        uses: actions/cache@v4
-        with:
-          path: |
-            AppData\Local\pip\Cache
-            .conan2
-            vulkan_sdk
-          key: ${{ steps.cache-info.outputs.key }}
-          restore-keys: |
-            windows-setup-${{ runner.os }}-
-
-      - name: Installing Choco & Git
-        if: steps.cache-env.outputs.cache-hit != 'true'
-        shell: pwsh
-        run: |
-          Set-ExecutionPolicy Bypass -Scope Process -Force
-          [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
-          iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-          choco install git -y
-
-      - name: Install Vulkan SDK
-        if: steps.cache-env.outputs.cache-hit != 'true'
-        uses: humbletim/setup-vulkan-sdk@v1.2.1
-        with:
-          vulkan-query-version: 1.4.304.1
-          vulkan-components: Vulkan-Headers, Vulkan-Loader
-          destination: ${{ github.workspace }}\vulkan_sdk
-
-      - name: Pip installing conan
-        if: steps.cache-env.outputs.cache-hit != 'true'
-        shell: pwsh
-        run: pip install conan
-
-      - name: Setting up Conan configuration
-        if: steps.cache-env.outputs.cache-hit != 'true'
-        shell: pwsh
-        run: |
-          conan config install https://github.com/engine3d-dev/conan-config.git
-          conan atlas setup
     
   # armv8-setup:
   #   runs-on: macos-latest
