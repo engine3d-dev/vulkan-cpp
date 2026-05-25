@@ -18,17 +18,18 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           style: '' # Disables clang-format so it strictly runs clang-tidy
-          config-file: '.clang-tidy'
+          tidy_checks: '.clang-tidy'
           extensions: 'cpp,cppm,h,hpp' # common C++ file extensions
           files-changed-only: true
-          thread-comments: false
+          # thread-comments: false
+          thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
           # Ensure clang-tidy knows how to parse modern C++ headers/modules without a compile_commands.json
-          extra-args: '-x c++ -std=c++23 --config-file=.clang-tidy'
+          extra-args: '-x std=c++23'
 
       - name: Fail Build on Linter Deficiencies
-        # Fix evaluation check to ensure a rigorous boolean comparison
+        # Does a check if any of the given clang-tidy checks failed!
         if: steps.linter.outputs.checks-failed != '0'
         run: |
-          echo "Clang-Tidy detected architectural or style deficiencies."
+          echo "Failed clang-tidy linters check"
           echo "Total violations reported: ${{ steps.linter.outputs.checks-failed }}"
           exit 1
