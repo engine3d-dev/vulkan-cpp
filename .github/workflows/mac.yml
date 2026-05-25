@@ -5,7 +5,6 @@ on: [workflow_call]
 
 jobs:
     macos-build:
-        name: "M1 Mac Build"
         runs-on: macos-latest
         steps:
             - uses: actions/checkout@v4

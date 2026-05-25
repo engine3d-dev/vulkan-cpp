@@ -3,14 +3,14 @@ name: 🛠️ Continous Integration
 on: [pull_request]
 
 jobs:
-  run-windows-ci:
+  windows:
     uses: ./.github/workflows/windows.yml
     secrets: inherit
 
-  run-linux-ci:
+  linux:
     uses: ./.github/workflows/linux.yml
     secrets: inherit
 
-  run-mac-ci:
+  mac-armv8:
     uses: ./.github/workflows/mac.yml
     secrets: inherit

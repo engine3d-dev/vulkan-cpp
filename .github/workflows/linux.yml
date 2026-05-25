@@ -6,7 +6,6 @@ on: [workflow_call]
 
 jobs:
     linux-build:
-        name: "Linux-Build"
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
