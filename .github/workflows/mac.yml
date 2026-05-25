@@ -1,6 +1,7 @@
-name: Macos Platform Build
+name: Macos Armv8
 
-on: [pull_request, workflow_call]
+# workflow_call to have mac.yml be able to be invoked by ci.yml
+on: [workflow_call]
 
 jobs:
     macos-build:

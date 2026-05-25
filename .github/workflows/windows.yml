@@ -1,6 +1,7 @@
-name: Windows Platform Build
+name: Windows
 
-on: [pull_request, workflow_dispatch, workflow_call]
+# workflow_call to have linux.yml be able to be invoked by ci.yml
+on: [workflow_call]
 
 
 jobs:
