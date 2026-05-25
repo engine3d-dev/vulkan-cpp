@@ -17,12 +17,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           style: '' # Disables clang-format so it strictly runs clang-tidy
-          tidy-checks: '.clang-tidy'
+          # tidy-checks: '.clang-tidy'
           extensions: 'cpp,cppm,h,hpp' # common C++ file extensions
           # files-changed-only: true
           thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
           # Ensure clang-tidy knows how to parse modern C++ headers/modules without a compile_commands.json
-          extra-args: '-Wall -Wextra -Werror -std=c++23'
+          extra-args: '-Wall -Wextra -Werror -std=c++23 --config-file=.clang-tidy'
 
       - name: Failed fast?!
         # Does a check if any of the given clang-tidy checks failed!
