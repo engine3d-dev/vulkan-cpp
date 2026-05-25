@@ -65,17 +65,38 @@ jobs:
             ${{ github.workspace }}\vulkan_sdk
           key: ${{ inputs.cache-key }}
 
+      # - name: Expose Tools to Windows Environment
+      #   shell: pwsh
+      #   run: |
+      #     # Dynamically locate where conan.exe lives inside the restored paths
+      #     $ConanBin = (Get-ChildItem -Path ~\AppData\Local -Filter conan.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
+      #     if ($ConanBin) {
+      #         $ConanDir = Split-Path -Path $ConanBin -Parent
+      #         echo "$ConanDir" >> $ENV:GITHUB_PATH
+      #     }
+          
+      #     # Expose Vulkan SDK
+      #     echo "${{ github.workspace }}\vulkan_sdk\bootstrapped\bin" >> $ENV:GITHUB_PATH
+      #     echo "VULKAN_SDK=${{ github.workspace }}\vulkan_sdk\bootstrapped" >> $ENV:GITHUB_ENV
       - name: Expose Tools to Windows Environment
         shell: pwsh
         run: |
-          # Dynamically locate where conan.exe lives inside the restored paths
-          $ConanBin = (Get-ChildItem -Path ~\AppData\Local -Filter conan.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
-          if ($ConanBin) {
-              $ConanDir = Split-Path -Path $ConanBin -Parent
-              echo "$ConanDir" >> $ENV:GITHUB_PATH
+          # 1. Ask Python directly where its Scripts/bin directory is
+          $PythonScriptsDir = python -c "import sysconfig; print(sysconfig.get_path('scripts'))"
+          
+          if (Test-Path "$PythonScriptsDir\conan.exe") {
+              echo "Found conan inside Python Scripts: $PythonScriptsDir"
+              echo "$PythonScriptsDir" >> $ENV:GITHUB_PATH
+          } else {
+              # Fallback: Deep scan the hosted tool cache just in case
+              $FallbackBin = (Get-ChildItem -Path C:\hostedtoolcache\windows\Python -Filter conan.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
+              if ($FallbackBin) {
+                  $FallbackDir = Split-Path -Path $FallbackBin -Parent
+                  echo "$FallbackDir" >> $ENV:GITHUB_PATH
+              }
           }
           
-          # Expose Vulkan SDK
+          # 2. Expose Vulkan SDK
           echo "${{ github.workspace }}\vulkan_sdk\bootstrapped\bin" >> $ENV:GITHUB_PATH
           echo "VULKAN_SDK=${{ github.workspace }}\vulkan_sdk\bootstrapped" >> $ENV:GITHUB_ENV
 
