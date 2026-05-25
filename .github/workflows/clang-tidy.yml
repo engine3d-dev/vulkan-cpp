@@ -8,9 +8,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-          fetch-depth: 0
 
       - uses: cpp-linter/cpp-linter-action@v2
         id: linter
@@ -18,15 +15,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           style: '' # Disables clang-format so it strictly runs clang-tidy
-          tidy_checks: '.clang-tidy'
+          tidy-checks: '.clang-tidy'
           extensions: 'cpp,cppm,h,hpp' # common C++ file extensions
-          files-changed-only: true
-          # thread-comments: false
+          # files-changed-only: true
           thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
           # Ensure clang-tidy knows how to parse modern C++ headers/modules without a compile_commands.json
-          extra-args: '-x std=c++23'
+          extra-args: '-Wall -Wextra -Werror std=c++23'
 
-      - name: Fail Build on Linter Deficiencies
+      - name: Failed fast?!
         # Does a check if any of the given clang-tidy checks failed!
         if: steps.linter.outputs.checks-failed != '0'
         run: |
