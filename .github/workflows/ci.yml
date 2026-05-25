@@ -14,7 +14,7 @@ jobs:
     needs: setup_environments
     uses: ./.github/workflows/windows.yml
     with:
-      cache-key: ${{ needs.setup-environments.outputs.cache-key-windows }}
+      cache-key: ${{ needs.setup_environments.outputs.cache-key-windows }}
     secrets: inherit
 
 #   linux:

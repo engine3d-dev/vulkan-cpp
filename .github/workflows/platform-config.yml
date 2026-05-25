@@ -5,7 +5,7 @@ on:
         outputs:
           cache-key-windows:
                 description: "Cached Key for the Windows Environment"
-                value: ${{ jobs.windows-setup.outputs.cache-key }}
+                value: ${{ jobs.windows-setup.outputs.job-cache-key }}
             # cache-key-linux:
             #     description: "Cached Key for the Ubuntu Environment"
             #     value: ${{ jobs.ubuntu-setup.outputs.cache-key }}
@@ -16,8 +16,10 @@ on:
 jobs:
   windows-setup:
     runs-on: windows-latest
+    # outputs:
+    #   cache-key: ${{ steps.cache-info.outputs.key }}
     outputs:
-      cache-key: ${{ steps.cache-info.outputs.key }}
+      job-cache-key: ${{ steps.cache-info.outputs.key }}
     steps:
       - uses: actions/checkout@v4
 
