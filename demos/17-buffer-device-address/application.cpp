@@ -327,7 +327,9 @@ main() {
         std::print("glfwInit could not be initialized!\n");
         return -1;
     }
-    const int x = 10;
+
+    typedef unsigned long testing_flags;
+
     if (!glfwVulkanSupported()) {
         std::print("GLFW: Vulkan is not supported!");
         return -1;
