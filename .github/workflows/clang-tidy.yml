@@ -7,26 +7,27 @@ jobs:
   cpp-linter:
     runs-on: ubuntu-latest
     steps:
-      # - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - uses: cpp-linter/cpp-linter-action@main
+          fetch-depth: 0
+
+      - uses: cpp-linter/cpp-linter-action@v2
         id: linter
-        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          style: ''
-          tidy-checks: '.clang-tidy'
-          extensions: 'cpp, cppm'
+          style: '' # Disables clang-format so it strictly runs clang-tidy
+          extensions: 'cpp,cppm,h,hpp' # Added headers and cppm modules
           files-changed-only: true
           thread-comments: false
-          extra-args: '-std=c++23'
+          # Ensure clang-tidy knows how to parse modern C++ headers/modules without a compile_commands.json
+          extra-args: '-x c++ -std=c++23' 
 
-      - name: Fail fast?!
-        if: ${{ steps.linter.outputs.checks-failed > 0 }}
+      - name: Fail Build on Linter Deficiencies
+        # Fix evaluation check to ensure a rigorous boolean comparison
+        if: steps.linter.outputs.checks-failed != '0'
         run: |
-          echo "some linter checks failed. ${{ steps.linter.outputs.checks-failed }}"
-          # for actual deployment
+          echo "Clang-Tidy detected architectural or style deficiencies."
+          echo "Total violations reported: ${{ steps.linter.outputs.checks-failed }}"
           exit 1
