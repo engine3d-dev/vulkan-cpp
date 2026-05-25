@@ -7,8 +7,14 @@ jobs:
   setup_environments:
     uses: ./.github/workflows/platform-config.yml
     secrets: inherit
+  # windows:
+  #   uses: ./.github/workflows/windows.yml
+  #   secrets: inherit
   windows:
+    needs: setup_environments
     uses: ./.github/workflows/windows.yml
+    with:
+      cache-key: ${{ needs.setup-environments.outputs.cache-key-windows }}
     secrets: inherit
 
 #   linux:
