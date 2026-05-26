@@ -1,7 +1,6 @@
-
 name: 🚀 Deployment
 
-# Trigger deployment CI when PRs get merged to main (production branch)
+# Deploy to JFrog artifactory when PR successfully merges to the main branch
 on:
   pull_request:
     types: [closed]
@@ -11,7 +10,7 @@ on:
 
 jobs:
   windows:
-    uses: engine3d-dev/ci/.github/workflows/windows.yml@main
+    uses: engine3d-dev/ci/.github/workflows/deploy_windows.yml@main
     with:
       package_name: "vulkan-cpp"
       version: "6.0"
