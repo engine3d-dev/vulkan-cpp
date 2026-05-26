@@ -1,0 +1,31 @@
+name: 🚀 Deployment
+
+# Deploy to JFrog artifactory when PR successfully merges to the main branch
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+  workflow_call:
+
+jobs:
+  windows:
+    uses: engine3d-dev/ci/.github/workflows/deploy_windows.yml@main
+    with:
+      package_name: "vulkan-cpp"
+      version: "6.0"
+    secrets: inherit
+
+  linux:
+    uses: engine3d-dev/ci/.github/workflows/deploy_linux.yml@main
+    with:
+      package_name: "vulkan-cpp"
+      version: "6.0"
+    secrets: inherit
+
+  mac:
+    uses: engine3d-dev/ci/.github/workflows/deploy_mac.yml@main
+    with:
+      package_name: "vulkan-cpp"
+      version: "6.0"
+    secrets: inherit
