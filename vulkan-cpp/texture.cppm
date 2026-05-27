@@ -19,7 +19,7 @@ export namespace vk {
 
         class texture {
         public:
-            texture() = delete;
+            texture() = default;
 
             texture(const VkDevice& p_device,
                     const image_extent& p_extent,
