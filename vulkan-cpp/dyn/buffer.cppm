@@ -14,7 +14,7 @@ export namespace vk::dyn {
 
     class buffer {
     public:
-        buffer() = delete;
+        buffer() = default;
 
         buffer(const VkDevice& p_device,
                uint64_t p_device_size,

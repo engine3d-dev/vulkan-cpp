@@ -22,7 +22,8 @@ export namespace vk {
          */
         class instance {
         public:
-            instance() = delete("Disallow constructing empty vk::instance");
+            // instance() = delete("Disallow constructing empty vk::instance");
+            instance() = default;
 
             /**
              * @param p_config sets the application information that vulkan has
