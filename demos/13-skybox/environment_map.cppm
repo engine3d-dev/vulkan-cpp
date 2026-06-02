@@ -81,9 +81,6 @@ public:
             .memory_mask = m_physical_device->memory_properties(
               vk::memory_property::host_visible_bit |
               vk::memory_property::host_cached_bit),
-            .property_flags = static_cast<vk::memory_property>(
-              vk::memory_property::host_visible_bit |
-              vk::memory_property::host_cached_bit),
             .usage = vk::buffer_usage::transfer_src_bit,
         };
 
@@ -104,11 +101,6 @@ public:
         m_skybox_image = vk::sample_image(m_device, skybox_image_params);
 
         // Transferring data from the CPU
-        // void* data = nullptr;
-        // vkMapMemory(m_device, staging_memory, 0, total_size_bytes, 0,
-        // &data); std::memcpy(data, pixels,
-        // static_cast<size_t>(total_size_bytes)); vkUnmapMemory(m_device,
-        // staging_memory);
         std::span<const uint8_t> pixels_data(
           reinterpret_cast<const uint8_t*>(pixels), image_size);
         staging_buffer.transfer(pixels_data);
@@ -331,8 +323,6 @@ public:
             .memory_mask = m_physical_device->memory_properties(
               vk::memory_property::host_visible_bit |
               vk::memory_property::host_cached_bit),
-            .property_flags = vk::memory_property::host_visible_bit |
-                              vk::memory_property::host_cached_bit,
             .usage = vk::buffer_usage::transfer_dst_bit |
                      vk::buffer_usage::vertex_buffer_bit,
         };

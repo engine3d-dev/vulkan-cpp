@@ -310,12 +310,10 @@ main() {
         }
     };
 
-    const auto property_flags =
-      static_cast<vk::memory_property>(vk::memory_property::host_visible_bit |
-                                       vk::memory_property::host_cached_bit);
     vk::buffer_parameters vertex_params = {
-        .memory_mask = physical_device.memory_properties(property_flags),
-        .property_flags = vk::memory_property::device_local_bit,
+        .memory_mask = physical_device.memory_properties(
+          vk::memory_property::device_local_bit |
+          vk::memory_property::host_visible_bit),
         .usage = vk::buffer_usage::transfer_dst_bit |
                  vk::buffer_usage::vertex_buffer_bit,
     };

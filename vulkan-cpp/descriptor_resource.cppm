@@ -273,11 +273,9 @@ export namespace vk {
              *
              * vk::descriptor_resource set0(logical_device, layout);
              *
-             * // Uniform Buffers Handle
-             * std::array<vk::write_buffer, 1> uniforms0 = {
-             *  vk::write_buffer{
-             *       .buffer = test_ubo,
-             *       .offset = 0,
+             * // Specify the uniform handles to perform update operations with
+             * the descriptor set specified std::array<vk::write_buffer, 1>
+             * uniforms0 = { vk::write_buffer{ .buffer = test_ubo, .offset = 0,
              *      .range = static_cast<uint32_t>(test_ubo.size_bytes()),
              *  },
              * };
@@ -320,7 +318,9 @@ export namespace vk {
                 std::unordered_map<uint32_t, std::vector<VkDescriptorImageInfo>>
                   image_infos;
 
-                // handle uniforms
+                // Reconfigure the VkWriteDescriptorBufferInfo with the
+                // parameters accroding vk::write_buffer_descriptor
+                // specifications
                 for (const auto& ubo : p_uniforms) {
                     for (const auto& uniform : ubo.uniforms) {
                         buffer_infos[ubo.dst_binding].emplace_back(
@@ -332,7 +332,7 @@ export namespace vk {
                         .pNext = nullptr,
                         .dstSet = m_descriptor_set,
                         .dstBinding = ubo.dst_binding,
-                        .dstArrayElement = 0,
+                        .dstArrayElement = ubo.dst_array_element,
                         .descriptorCount = static_cast<uint32_t>(
                           buffer_infos[ubo.dst_binding].size()),
                         .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
@@ -356,7 +356,7 @@ export namespace vk {
                         .pNext = nullptr,
                         .dstSet = m_descriptor_set,
                         .dstBinding = ubo.dst_binding,
-                        .dstArrayElement = 0,
+                        .dstArrayElement = ubo.dst_array_element,
                         .descriptorCount = static_cast<uint32_t>(
                           image_infos[ubo.dst_binding].size()),
                         .descriptorType =
@@ -375,8 +375,8 @@ export namespace vk {
                   nullptr);
 
                 // Ensures to clear up so we dont have any existing handles
-                // because they only need to exist until we've updated the
-                // descriptors
+                // because they only need to exist until we've updated this
+                // descriptor set in particular
                 buffer_infos.clear();
                 image_infos.clear();
             }

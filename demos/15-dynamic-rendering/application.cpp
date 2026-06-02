@@ -155,21 +155,15 @@ public:
         m_indices_size = vertices.size();
         m_indices_size = indices.size();
 
-        //! @brief Creating vertex/index buffers with host visibility flags
-        const auto property_flags = static_cast<vk::memory_property>(
-          vk::memory_property::host_visible_bit |
-          vk::memory_property::host_cached_bit);
-
         vk::buffer_parameters vertex_params = {
-            .memory_mask = p_physical.memory_properties(property_flags),
-            .property_flags = vk::memory_property::device_local_bit,
+            .memory_mask = p_physical.memory_properties(
+              vk::memory_property::device_local_bit),
             .usage = vk::buffer_usage::transfer_dst_bit |
                      vk::buffer_usage::vertex_buffer_bit,
         };
 
         vk::buffer_parameters index_params = {
-            .memory_mask = p_physical.memory_properties(property_flags),
-            .property_flags = static_cast<vk::memory_property>(
+            .memory_mask = p_physical.memory_properties(
               vk::memory_property::host_visible_bit |
               vk::memory_property::host_cached_bit),
             .usage = vk::buffer_usage::index_buffer_bit,
