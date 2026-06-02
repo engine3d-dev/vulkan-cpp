@@ -81,9 +81,9 @@ public:
             .memory_mask = m_physical_device->memory_properties(
               vk::memory_property::host_visible_bit |
               vk::memory_property::host_cached_bit),
-            .property_flags = static_cast<vk::memory_property>(
-              vk::memory_property::host_visible_bit |
-              vk::memory_property::host_cached_bit),
+            // .property_flags = static_cast<vk::memory_property>(
+            //   vk::memory_property::host_visible_bit |
+            //   vk::memory_property::host_cached_bit),
             .usage = vk::buffer_usage::transfer_src_bit,
         };
 
@@ -331,8 +331,8 @@ public:
             .memory_mask = m_physical_device->memory_properties(
               vk::memory_property::host_visible_bit |
               vk::memory_property::host_cached_bit),
-            .property_flags = vk::memory_property::host_visible_bit |
-                              vk::memory_property::host_cached_bit,
+            // .property_flags = vk::memory_property::host_visible_bit |
+            //                   vk::memory_property::host_cached_bit,
             .usage = vk::buffer_usage::transfer_dst_bit |
                      vk::buffer_usage::vertex_buffer_bit,
         };

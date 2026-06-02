@@ -1625,7 +1625,6 @@ export namespace vk {
 
         struct buffer_parameters {
             uint32_t memory_mask = 0;
-            memory_property property_flags;
             buffer_usage usage;
             memory_allocate_flags allocate_flags;
             VkSharingMode share_mode = VK_SHARING_MODE_EXCLUSIVE;

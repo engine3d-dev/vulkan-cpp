@@ -70,8 +70,8 @@ export namespace vk {
                 // Performing staging transfers
                 buffer_parameters staging_options = {
                     .memory_mask = img_options.memory_mask,
-                    .property_flags = memory_property::host_visible_bit |
-                                      memory_property::host_cached_bit,
+                    // .property_flags = memory_property::host_visible_bit |
+                    //                   memory_property::host_cached_bit,
                     .usage = buffer_usage::transfer_src_bit,
                 };
                 buffer staging(m_device, p_data.size(), staging_options);
@@ -157,13 +157,13 @@ export namespace vk {
                 m_image = sample_image(m_device, img_options);
 
                 // Setup staging buffer
-                uint32_t property_flag = memory_property::host_visible_bit |
-                                         memory_property::host_cached_bit;
+                // uint32_t property_flag = memory_property::host_visible_bit |
+                //                          memory_property::host_cached_bit;
 
                 buffer_parameters staging_options = {
                     .memory_mask = img_options.memory_mask,
-                    .property_flags =
-                      static_cast<memory_property>(property_flag),
+                    // .property_flags =
+                    //   static_cast<memory_property>(property_flag),
                     .usage = buffer_usage::transfer_src_bit,
                 };
                 buffer staging(
