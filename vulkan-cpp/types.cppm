@@ -1567,13 +1567,13 @@ export namespace vk {
 
         struct write_buffer_descriptor {
             uint32_t dst_binding;
-            uint32_t dst_array_element=0;
+            uint32_t dst_array_element = 0;
             std::span<const write_buffer> uniforms;
         };
 
         struct write_image_descriptor {
             uint32_t dst_binding;
-            uint32_t dst_array_element=0;
+            uint32_t dst_array_element = 0;
             std::span<const write_image> sample_images;
         };
 

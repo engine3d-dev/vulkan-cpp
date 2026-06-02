@@ -528,7 +528,8 @@ main() {
     // Creating vertex buffers
     vk::buffer_parameters vertex_params = {
         .memory_mask = physical_device.memory_properties(
-          vk::memory_property::device_local_bit | vk::memory_property::host_visible_bit),
+          vk::memory_property::device_local_bit |
+          vk::memory_property::host_visible_bit),
         .usage = vk::buffer_usage::transfer_dst_bit |
                  vk::buffer_usage::vertex_buffer_bit,
     };

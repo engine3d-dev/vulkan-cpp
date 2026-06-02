@@ -154,7 +154,8 @@ export namespace vk {
 
                 m_image = sample_image(m_device, img_options);
 
-                // Staging buffer to transfer CPU-visible data to GPU-visible handles
+                // Staging buffer to transfer CPU-visible data to GPU-visible
+                // handles
                 buffer_parameters staging_options = {
                     .memory_mask = img_options.memory_mask,
                     .usage = buffer_usage::transfer_src_bit,
