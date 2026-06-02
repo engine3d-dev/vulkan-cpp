@@ -1557,8 +1557,6 @@ export namespace vk {
         struct write_image {
             VkSampler sampler = nullptr;
             VkImageView view = nullptr;
-            // VkImageLayout
-            // image_layout=VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             image_layout layout;
         };
         struct write_buffer {
@@ -1569,11 +1567,13 @@ export namespace vk {
 
         struct write_buffer_descriptor {
             uint32_t dst_binding;
+            uint32_t dst_array_element=0;
             std::span<const write_buffer> uniforms;
         };
 
         struct write_image_descriptor {
             uint32_t dst_binding;
+            uint32_t dst_array_element=0;
             std::span<const write_image> sample_images;
         };
 
