@@ -35,9 +35,6 @@ export namespace vk {
                 // Staging buffer operations
                 buffer_parameters staging_buffer_params = {
                     .memory_mask = p_params.memory_mask,
-                    // .property_flags = static_cast<memory_property>(
-                    //   memory_property::host_visible_bit |
-                    //   memory_property::host_cached_bit),
                     .usage = buffer_usage::transfer_src_bit |
                              buffer_usage::storage_buffer_bit,
                     .debug_name = p_params.debug_name,
@@ -106,9 +103,6 @@ export namespace vk {
                 uint32_t usage = transfer | storage;
                 buffer_parameters staging_buffer_params = {
                     .memory_mask = p_params.memory_mask,
-                    // .property_flags = static_cast<memory_property>(
-                    //   memory_property::host_visible_bit |
-                    //   memory_property::host_cached_bit),
                     .usage = buffer_usage::transfer_src_bit |
                              buffer_usage::storage_buffer_bit,
                     .debug_name = p_params.debug_name,

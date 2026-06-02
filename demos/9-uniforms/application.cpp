@@ -368,17 +368,12 @@ main() {
           .color = { 1.0f, 1.0f, 1.0f },
         }
     };
-    // const auto property_flags =
-    //   static_cast<vk::memory_property>(vk::memory_property::host_visible_bit
-    //   |
-    //                                    vk::memory_property::host_cached_bit);
 
     // Creating vertex buffer
     vk::buffer_parameters vertex_params = {
         .memory_mask = physical_device.memory_properties(
           vk::memory_property::device_local_bit |
           vk::memory_property::host_visible_bit),
-        // .property_flags = vk::memory_property::device_local_bit,
         .usage = vk::buffer_usage::transfer_dst_bit |
                  vk::buffer_usage::vertex_buffer_bit,
     };
@@ -390,9 +385,6 @@ main() {
         .memory_mask = physical_device.memory_properties(
           vk::memory_property::host_visible_bit |
           vk::memory_property::host_cached_bit),
-        // .property_flags = static_cast<vk::memory_property>(
-        //   vk::memory_property::host_visible_bit |
-        //   vk::memory_property::host_cached_bit),
         .usage = vk::buffer_usage::index_buffer_bit,
     };
     vk::index_buffer test_ibo(logical_device, indices, index_params);
