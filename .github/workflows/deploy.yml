@@ -13,19 +13,19 @@ jobs:
     uses: engine3d-dev/ci/.github/workflows/deploy_windows.yml@main
     with:
       package_name: "vulkan-cpp"
-      version: "6.1"
+      version: "6.2"
     secrets: inherit
 
   linux:
     uses: engine3d-dev/ci/.github/workflows/deploy_linux.yml@main
     with:
       package_name: "vulkan-cpp"
-      version: "6.1"
+      version: "6.2"
     secrets: inherit
 
   mac:
     uses: engine3d-dev/ci/.github/workflows/deploy_mac.yml@main
     with:
       package_name: "vulkan-cpp"
-      version: "6.1"
+      version: "6.2"
     secrets: inherit

@@ -1,9 +1,10 @@
 module;
 
-#include <vulkan/vulkan.h>
-#include <vector>
-#include <span>
 #include <bit>
+#include <span>
+#include <vector>
+#include <vulkan/vulkan.h>
+#include <limits>
 
 export module vk:buffer_device_address;
 
@@ -56,8 +57,15 @@ export namespace vk::dyn {
               m_device, m_handle, &memory_requirements);
             uint32_t mapped_memory_requirements =
               memory_requirements.memoryTypeBits & p_params.memory_mask;
-            uint32_t memory_index =
-              std::countr_zero(mapped_memory_requirements);
+
+            uint32_t memory_index = std::numeric_limits<uint32_t>::max();
+            if (mapped_memory_requirements != 0) {
+                memory_index = std::countr_zero(mapped_memory_requirements);
+            }
+            else {
+                memory_index =
+                  std::countr_zero(memory_requirements.memoryTypeBits);
+            }
 
             // Required to be set for buffer device addresses
             VkMemoryAllocateInfo memory_alloc_info = {
@@ -83,26 +91,30 @@ export namespace vk::dyn {
             for (uint32_t i = 0; i < image_copies.size(); i++) {
                 const buffer_image_copy image_copy = p_copies[i];
                 image_copies[i] = {
-                    .bufferOffset = image_copy.offset,
-                    .bufferRowLength = image_copy.row_length,
-                    .bufferImageHeight = image_copy.image_height,
-                    .imageSubresource = {
-                        .aspectMask = static_cast<VkImageAspectFlags>(image_copy.aspect_mask),
-                        .mipLevel = image_copy.mip_level,
-                        .baseArrayLayer = image_copy.base_array_layer,
-                        .layerCount = image_copy.layer_count,
-                    },
-                    .imageOffset = {
-                        static_cast<int32_t>(image_copy.image_offset.width),
-                        static_cast<int32_t>(image_copy.image_offset.height),
-                        static_cast<int32_t>(image_copy.image_offset.depth),
-                    },
-                    .imageExtent = {
-                        image_copy.image_extent.width,
-                        image_copy.image_extent.height,
-                        image_copy.image_extent.depth,
-                    },
-                };
+          .bufferOffset = image_copy.offset,
+          .bufferRowLength = image_copy.row_length,
+          .bufferImageHeight = image_copy.image_height,
+          .imageSubresource =
+              {
+                  .aspectMask =
+                      static_cast<VkImageAspectFlags>(image_copy.aspect_mask),
+                  .mipLevel = image_copy.mip_level,
+                  .baseArrayLayer = image_copy.base_array_layer,
+                  .layerCount = image_copy.layer_count,
+              },
+          .imageOffset =
+              {
+                  static_cast<int32_t>(image_copy.image_offset.width),
+                  static_cast<int32_t>(image_copy.image_offset.height),
+                  static_cast<int32_t>(image_copy.image_offset.depth),
+              },
+          .imageExtent =
+              {
+                  image_copy.image_extent.width,
+                  image_copy.image_extent.height,
+                  image_copy.image_extent.depth,
+              },
+      };
             }
 
             vkCmdCopyBufferToImage(p_command,
@@ -171,4 +183,4 @@ export namespace vk::dyn {
         VkBuffer m_handle = nullptr;
         VkDeviceMemory m_device_memory;
     };
-};
+}; // namespace vk::dyn

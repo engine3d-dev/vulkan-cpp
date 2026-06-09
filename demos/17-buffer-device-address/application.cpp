@@ -377,7 +377,7 @@ main() {
     // setting up physical device
 
     std::expected<vk::physical_device, VkResult> physical_device_expected =
-      api_instance.enumerate_physical_device(vk::physical_gpu::integrated);
+      api_instance.enumerate_physical_device(vk::physical_gpu::discrete);
     vk::physical_device physical_device = physical_device_expected.value();
 
     // setting up logical device
