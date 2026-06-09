@@ -58,7 +58,7 @@ export namespace vk {
                 }
                 else {
                     memory_index =
-                    std::countr_zero(memory_requirements.memoryTypeBits);
+                      std::countr_zero(memory_requirements.memoryTypeBits);
                 }
 
                 VkMemoryAllocateInfo memory_alloc_info = {

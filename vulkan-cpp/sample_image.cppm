@@ -85,7 +85,7 @@ export namespace vk {
                 }
                 else {
                     memory_index =
-                    std::countr_zero(memory_requirements.memoryTypeBits);
+                      std::countr_zero(memory_requirements.memoryTypeBits);
                 }
 
                 // 4. Allocate info
