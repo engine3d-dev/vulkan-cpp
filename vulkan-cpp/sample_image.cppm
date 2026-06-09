@@ -4,6 +4,7 @@ module;
 #include <span>
 #include <vector>
 #include <bit>
+#include <limits>
 
 export module vk:sample_image;
 
@@ -78,8 +79,14 @@ export namespace vk {
                   p_image_params.memory_mask;
 
                 // Retrieving the next available bits that have been mapped
-                uint32_t memory_index =
-                  std::countr_zero(mapped_memory_requirements);
+                uint32_t memory_index = std::numeric_limits<uint32_t>::max();
+                if (mapped_memory_requirements != 0) {
+                    memory_index = std::countr_zero(mapped_memory_requirements);
+                }
+                else {
+                    memory_index =
+                      std::countr_zero(memory_requirements.memoryTypeBits);
+                }
 
                 // 4. Allocate info
                 VkMemoryAllocateInfo memory_alloc_info = {

@@ -4,6 +4,7 @@ module;
 #include <span>
 #include <vector>
 #include <bit>
+#include <limits>
 
 export module vk:buffer;
 
@@ -63,8 +64,14 @@ export namespace vk {
                   m_device, m_handle, &memory_requirements);
                 uint32_t mapped_memory_requirements =
                   memory_requirements.memoryTypeBits & p_params.memory_mask;
-                uint32_t memory_index =
-                  std::countr_zero(mapped_memory_requirements);
+                uint32_t memory_index = std::numeric_limits<uint32_t>::max();
+                if (mapped_memory_requirements != 0) {
+                    memory_index = std::countr_zero(mapped_memory_requirements);
+                }
+                else {
+                    memory_index =
+                      std::countr_zero(memory_requirements.memoryTypeBits);
+                }
 
                 VkMemoryAllocateInfo memory_alloc_info = {
                     .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
