@@ -141,7 +141,7 @@ export namespace vk {
             /**
              * @brief writing uniforms that are represented into bytes
              * @param p_data are the bytes to allow GPU to access
-             * 
+             *
              * Example Usage:
              * ```C++
              * buffers staging_buffer(logical_device, ...);
@@ -165,36 +165,68 @@ export namespace vk {
                 vkUnmapMemory(m_device, m_device_memory);
             }
 
-
             /**
-             * @brief transferring multiple ranges of data under a single `vkMapMemory`/`vkUnmapMemory` invocation
-             * 
-             * 
+             * @brief Transfer CPU-accessible data from a sub-range of buffers
+             * into a single underlying staging allocation
+             *
+             * Single mapping block to gather multiple sub-range of data from
+             * the host then transferring them sequentially into device-visible
+             * memory, calculating the offsets with the bytes of those
+             * sub-ranges.
+             *
+             * @tparam Range must satisfies the forward_range<Range> concept
+             * @param p_range collection of data sources (containers of spans,
+             * vectors, arrays, etc) to transfer.
+             * @param p_offset is the base offset into the Vulkan device memory
+             * allocation where the mapping begins
+             *
+             * @brief Requirements to perform this operation
+             * - p_range: Must be a valid contiguous buffer (std::span) to
+             * determine their underlying bytes.
+             * - alignment: sub-ranges are assumed to be tightly packed by
+             * default.
+             *
+             * @brief Layout of data stored in host-visible memory during
+             * serialization
+             *
+             * [ base offset ........................................ end ]
+             * |--- Data 0 --|-- Data 1 --|-- Data 2 --| ... |-- Data N --|
+             * \____________/\___________/\___________/      \___________/
+             * offset = 0      size[0]     size[0]+size[1]
+             *
              * Example Usage:
-             * 
+             *
              * ```C++
-             * // Under single vkMapMemory call writes all 6 contiguous chunks of data to one staging buffer
-             * std::array<std::span<uint8_t>, 6> skybox_faces = m_skybox.faces();
+             * // Under single vkMapMemory call writes all 6 contiguous chunks
+             * of data to one staging buffer std::array<std::span<uint8_t>, 6>
+             * skybox_faces = m_skybox.faces();
              * staging_buffer.transfer(skybox_faces);
              * ```
-             * 
-            */
-            template<typename Range> requires std::ranges::forward_range<Range>
-            void transfer(Range&& p_range, uint64_t p_offset=0) {
+             *
+             */
+            template<typename Range>
+                requires std::ranges::forward_range<Range>
+            void transfer(Range&& p_range, uint64_t p_offset = 0) {
                 uint64_t total_size = 0;
 
-                for(const auto& data : p_range) {
+                for (const auto& data : p_range) {
                     total_size += std::span(data).size_bytes();
                 }
 
-                void* mapped=nullptr;
-                vk_check(vkMapMemory(m_device, m_device_memory, p_offset, total_size, 0, &mapped), "vkMapMemory");
+                void* mapped = nullptr;
+                vk_check(vkMapMemory(m_device,
+                                     m_device_memory,
+                                     p_offset,
+                                     total_size,
+                                     0,
+                                     &mapped),
+                         "vkMapMemory");
 
                 auto* bytes = static_cast<uint8_t*>(mapped);
                 uint64_t offset = 0;
 
-                for(const auto& data : p_range) {
-                    auto s = std::span{data};
+                for (const auto& data : p_range) {
+                    auto s = std::span{ data };
                     std::memcpy(bytes + offset, s.data(), s.size_bytes());
                     offset += s.size_bytes();
                 }
