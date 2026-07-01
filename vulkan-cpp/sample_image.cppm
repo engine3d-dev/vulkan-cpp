@@ -269,10 +269,9 @@ export namespace vk {
               VkFormat p_format,
               VkImageLayout p_old,
               VkImageLayout p_new,
-              uint32_t p_aspect_mask = VK_IMAGE_ASPECT_COLOR_BIT) {
+              uint32_t p_aspect_mask = VK_IMAGE_ASPECT_COLOR_BIT,
+              uint32_t p_layer_count = 1) {
 
-                // 1. Image Memory Barrier Initialization (using C++ Designated
-                // Initializers - C++20)
                 VkImageMemoryBarrier image_memory_barrier = {
                     .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
                     .pNext = nullptr,
@@ -283,20 +282,18 @@ export namespace vk {
                     .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                     .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                     .image = m_image,
-                    .subresourceRange = { .aspectMask =
-                                            static_cast<VkImageAspectFlags>(
-                                              p_aspect_mask),
-                                          .baseMipLevel = 0,
-                                          .levelCount = 1,
-                                          .baseArrayLayer = 0,
-                                          .layerCount = 1 }
+                    .subresourceRange = {
+                        .aspectMask = static_cast<VkImageAspectFlags>(p_aspect_mask),
+                        .baseMipLevel = 0,
+                        .levelCount = 1,
+                        .baseArrayLayer = 0,
+                        .layerCount = p_layer_count,
+                    },
                 };
 
                 VkPipelineStageFlags source_stage = VK_PIPELINE_STAGE_NONE;
                 VkPipelineStageFlags dst_stages = VK_PIPELINE_STAGE_NONE;
 
-                // 2. Aspect Mask Logic (Keep as if/else, but use helper
-                // function)
                 if (p_new == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL ||
                     has_stencil_attachment(p_format)) {
 
