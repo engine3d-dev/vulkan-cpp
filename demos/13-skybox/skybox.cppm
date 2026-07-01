@@ -18,233 +18,23 @@ export module skybox;
 
 import vk;
 
-constexpr uint64_t
-image_layout(VkImageLayout p_old, VkImageLayout p_new) {
-    // Shift the old_layout into the high 32 bits, and combine with
-    // new_layout in the low 32 bits.
-    return (static_cast<uint64_t>(p_old) << 32) | static_cast<uint64_t>(p_new);
-}
-
-void memory_barrier(const VkCommandBuffer& p_command,
-               const VkImage& p_image,
-               VkFormat p_format,
-               VkImageLayout p_old,
-               VkImageLayout p_new,
-               uint32_t p_layer_count = 1) {
-    // 1. Image Memory Barrier Initialization (using C++ Designated
-    // Initializers - C++20)
-    VkImageMemoryBarrier image_memory_barrier = {
-        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-        .pNext = nullptr,
-        .srcAccessMask = 0,
-        .dstAccessMask = 0,
-        .oldLayout = p_old,
-        .newLayout = p_new,
-        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .image = p_image,
-        .subresourceRange = {
-            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-            .baseMipLevel = 0,
-            .levelCount = 1,
-            .baseArrayLayer = 0,
-            .layerCount = p_layer_count,
-        },
-    };
-
-    VkPipelineStageFlags source_stage = VK_PIPELINE_STAGE_NONE;
-    VkPipelineStageFlags dst_stages = VK_PIPELINE_STAGE_NONE;
-
-    // 2. Aspect Mask Logic (Keep as if/else, but use helper
-    // function)
-    if (p_new == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL ||
-        vk::has_stencil_attachment(p_format)) {
-
-        image_memory_barrier.subresourceRange.aspectMask =
-          VK_IMAGE_ASPECT_DEPTH_BIT;
-
-        // Assuming has_stencil_attachment(p_format) is defined
-        // elsewhere works as the same as the if-statement, leaving
-        // it here for testing purposes
-        // image_memory_barrier.subresourceRange.aspectMask |=
-        // has_stencil_attachment(p_format) ?
-        // VK_IMAGE_ASPECT_STENCIL_BIT : VK_IMAGE_ASPECT_DEPTH_BIT;
-        if (vk::has_stencil_attachment(p_format)) {
-            image_memory_barrier.subresourceRange.aspectMask |=
-              VK_IMAGE_ASPECT_STENCIL_BIT;
-        }
-    }
-    else {
-        image_memory_barrier.subresourceRange.aspectMask =
-          VK_IMAGE_ASPECT_COLOR_BIT;
-    }
-
-    // 3. Main Transition Logic using Combined Switch
-    const uint64_t current_layout = image_layout(p_old, p_new);
-
-    switch (current_layout) {
-
-        // UNDEFINED -> SHADER_READ_ONLY_OPTIMAL
-        case image_layout(VK_IMAGE_LAYOUT_UNDEFINED,
-                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL): {
-            image_memory_barrier.srcAccessMask = 0;
-            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-            source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-            break;
-        }
-
-        // UNDEFINED -> GENERAL
-        case image_layout(VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL): {
-            image_memory_barrier.srcAccessMask = 0;
-            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-            // source_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-            source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-            break;
-        }
-
-        // UNDEFINED -> TRANSFER_DST_OPTIMAL
-        case image_layout(VK_IMAGE_LAYOUT_UNDEFINED,
-                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL): {
-            image_memory_barrier.srcAccessMask = 0;
-            image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-            source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-            dst_stages = VK_PIPELINE_STAGE_TRANSFER_BIT;
-            break;
-        }
-
-        // SHADER_READ_ONLY_OPTIMAL -> TRANSFER_DST_OPTIMAL (Convert
-        // back from read-only to transferr)
-        case image_layout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL): {
-            image_memory_barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
-            image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-            source_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-            dst_stages = VK_PIPELINE_STAGE_TRANSFER_BIT;
-            break;
-        }
-
-        // TRANSFER_DST_OPTIMAL -> SHADER_READ_ONLY_OPTIMAL (Convert
-        // from updateable texture to shader read-only)
-        case image_layout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL): {
-            image_memory_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-            source_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-            break;
-        }
-
-        // UNDEFINED -> DEPTH_STENCIL_ATTACHMENT_OPTIMAL (Convert
-        // depth texture from undefined state)
-        case image_layout(VK_IMAGE_LAYOUT_UNDEFINED,
-                          VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL): {
-            image_memory_barrier.srcAccessMask = 0;
-            image_memory_barrier.dstAccessMask =
-              VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
-              VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-            source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-            dst_stages = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-            break;
-        }
-
-        // SHADER_READ_ONLY_OPTIMAL -> SHADER_READ_ONLY_OPTIMAL
-        // (Wait for render pass to complete - Note: This case is
-        // unusual but kept as per your original logic)
-        case image_layout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL): {
-            // Note: Your original code had conflicting
-            // re-assignments for source_stage/dst_stages here. The
-            // last pair of assignments is used.
-            image_memory_barrier.srcAccessMask = 0;
-            image_memory_barrier.dstAccessMask = 0;
-            source_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-            break;
-        }
-
-        // SHADER_READ_ONLY_OPTIMAL -> COLOR_ATTACHMENT_OPTIMAL
-        // (Convert back from read-only to color attachment)
-        case image_layout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                          VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL): {
-            image_memory_barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
-            image_memory_barrier.dstAccessMask =
-              VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-            source_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-            dst_stages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-            break;
-        }
-
-        // COLOR_ATTACHMENT_OPTIMAL -> SHADER_READ_ONLY_OPTIMAL
-        // (Convert from updateable color to shader read-only)
-        case image_layout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL): {
-            image_memory_barrier.srcAccessMask =
-              VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-            source_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-            break;
-        }
-
-        // SHADER_READ_ONLY_OPTIMAL ->
-        // DEPTH_STENCIL_ATTACHMENT_OPTIMAL (Convert back from
-        // read-only to depth attachment)
-        case image_layout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                          VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL): {
-            image_memory_barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
-            image_memory_barrier.dstAccessMask =
-              VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-            source_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-            dst_stages = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-            break;
-        }
-
-        // DEPTH_STENCIL_ATTACHMENT_OPTIMAL ->
-        // SHADER_READ_ONLY_OPTIMAL (Convert from updateable depth
-        // texture to shader read-only)
-        case image_layout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL): {
-            image_memory_barrier.srcAccessMask =
-              VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-            source_stage = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-            dst_stages = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-            break;
-        }
-
-        default: {
-            // Unhandled Transition
-            break;
-        }
-    }
-
-    vkCmdPipelineBarrier(p_command,
-                         source_stage,
-                         dst_stages,
-                         0, // dependencyFlags
-                         0,
-                         nullptr,
-                         0,
-                         nullptr,
-                         1,
-                         &image_memory_barrier);
-}
-
 export struct skybox_uniform {
     glm::mat4 proj_view;
 };
 
-
 export class skybox_environment {
 public:
-    skybox_environment(const VkDevice& p_device, const vk::physical_device& p_physical, std::span<const std::string> p_faces, const VkRenderPass& p_renderpass) : m_device(p_device) {
+    skybox_environment(const VkDevice& p_device,
+                       const vk::physical_device& p_physical,
+                       std::span<const std::string> p_faces,
+                       const VkRenderPass& p_renderpass)
+      : m_device(p_device) {
         m_physical = p_physical;
         m_renderpass = p_renderpass;
 
-        if(p_faces.size() != 6) {
-            std::println("Cubemap requires 6 faces, received {} count of faces", p_faces.size());
+        if (p_faces.size() != 6) {
+            std::println("Cubemap requires 6 faces, received {} count of faces",
+                         p_faces.size());
             return;
         }
 
@@ -252,64 +42,65 @@ public:
         int h = 0;
         int channels = 0;
         std::array<std::span<uint8_t>, 6> faces{};
-
-        // faces_arr[0] = stbi_load(p_faces[0].c_str(), &w, &h, &channels, STBI_rgb_alpha);
-        auto* face0 = stbi_load(p_faces[0].c_str(), &w, &h, &channels, STBI_rgb_alpha);
+        
+        auto* face0 =
+          stbi_load(p_faces[0].c_str(), &w, &h, &channels, STBI_rgb_alpha);
         int face_width = w;
         int face_height = h;
         // VkFormat image_format = VK_FORMAT_R8G8B8A8_SRGB;
         VkFormat image_format = VK_FORMAT_R8G8B8A8_SRGB;
-        const uint32_t bytes_per_pixel = static_cast<uint32_t>(vk::bytes_per_texture_format(image_format));
+        const uint32_t bytes_per_pixel =
+          static_cast<uint32_t>(vk::bytes_per_texture_format(image_format));
         auto size_bytes = face_width * face_height * bytes_per_pixel;
 
-        faces[0] = std::span<uint8_t>(reinterpret_cast<uint8_t*>(face0), size_bytes);
+        faces[0] =
+          std::span<uint8_t>(reinterpret_cast<uint8_t*>(face0), size_bytes);
 
-        for(size_t i = 1; i < 6; i++) {
-            // faces_arr[i] = stbi_load(p_faces[i].c_str(), &w, &h, &channels, STBI_rgb_alpha);
-            auto* face_pixels = stbi_load(p_faces[i].c_str(), &w, &h, &channels, STBI_rgb_alpha);
-            faces[i] = std::span<uint8_t>(reinterpret_cast<uint8_t*>(face_pixels), size_bytes);
+        for (size_t i = 1; i < faces.size(); i++) {
+            auto* face_pixels =
+              stbi_load(p_faces[i].c_str(), &w, &h, &channels, STBI_rgb_alpha);
+            faces[i] = std::span<uint8_t>(
+              reinterpret_cast<uint8_t*>(face_pixels), size_bytes);
 
-            if(faces[i].empty()) {
+            if (faces[i].empty()) {
                 std::println("Could not load face: {}", p_faces[i]);
                 return;
             }
 
             if (w != face_width || h != face_height) {
-                std::println(
-                "Cubemap faces must match dimensions. Face 0 is {}x{}, face {} is {}x{} ({})",
-                face_width,
-                face_height,
-                i,
-                w,
-                h,
-                p_faces[i]);
+                std::println("Cubemap faces must match dimensions. Face 0 is "
+                             "{}x{}, face {} is {}x{} ({})",
+                             face_width,
+                             face_height,
+                             i,
+                             w,
+                             h,
+                             p_faces[i]);
                 return;
             }
         }
 
-
         const uint32_t width = static_cast<uint32_t>(face_width);
         const uint32_t height = static_cast<uint32_t>(face_height);
-        const VkDeviceSize face_size_bytes = static_cast<VkDeviceSize>(width) * static_cast<VkDeviceSize>(height) * static_cast<VkDeviceSize>(bytes_per_pixel);
+        const VkDeviceSize face_size_bytes =
+          static_cast<VkDeviceSize>(width) * static_cast<VkDeviceSize>(height) *
+          static_cast<VkDeviceSize>(bytes_per_pixel);
         const VkDeviceSize total_size_bytes = face_size_bytes * 6;
 
-
-        // Creating vk::sample_image
-
         vk::image_params skybox_params = {
-            .extent = {.width = width, .height = height, .depth = 1},
+            .extent = { .width = width, .height = height, .depth = 1 },
             .format = image_format,
-            .memory_mask = p_physical.memory_properties(vk::memory_property::device_local_bit),
+            .memory_mask = p_physical.memory_properties(
+              vk::memory_property::device_local_bit),
             .image_flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT,
             .view_type = VK_IMAGE_VIEW_TYPE_CUBE,
             .layer_count = 6,
             .array_layers = 6,
-            // .usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-            .usage = vk::image_usage::transfer_dst_bit | vk::image_usage::sampled_bit,
+            .usage =
+              vk::image_usage::transfer_dst_bit | vk::image_usage::sampled_bit,
         };
         m_skybox_image = vk::sample_image(m_device, skybox_params);
 
-        
         // perform staging buffer
         vk::buffer_parameters staging_params = {
             .memory_mask = p_physical.memory_properties(
@@ -322,7 +113,7 @@ public:
 
         staging.transfer(faces);
 
-        for(size_t i = 0; i < faces.size(); i++) {
+        for (size_t i = 0; i < faces.size(); i++) {
             stbi_image_free(faces[i].data());
         }
 
@@ -334,18 +125,16 @@ public:
         vk::command_buffer upload_cmd(m_device, upload_params);
         upload_cmd.begin(vk::command_usage::one_time_submit);
 
-        // memory_barrier(upload_cmd,
-        //             m_skybox_image,
-        //             image_format,
-        //             VK_IMAGE_LAYOUT_UNDEFINED,
-        //             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        //             6);
-        m_skybox_image.memory_barrier(upload_cmd, image_format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 6);
-        
+        m_skybox_image.memory_barrier(upload_cmd,
+                                      image_format,
+                                      VK_IMAGE_LAYOUT_UNDEFINED,
+                                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                      6);
+
         // Perform uploads
         std::array<vk::buffer_image_copy, 6> regions;
 
-        for(uint32_t face = 0; face < regions.size(); face++) {
+        for (uint32_t face = 0; face < regions.size(); face++) {
             regions[face] = {
                 .offset = static_cast<uint32_t>(face_size_bytes * face),
                 .base_array_layer = face, // Copy this specific face region
@@ -355,13 +144,12 @@ public:
         }
 
         staging.copy_to_image(upload_cmd, m_skybox_image, regions);
-        
-        memory_barrier(upload_cmd,
-                    m_skybox_image,
-                    image_format,
-                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                    6);
+
+        m_skybox_image.memory_barrier(upload_cmd,
+                                      image_format,
+                                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                                      6);
         upload_cmd.end();
 
         VkQueue graphics_queue = nullptr;
@@ -379,16 +167,15 @@ public:
             .pSignalSemaphores = nullptr,
         };
         vk::vk_check(vkQueueSubmit(graphics_queue, 1, &submit, nullptr),
-                    "vkQueueSubmit(cubemap upload)");
+                     "vkQueueSubmit(cubemap upload)");
         vk::vk_check(vkQueueWaitIdle(graphics_queue),
-                    "vkQueueWaitIdle(cubemap upload)");
+                     "vkQueueWaitIdle(cubemap upload)");
 
         upload_cmd.destruct();
         staging.destruct();
 
         create_skybox_pipeline();
     }
-
 
     void create_skybox_pipeline() {
         create_buffers();
@@ -449,13 +236,13 @@ public:
         //     .vkSetDebugUtilsObjectNameEXT = nullptr,
         // };
         vk::buffer_parameters uniform_params = {
-            .memory_mask =
-            m_physical.value().memory_properties(
-                vk::memory_property::host_visible_bit |
-                vk::memory_property::host_cached_bit),
+            .memory_mask = m_physical.value().memory_properties(
+              vk::memory_property::host_visible_bit |
+              vk::memory_property::host_cached_bit),
             .usage = vk::buffer_usage::uniform_buffer_bit,
         };
-        m_skybox_ubo =vk::uniform_buffer(m_device, sizeof(skybox_uniform), uniform_params);
+        m_skybox_ubo =
+          vk::uniform_buffer(m_device, sizeof(skybox_uniform), uniform_params);
 
         skybox_uniform identity = { .proj_view = glm::mat4(1.0f) };
         identity.proj_view[1][1] *= -1;
@@ -468,18 +255,18 @@ public:
         //  - binding 1: samplerCube (fragment)
         std::array<vk::descriptor_entry, 2> entries = {
             vk::descriptor_entry{
-            .type = vk::descriptor_type::uniform,
-            .binding_point =
-                vk::descriptor_binding_point{ .binding = 0,
-                                            .stage = vk::shader_stage::vertex },
-            .descriptor_count = 1,
+              .type = vk::descriptor_type::uniform,
+              .binding_point =
+                vk::descriptor_binding_point{
+                  .binding = 0, .stage = vk::shader_stage::vertex },
+              .descriptor_count = 1,
             },
             vk::descriptor_entry{
-            .type = vk::descriptor_type::combined_image_sampler,
-            .binding_point =
+              .type = vk::descriptor_type::combined_image_sampler,
+              .binding_point =
                 vk::descriptor_binding_point{
-                .binding = 1, .stage = vk::shader_stage::fragment },
-            .descriptor_count = 1,
+                  .binding = 1, .stage = vk::shader_stage::fragment },
+              .descriptor_count = 1,
             },
         };
 
@@ -492,8 +279,9 @@ public:
 
         const std::array<vk::write_buffer, 1> ubo_writes = {
             vk::write_buffer{ .buffer = m_skybox_ubo,
-                            .offset = 0,
-                            .range = static_cast<uint32_t>(sizeof(skybox_uniform)) },
+                              .offset = 0,
+                              .range =
+                                static_cast<uint32_t>(sizeof(skybox_uniform)) },
         };
         const vk::write_buffer_descriptor ubo_write_desc = {
             .dst_binding = 0,
@@ -502,9 +290,9 @@ public:
 
         const std::array<vk::write_image, 1> image_writes = {
             vk::write_image{
-            .sampler = m_skybox_image.sampler(),
-            .view = m_skybox_image.image_view(),
-            .layout = vk::image_layout::shader_read_only_optimal,
+              .sampler = m_skybox_image.sampler(),
+              .view = m_skybox_image.image_view(),
+              .layout = vk::image_layout::shader_read_only_optimal,
             },
         };
         const vk::write_image_descriptor image_write_desc = {
@@ -519,9 +307,10 @@ public:
             m_skybox_descriptors.layout(),
         };
 
-        const std::array<vk::color_blend_attachment_state, 1> blend_attachments = {
-            vk::color_blend_attachment_state{ .blend_enabled = false },
-        };
+        const std::array<vk::color_blend_attachment_state, 1>
+          blend_attachments = {
+              vk::color_blend_attachment_state{ .blend_enabled = false },
+          };
         vk::color_blend_state blend_state = {
             .logic_op_enable = false,
             .logical_op = vk::logical_op::copy,
@@ -540,83 +329,64 @@ public:
         vk::pipeline_params pipe_info = {
             .renderpass = m_renderpass,
             .shader_modules = m_skybox_shaders.handles(),
-            .vertex_attributes = m_skybox_shaders.vertex_attributes(),      // no vertex input
-            .vertex_bind_attributes = m_skybox_shaders.vertex_bind_attributes(), // no vertex input
+            .vertex_attributes =
+              m_skybox_shaders.vertex_attributes(), // no vertex input
+            .vertex_bind_attributes =
+              m_skybox_shaders.vertex_bind_attributes(), // no vertex input
             .descriptor_layouts = pipeline_layouts,
-            .input_assembly = vk::input_assembly_state{
-            .topology = vk::primitive_topology::triangle_list,
-            .primitive_restart_enable = false,
-            },
-            .viewport = vk::viewport_state{ .viewport_count = 1, .scissor_count = 1 },
-            .rasterization = vk::rasterization_state{
-            .polygon_mode = vk::polygon_mode::fill,
+            .input_assembly =
+              vk::input_assembly_state{
+                .topology = vk::primitive_topology::triangle_list,
+                .primitive_restart_enable = false,
+              },
+            .viewport =
+              vk::viewport_state{ .viewport_count = 1, .scissor_count = 1 },
+            .rasterization =
+              vk::rasterization_state{
+                .polygon_mode = vk::polygon_mode::fill,
                 .cull_mode = vk::cull_mode::front_bit,
-            // .cull_mode = vk::cull_mode::none,
-            // .front_face = vk::front_face::counter_clockwise,
+                // .cull_mode = vk::cull_mode::none,
+                // .front_face = vk::front_face::counter_clockwise,
                 .front_face = vk::front_face::clockwise,
                 .line_width = 1.f,
-            },
+              },
             .multisample = vk::multisample_state{},
             .color_blend = blend_state,
             .depth_stencil_enabled = true,
-            .depth_stencil = vk::depth_stencil_state{
-            .depth_test_enable = true,
-            .depth_write_enable = false,
-            .depth_compare_op = vk::compare_op::less_or_equal,
-            .depth_bounds_test_enable = false,
-            .stencil_test_enable = false,
-            },
+            .depth_stencil =
+              vk::depth_stencil_state{
+                .depth_test_enable = true,
+                .depth_write_enable = false,
+                .depth_compare_op = vk::compare_op::less_or_equal,
+                .depth_bounds_test_enable = false,
+                .stencil_test_enable = false,
+              },
             .dynamic_states = dyn,
         };
 
         m_skybox_pipeline = vk::pipeline(m_device, pipe_info);
     }
 
-
     void create_buffers() {
         std::vector<float> skyboxVertices = {
-            // positions          
-            -1.0f,  1.0f, -1.0f,
-            -1.0f, -1.0f, -1.0f,
-            1.0f, -1.0f, -1.0f,
-            1.0f, -1.0f, -1.0f,
-            1.0f,  1.0f, -1.0f,
-            -1.0f,  1.0f, -1.0f,
+            // positions
+            -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f,
+            1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f,
 
-            -1.0f, -1.0f,  1.0f,
-            -1.0f, -1.0f, -1.0f,
-            -1.0f,  1.0f, -1.0f,
-            -1.0f,  1.0f, -1.0f,
-            -1.0f,  1.0f,  1.0f,
-            -1.0f, -1.0f,  1.0f,
+            -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f,
+            -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,
 
-            1.0f, -1.0f, -1.0f,
-            1.0f, -1.0f,  1.0f,
-            1.0f,  1.0f,  1.0f,
-            1.0f,  1.0f,  1.0f,
-            1.0f,  1.0f, -1.0f,
-            1.0f, -1.0f, -1.0f,
+            1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f,
 
-            -1.0f, -1.0f,  1.0f,
-            -1.0f,  1.0f,  1.0f,
-            1.0f,  1.0f,  1.0f,
-            1.0f,  1.0f,  1.0f,
-            1.0f, -1.0f,  1.0f,
-            -1.0f, -1.0f,  1.0f,
+            -1.0f, -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,
 
-            -1.0f,  1.0f, -1.0f,
-            1.0f,  1.0f, -1.0f,
-            1.0f,  1.0f,  1.0f,
-            1.0f,  1.0f,  1.0f,
-            -1.0f,  1.0f,  1.0f,
-            -1.0f,  1.0f, -1.0f,
+            -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f,
 
-            -1.0f, -1.0f, -1.0f,
-            -1.0f, -1.0f,  1.0f,
-            1.0f, -1.0f, -1.0f,
-            1.0f, -1.0f, -1.0f,
-            -1.0f, -1.0f,  1.0f,
-            1.0f, -1.0f,  1.0f
+            -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f,
+            1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f
         };
         // m_physical = instance_context::physical_driver();
         // m_device = instance_context::logical_device();
@@ -628,58 +398,167 @@ public:
         // };
         std::vector<vk::vertex_input> vertices = {
             // Front Face
-            vk::vertex_input{{-1.0f,  1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{-1.0f, -1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{ 1.0f, -1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{ 1.0f, -1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{ 1.0f,  1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{-1.0f,  1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+            vk::vertex_input{ { -1.0f, 1.0f, -1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { -1.0f, -1.0f, -1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { 1.0f, -1.0f, -1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { 1.0f, -1.0f, -1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { 1.0f, 1.0f, -1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { -1.0f, 1.0f, -1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
 
             // Left Face
-            vk::vertex_input{{-1.0f, -1.0f,  1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{-1.0f, -1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{-1.0f,  1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{-1.0f,  1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{-1.0f,  1.0f,  1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{-1.0f, -1.0f,  1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+            vk::vertex_input{ { -1.0f, -1.0f, 1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { -1.0f, -1.0f, -1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { -1.0f, 1.0f, -1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { -1.0f, 1.0f, -1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { -1.0f, 1.0f, 1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { -1.0f, -1.0f, 1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
 
             // Right Face
-            vk::vertex_input{{ 1.0f, -1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{ 1.0f, -1.0f,  1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{ 1.0f,  1.0f,  1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{ 1.0f,  1.0f,  1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{ 1.0f,  1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{ 1.0f, -1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+            vk::vertex_input{ { 1.0f, -1.0f, -1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { 1.0f, -1.0f, 1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { 1.0f, 1.0f, 1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { 1.0f, 1.0f, 1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { 1.0f, 1.0f, -1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { 1.0f, -1.0f, -1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
 
             // Back Face
-            vk::vertex_input{{-1.0f, -1.0f,  1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{-1.0f,  1.0f,  1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{ 1.0f,  1.0f,  1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{ 1.0f,  1.0f,  1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{ 1.0f, -1.0f,  1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{-1.0f, -1.0f,  1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+            vk::vertex_input{ { -1.0f, -1.0f, 1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { -1.0f, 1.0f, 1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { 1.0f, 1.0f, 1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { 1.0f, 1.0f, 1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { 1.0f, -1.0f, 1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { -1.0f, -1.0f, 1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
 
             // Top Face
-            vk::vertex_input{{-1.0f,  1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{ 1.0f,  1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{ 1.0f,  1.0f,  1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{ 1.0f,  1.0f,  1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{-1.0f,  1.0f,  1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{-1.0f,  1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+            vk::vertex_input{ { -1.0f, 1.0f, -1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { 1.0f, 1.0f, -1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { 1.0f, 1.0f, 1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { 1.0f, 1.0f, 1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { -1.0f, 1.0f, 1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { -1.0f, 1.0f, -1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
 
             // Bottom Face
-            vk::vertex_input{{-1.0f, -1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{-1.0f, -1.0f,  1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{ 1.0f, -1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{ 1.0f, -1.0f, -1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{-1.0f, -1.0f,  1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-            vk::vertex_input{{ 1.0f, -1.0f,  1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f}}
+            vk::vertex_input{ { -1.0f, -1.0f, -1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { -1.0f, -1.0f, 1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { 1.0f, -1.0f, -1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { 1.0f, -1.0f, -1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { -1.0f, -1.0f, 1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } },
+            vk::vertex_input{ { 1.0f, -1.0f, 1.0f },
+                              { 1.0f, 1.0f, 1.0f },
+                              { 0.0f, 0.0f, 0.0f },
+                              { 0.0f, 0.0f } }
         };
 
         m_skybox_vbo_size = vertices.size();
 
         // vk::vertex_params vbo_params = {
-        //     .phsyical_memory_properties = vulkan::instance_context::physical_driver().memory_properties(),
+        //     .phsyical_memory_properties =
+        //     vulkan::instance_context::physical_driver().memory_properties(),
         //     .vertices = vertices
         // };
         vk::buffer_parameters vertex_params = {
@@ -701,7 +580,6 @@ public:
         p_command.bind_descriptors(m_skybox_pipeline.layout(),
                                    VK_PIPELINE_BIND_POINT_GRAPHICS,
                                    descriptors);
-        // m_skybox_vbo.bind(p_command);
 
         std::array<const VkBuffer, 1> skybox_buffers = { m_skybox_vbo };
         uint64_t offset = 0;
@@ -725,7 +603,7 @@ public:
 
 private:
     vk::uniform_buffer m_skybox_ubo;
-    VkDevice m_device=nullptr;
+    VkDevice m_device = nullptr;
     std::optional<vk::physical_device> m_physical;
     vk::sample_image m_skybox_image;
     vk::shader_resource m_skybox_shaders;
