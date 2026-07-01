@@ -5,6 +5,7 @@ module;
 #include <vector>
 #include <bit>
 #include <limits>
+#include <ranges>
 
 export module vk:buffer;
 
@@ -140,8 +141,8 @@ export namespace vk {
             /**
              * @brief writing uniforms that are represented into bytes
              * @param p_data are the bytes to allow GPU to access
+             * 
              * Example Usage:
-             *
              * ```C++
              * buffers staging_buffer(logical_device, ...);
              *
@@ -161,6 +162,43 @@ export namespace vk {
                                      &mapped),
                          "vkMapMemory");
                 memcpy(mapped, p_data.data(), p_data.size_bytes());
+                vkUnmapMemory(m_device, m_device_memory);
+            }
+
+
+            /**
+             * @brief transferring multiple ranges of data under a single `vkMapMemory`/`vkUnmapMemory` invocation
+             * 
+             * 
+             * Example Usage:
+             * 
+             * ```C++
+             * // Under single vkMapMemory call writes all 6 contiguous chunks of data to one staging buffer
+             * std::array<std::span<uint8_t>, 6> skybox_faces = m_skybox.faces();
+             * staging_buffer.transfer(skybox_faces);
+             * ```
+             * 
+            */
+            template<typename Range> requires std::ranges::forward_range<Range>
+            void transfer(Range&& p_range, uint64_t p_offset=0) {
+                uint64_t total_size = 0;
+
+                for(const auto& data : p_range) {
+                    total_size += std::span(data).size_bytes();
+                }
+
+                void* mapped=nullptr;
+                vk_check(vkMapMemory(m_device, m_device_memory, p_offset, total_size, 0, &mapped), "vkMapMemory");
+
+                auto* bytes = static_cast<uint8_t*>(mapped);
+                uint64_t offset = 0;
+
+                for(const auto& data : p_range) {
+                    auto s = std::span{data};
+                    std::memcpy(bytes + offset, s.data(), s.size_bytes());
+                    offset += s.size_bytes();
+                }
+
                 vkUnmapMemory(m_device, m_device_memory);
             }
 
