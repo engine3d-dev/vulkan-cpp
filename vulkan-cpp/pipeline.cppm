@@ -459,8 +459,7 @@ export namespace vk {
              * // bound to current command buffer
              * // in this example we set binding point to
              * VK_PIPELINE_BIND_POINT_GRAPHICS
-             * graphics_pipeline.bind(current_command,
-             * pipeline_bind_point::graphics);
+             * graphics_pipeline.bind(current_command);
              * ```
              *
              * @param p_command is the current command buffer the graphics
@@ -471,13 +470,11 @@ export namespace vk {
              * More info on vulkan's official
              * [docs](https://docs.vulkan.org/refpages/latest/refpages/source/vkCmdBindPipeline.html)
              */
-            void bind(const VkCommandBuffer& p_command,
-                      pipeline_bind_point p_bind_point =
-                        pipeline_bind_point::graphics) {
-                vkCmdBindPipeline(
-                  p_command,
-                  static_cast<VkPipelineBindPoint>(p_bind_point),
-                  m_pipeline);
+            void bind(const VkCommandBuffer& p_command) {
+                vkCmdBindPipeline(p_command,
+                                  static_cast<VkPipelineBindPoint>(
+                                    pipeline_bind_point::graphics),
+                                  m_pipeline);
             }
 
             /**
