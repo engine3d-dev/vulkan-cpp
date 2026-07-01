@@ -46,6 +46,7 @@ target_sources(${PROJECT_NAME} PUBLIC
     vulkan-cpp/sample_image.cppm
     vulkan-cpp/shader_resource.cppm
     vulkan-cpp/pipeline.cppm
+    vulkan-cpp/compute_pipeline.cppm
     vulkan-cpp/buffer.cppm
     vulkan-cpp/vertex_buffer.cppm
     vulkan-cpp/buffer16.cppm
