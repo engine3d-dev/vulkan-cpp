@@ -9,7 +9,7 @@ required_conan_version = ">=2.2.0"
 
 class VulkanCppRecipe(ConanFile):
     name = "vulkan-cpp"
-    version = "6.2"
+    version = "6.3"
     license = "Apache-2.0"
     url = "https://github.com/engine3d-dev/vulkan-cpp"
     homepage = "https://github.com/engine3d-dev/vulkan-cpp"
