@@ -315,8 +315,16 @@ main() {
 
     float field_of_view = 45.f;
     glm::vec3 position = { 3.5f, 4.90f, 36.40f };
+    
+    glm::vec3 rotation = glm::vec3(0.f);
+    glm::highp_vec4 quaternion{0.f, 0.f, 0.f, 1.f};
+
     glm::vec3 scale{ 1.f };
     glm::vec2 plane = { 0.1f, 5000.f };
+    glm::vec2 last_cursor_pos{};
+    float yaw = 0.f;
+    float pitch = 0.f;
+    bool is_first_frame = true;
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -335,9 +343,6 @@ main() {
         };
         main_renderpass.begin(current, begin_renderpass);
 
-        // Binding a graphics pipeline -- before drawing stuff
-        // Inside of this graphics pipeline bind, is where you want to do the
-        // drawing stuff to
         static auto start_time = std::chrono::high_resolution_clock::now();
 
         auto current_time = std::chrono::high_resolution_clock::now();
@@ -345,19 +350,69 @@ main() {
                        current_time - start_time)
                        .count();
 
+        glm::vec3 up = glm::vec3(0.f, 1.f, 0.f);
+        glm::vec3 down = glm::vec3(0.f, -1.f, 0.f);
+        glm::vec3 right = glm::vec3(1.f, 0.f, 0.f);
+        glm::vec3 left = glm::vec3(-1.f, 0.f, 0.f);
+        glm::vec3 forward = glm::vec3(0.f, 0.f, 1.f);
+        glm::vec3 backward = glm::vec3(0.f, 0.f, -1.f);
+
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-            position.z += 1.f;
+            position += forward;
         }
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-            position.x += 1.f;
-        }
+        
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-            position.z -= 1.f;
-        }
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-            position.x -= 1.f;
+            position += backward;
         }
 
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+            position -= right;
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+            position -= right;
+        }
+
+        double x_pos, y_pos;
+        glfwGetCursorPos(window, &x_pos, &y_pos);
+
+        glm::vec2 current_cursor_pos = { x_pos, y_pos };
+
+        if (is_first_frame) {
+            last_cursor_pos = current_cursor_pos;
+            is_first_frame = false;
+        }
+
+        if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS) {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+            float mouse_sensitivity = 0.01;
+            glm::vec2 cursor_dt = current_cursor_pos - last_cursor_pos;
+
+            yaw -= (cursor_dt.x * mouse_sensitivity);
+            pitch -= (cursor_dt.y * mouse_sensitivity);
+
+            // set rotation
+            rotation = glm::vec3(yaw, pitch, 0.f);
+
+            auto quat = glm::quat(rotation);
+            quaternion = glm::vec4({ quat.x, quat.y, quat.z, quat.w });
+        }
+
+        if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_RELEASE) {
+            is_first_frame = true;
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        }
+
+
+         last_cursor_pos = current_cursor_pos;
+
+        glm::quat quat = glm::quat({
+          quaternion.w,
+          quaternion.x,
+          quaternion.y,
+          quaternion.z,
+        });
         global_uniform ubo = {};
         ubo.proj = glm::mat4(1.f);
         ubo.proj = glm::perspective(
@@ -368,7 +423,8 @@ main() {
         ubo.proj[1][1] *= -1;
 
         ubo.view = glm::mat4(1.f);
-        ubo.view = glm::translate(ubo.view, position);
+        ubo.view = glm::translate(ubo.view, position) * glm::mat4_cast(quat);
+
         ubo.view = glm::inverse(ubo.view);
 
         skybox_uniform sky_ubo = {
