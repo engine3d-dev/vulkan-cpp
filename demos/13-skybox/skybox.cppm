@@ -22,6 +22,13 @@ export struct skybox_uniform {
     glm::mat4 proj_view;
 };
 
+// Converts raw stbi image stbi_uc* raw pixels pointers to a span<uint8_t>
+std::span<uint8_t>
+to_bytes(stbi_uc* p_pixels, uint32_t p_image_size) {
+    return std::span<uint8_t>(reinterpret_cast<uint8_t*>(p_pixels),
+                              p_image_size);
+}
+
 export class skybox_environment {
 public:
     skybox_environment(const VkDevice& p_device,
@@ -53,14 +60,12 @@ public:
           static_cast<uint32_t>(vk::bytes_per_texture_format(image_format));
         auto size_bytes = face_width * face_height * bytes_per_pixel;
 
-        faces[0] =
-          std::span<uint8_t>(reinterpret_cast<uint8_t*>(face0), size_bytes);
+        faces[0] = to_bytes(face0, size_bytes);
 
         for (size_t i = 1; i < faces.size(); i++) {
             auto* face_pixels =
               stbi_load(p_faces[i].c_str(), &w, &h, &channels, STBI_rgb_alpha);
-            faces[i] = std::span<uint8_t>(
-              reinterpret_cast<uint8_t*>(face_pixels), size_bytes);
+            faces[i] = to_bytes(face_pixels, size_bytes);
 
             if (faces[i].empty()) {
                 std::println("Could not load face: {}", p_faces[i]);
@@ -125,10 +130,14 @@ public:
         vk::command_buffer upload_cmd(m_device, upload_params);
         upload_cmd.begin(vk::command_usage::one_time_submit);
 
+        // NOTE: explicitly set VK_IMAGE_ASPECT_COLOR_BIT to ensure the wrong
+        // aspect flags are not being set when using
+        // vk::sample_image::memory_barrier
         m_skybox_image.memory_barrier(upload_cmd,
                                       image_format,
                                       VK_IMAGE_LAYOUT_UNDEFINED,
                                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                      VK_IMAGE_ASPECT_COLOR_BIT,
                                       6);
 
         // Perform uploads
@@ -149,6 +158,7 @@ public:
                                       image_format,
                                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                       VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                                      VK_IMAGE_ASPECT_COLOR_BIT,
                                       6);
         upload_cmd.end();
 
