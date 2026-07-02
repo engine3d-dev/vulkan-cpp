@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 4.0)
 project(skybox CXX)
 
 build_application(
@@ -26,5 +26,6 @@ target_sources(${PROJECT_NAME} PUBLIC
     FILE_SET CXX_MODULES
     TYPE CXX_MODULES
     FILES
-    environment_map.cppm
+    hdri_environment.cppm
+    skybox.cppm
 )
