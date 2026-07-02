@@ -42,7 +42,7 @@ public:
         int h = 0;
         int channels = 0;
         std::array<std::span<uint8_t>, 6> faces{};
-        
+
         auto* face0 =
           stbi_load(p_faces[0].c_str(), &w, &h, &channels, STBI_rgb_alpha);
         int face_width = w;

@@ -306,14 +306,12 @@ main() {
     //   main_renderpass);
 
     std::array<std::string, 6> faces = {
-        "asset_samples/skybox/right.jpg",
-        "asset_samples/skybox/left.jpg",
-        "asset_samples/skybox/top.jpg",
-        "asset_samples/skybox/bottom.jpg",
-        "asset_samples/skybox/front.jpg",
-        "asset_samples/skybox/back.jpg"
+        "asset_samples/skybox/right.jpg", "asset_samples/skybox/left.jpg",
+        "asset_samples/skybox/top.jpg",   "asset_samples/skybox/bottom.jpg",
+        "asset_samples/skybox/front.jpg", "asset_samples/skybox/back.jpg"
     };
-    skybox_environment skybox = skybox_environment(logical_device, physical_device, faces, main_renderpass);
+    skybox_environment skybox = skybox_environment(
+      logical_device, physical_device, faces, main_renderpass);
 
     float field_of_view = 45.f;
     glm::vec3 position = { 3.5f, 4.90f, 36.40f };
