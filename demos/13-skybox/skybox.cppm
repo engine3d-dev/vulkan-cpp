@@ -45,6 +45,7 @@ public:
             return;
         }
 
+        // Loading in all 6-faces images for the skybox
         int w = 0;
         int h = 0;
         int channels = 0;
@@ -54,7 +55,7 @@ public:
           stbi_load(p_faces[0].c_str(), &w, &h, &channels, STBI_rgb_alpha);
         int face_width = w;
         int face_height = h;
-        // VkFormat image_format = VK_FORMAT_R8G8B8A8_SRGB;
+
         VkFormat image_format = VK_FORMAT_R8G8B8A8_SRGB;
         const uint32_t bytes_per_pixel =
           static_cast<uint32_t>(vk::bytes_per_texture_format(image_format));
@@ -140,13 +141,13 @@ public:
                                       VK_IMAGE_ASPECT_COLOR_BIT,
                                       6);
 
-        // Perform uploads
         std::array<vk::buffer_image_copy, 6> regions;
 
         for (uint32_t face = 0; face < regions.size(); face++) {
+            // Copy the specific face region to the image
             regions[face] = {
                 .offset = static_cast<uint32_t>(face_size_bytes * face),
-                .base_array_layer = face, // Copy this specific face region
+                .base_array_layer = face,
                 .image_offset = { .width = 0, .height = 0, .depth = 0 },
                 .image_extent = { .width = width, .height = height },
             };
@@ -378,199 +379,239 @@ public:
     }
 
     void create_buffers() {
-        std::vector<float> skyboxVertices = {
-            // positions
-            -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f,
-            1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f,
 
-            -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f,
-            -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,
-
-            1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,
-            1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f,
-
-            -1.0f, -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,  1.0f,
-            1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,
-
-            -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,
-            1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f,
-
-            -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f,
-            1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f
-        };
-        // m_physical = instance_context::physical_driver();
-        // m_device = instance_context::logical_device();
-
-        // std::vector<vk::vertex_input> vertices = {
-        //     vk::vertex_input{
-        //         .position = {-1.0f,  1.0f, -1.0f,}
-        //     },
-        // };
         std::vector<vk::vertex_input> vertices = {
             // Front Face
-            vk::vertex_input{ { -1.0f, 1.0f, -1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { -1.0f, -1.0f, -1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { 1.0f, -1.0f, -1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { 1.0f, -1.0f, -1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { 1.0f, 1.0f, -1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { -1.0f, 1.0f, -1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
+            vk::vertex_input{
+              { -1.0f, 1.0f, -1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { -1.0f, -1.0f, -1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { 1.0f, -1.0f, -1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { 1.0f, -1.0f, -1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { 1.0f, 1.0f, -1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { -1.0f, 1.0f, -1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
 
             // Left Face
-            vk::vertex_input{ { -1.0f, -1.0f, 1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { -1.0f, -1.0f, -1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { -1.0f, 1.0f, -1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { -1.0f, 1.0f, -1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { -1.0f, 1.0f, 1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { -1.0f, -1.0f, 1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
+            vk::vertex_input{
+              { -1.0f, -1.0f, 1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { -1.0f, -1.0f, -1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { -1.0f, 1.0f, -1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { -1.0f, 1.0f, -1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { -1.0f, 1.0f, 1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { -1.0f, -1.0f, 1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
 
             // Right Face
-            vk::vertex_input{ { 1.0f, -1.0f, -1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { 1.0f, -1.0f, 1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { 1.0f, 1.0f, 1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { 1.0f, 1.0f, 1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { 1.0f, 1.0f, -1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { 1.0f, -1.0f, -1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
+            vk::vertex_input{
+              { 1.0f, -1.0f, -1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { 1.0f, -1.0f, 1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { 1.0f, 1.0f, 1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { 1.0f, 1.0f, 1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { 1.0f, 1.0f, -1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { 1.0f, -1.0f, -1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
 
             // Back Face
-            vk::vertex_input{ { -1.0f, -1.0f, 1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { -1.0f, 1.0f, 1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { 1.0f, 1.0f, 1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { 1.0f, 1.0f, 1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { 1.0f, -1.0f, 1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { -1.0f, -1.0f, 1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
+            vk::vertex_input{
+              { -1.0f, -1.0f, 1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { -1.0f, 1.0f, 1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { 1.0f, 1.0f, 1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { 1.0f, 1.0f, 1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { 1.0f, -1.0f, 1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { -1.0f, -1.0f, 1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
 
             // Top Face
-            vk::vertex_input{ { -1.0f, 1.0f, -1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { 1.0f, 1.0f, -1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { 1.0f, 1.0f, 1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { 1.0f, 1.0f, 1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { -1.0f, 1.0f, 1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { -1.0f, 1.0f, -1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
+            vk::vertex_input{
+              { -1.0f, 1.0f, -1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { 1.0f, 1.0f, -1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { 1.0f, 1.0f, 1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { 1.0f, 1.0f, 1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { -1.0f, 1.0f, 1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { -1.0f, 1.0f, -1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
 
             // Bottom Face
-            vk::vertex_input{ { -1.0f, -1.0f, -1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { -1.0f, -1.0f, 1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { 1.0f, -1.0f, -1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { 1.0f, -1.0f, -1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { -1.0f, -1.0f, 1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } },
-            vk::vertex_input{ { 1.0f, -1.0f, 1.0f },
-                              { 1.0f, 1.0f, 1.0f },
-                              { 0.0f, 0.0f, 0.0f },
-                              { 0.0f, 0.0f } }
+            vk::vertex_input{
+              { -1.0f, -1.0f, -1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { -1.0f, -1.0f, 1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { 1.0f, -1.0f, -1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { 1.0f, -1.0f, -1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { -1.0f, -1.0f, 1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
+            vk::vertex_input{
+              { 1.0f, -1.0f, 1.0f },
+              { 1.0f, 1.0f, 1.0f },
+              { 0.0f, 0.0f, 0.0f },
+              { 0.0f, 0.0f },
+            },
         };
 
         m_skybox_vbo_size = vertices.size();
 
-        // vk::vertex_params vbo_params = {
-        //     .phsyical_memory_properties =
-        //     vulkan::instance_context::physical_driver().memory_properties(),
-        //     .vertices = vertices
-        // };
         vk::buffer_parameters vertex_params = {
             .memory_mask = m_physical.value().memory_properties(
               vk::memory_property::device_local_bit |
@@ -582,7 +623,10 @@ public:
         m_skybox_vbo = vk::vertex_buffer(m_device, vertices, vertex_params);
     }
 
-    void update_uniform(const skybox_uniform&) {}
+    void update_uniform(const skybox_uniform& p_uniform) {
+        m_skybox_ubo.transfer<skybox_uniform>(
+          std::span<const skybox_uniform>(&p_uniform, 1));
+    }
 
     void bind(vk::command_buffer p_command) {
         m_skybox_pipeline.bind(p_command);
@@ -621,5 +665,5 @@ private:
     vk::vertex_buffer m_skybox_vbo;
     vk::descriptor_resource m_skybox_descriptors;
     VkRenderPass m_renderpass;
-    uint32_t m_skybox_vbo_size;
+    uint32_t m_skybox_vbo_size=0;
 };
