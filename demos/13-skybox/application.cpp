@@ -315,9 +315,9 @@ main() {
 
     float field_of_view = 45.f;
     glm::vec3 position = { 3.5f, 4.90f, 36.40f };
-    
+
     glm::vec3 rotation = glm::vec3(0.f);
-    glm::highp_vec4 quaternion{0.f, 0.f, 0.f, 1.f};
+    glm::highp_vec4 quaternion{ 0.f, 0.f, 0.f, 1.f };
 
     glm::vec3 scale{ 1.f };
     glm::vec2 plane = { 0.1f, 5000.f };
@@ -360,7 +360,7 @@ main() {
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
             position += forward;
         }
-        
+
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
             position += backward;
         }
@@ -383,7 +383,8 @@ main() {
             is_first_frame = false;
         }
 
-        if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS) {
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) ==
+            GLFW_PRESS) {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
             float mouse_sensitivity = 0.01;
@@ -399,13 +400,13 @@ main() {
             quaternion = glm::vec4({ quat.x, quat.y, quat.z, quat.w });
         }
 
-        if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_RELEASE) {
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) ==
+            GLFW_RELEASE) {
             is_first_frame = true;
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         }
 
-
-         last_cursor_pos = current_cursor_pos;
+        last_cursor_pos = current_cursor_pos;
 
         glm::quat quat = glm::quat({
           quaternion.w,
