@@ -29,7 +29,7 @@ module;
 #include <print>
 #include <optional>
 
-export module environment_map;
+export module hdri_environment;
 import vk;
 
 export struct skybox_uniform {
