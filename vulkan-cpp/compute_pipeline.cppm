@@ -2,8 +2,9 @@ module;
 
 #include <vulkan/vulkan.h>
 #include <span>
+#include <vector>
 
-export module vk::compute_pipeline;
+export module vk:compute_pipeline;
 
 import :types;
 import :utilities;
@@ -15,11 +16,11 @@ export namespace vk {
             const shader_handle shader_module{};
             std::span<VkDescriptorSetLayout> descriptor_layouts{};
             std::span<const push_constant_range> push_constants{};
-            VkPipeline base_pipeline-1;
-            int32_t base_pipeline_index-1;
+            VkPipeline base_pipeline=nullptr;
+            int32_t base_pipeline_index=-1;
         };
 
-        class compute_pipeine {
+        class compute_pipeline {
         public:
 
             compute_pipeline(const VkDevice& p_device, const compute_pipeline_params& p_params) : m_device(p_device) {
@@ -42,15 +43,27 @@ export namespace vk {
                         .pName = "main"
                 };
 
+                std::vector<VkPushConstantRange> push_const_ranges(p_params.push_constants.size());
+
+                for (uint32_t i = 0; i < p_params.push_constants.size(); i++) {
+                    const push_constant_range data = p_params.push_constants[i];
+                    push_const_ranges[i] = {
+                        .stageFlags =
+                          static_cast<VkShaderStageFlags>(data.stage),
+                        .offset = data.offset,
+                        .size = data.range,
+                    };
+                }
+
+
                 VkPipelineLayoutCreateInfo pipeline_layout_ci = {
-                    .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
                     .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
                     .setLayoutCount =
                       static_cast<uint32_t>(p_params.descriptor_layouts.size()),
                     .pSetLayouts = p_params.descriptor_layouts.data(),
                     .pushConstantRangeCount =
-                      static_cast<uint32_t>(push_constants.size()),
-                    .pPushConstantRanges = push_constants.data(),
+                      static_cast<uint32_t>(push_const_ranges.size()),
+                    .pPushConstantRanges = push_const_ranges.data(),
                 };
 
                 vk_check(vkCreatePipelineLayout(m_device, &pipeline_layout_ci, nullptr, &m_layout), "vkCreatePipelineLayout");
@@ -71,7 +84,7 @@ export namespace vk {
             [[nodiscard]] VkPipelineLayout layout() const { return m_layout; }
 
             void bind(const VkCommandBuffer& p_command) {
-                vkCmdBindPipeline(p_command, static_cast<VkPipelineBindPoint>(pipeline_bind_point::compute));
+                vkCmdBindPipeline(p_command, static_cast<VkPipelineBindPoint>(pipeline_bind_point::compute), m_pipeline);
             }
 
             /**

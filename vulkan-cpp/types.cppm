@@ -1445,6 +1445,12 @@ export namespace vk {
             undefined
         };
 
+        struct push_constant_range {
+            shader_stage stage;
+            uint32_t offset = 0;
+            uint32_t range = 0;
+        };
+
         enum class descriptor_layout_flag {
             update_after_bind_pool =
               VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT, // represents

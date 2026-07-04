@@ -3,10 +3,10 @@ module;
 #include <vulkan/vulkan.h>
 #include <span>
 
-export module vk::timeline_semaphore;
+export module vk:timeline_semaphore;
 
 import :types;
-import :utilies;
+import :utilities;
 
 export namespace vk {
     inline namespace v6 {
@@ -21,7 +21,7 @@ export namespace vk {
                                pipeline_stage_flags p_flags=pipeline_stage_flags::color_attachment_output)
               : m_device(p_device)
               , m_value(p_initial_value),
-                m_stage_flag(p_flags) {
+                m_stage_flag(static_cast<VkPipelineStageFlags2>(p_flags)) {
                 VkSemaphoreTypeCreateInfo timeline_semaphore_info = {
                     .sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO,
                     .pNext = nullptr,
@@ -57,20 +57,20 @@ export namespace vk {
                 return {
                     .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
                     .pNext = p_next,
-                    .semaphore = m_sempahore,
+                    .semaphore = m_semaphore,
                     .value = m_value,
-                    .stage_flag = m_stage_flag,
+                    .stageMask = m_stage_flag,
                 };
             }
 
-            VkSemaphore operator() { return m_semaphore; }
+            operator VkSemaphore() const { return m_semaphore; }
 
-            VkSemaphore operator() const { return m_semaphore; }
+            operator VkSemaphore() { return m_semaphore; }
 
         private:
             VkDevice m_device = nullptr;
             VkSemaphore m_semaphore;
-            VkPipelineStageFlags m_stage_flag;
+            VkPipelineStageFlags2 m_stage_flag;
             uint64_t m_value = 0;
         };
     };

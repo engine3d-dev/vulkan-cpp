@@ -75,12 +75,6 @@ export namespace vk {
             bool stencil_test_enable = false;
         };
 
-        struct push_constant_range {
-            shader_stage stage;
-            uint32_t offset = 0;
-            uint32_t range = 0;
-        };
-
         /**
          * @param renderpass is required for a VkPipeline to know up front
          * @param shader_modules is a std::span<VkShaderModule> of the loaded
