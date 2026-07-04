@@ -1,6 +1,8 @@
 module;
 
 #include <vulkan/vulkan.h>
+#include <span>
+#include <vector>
 
 export module vk:device_queue;
 
@@ -35,7 +37,7 @@ export namespace vk {
                         std::span<const VkSemaphore> p_waits = {},
                         std::span<const VkSemaphore> p_signals = {},
                         pipeline_stage_flags p_flags =
-                          pipeline_stage_flags::color_attachment_optimal) {
+                          pipeline_stage_flags::color_attachment_output) {
                 VkPipelineStageFlags flags =
                   static_cast<VkPipelineStageFlags>(p_flags);
                 VkSubmitInfo submit_info = {
@@ -44,12 +46,12 @@ export namespace vk {
                     .waitSemaphoreCount = static_cast<uint32_t>(p_waits.size()),
                     .pWaitSemaphores = p_waits.data(),
                     .pWaitDstStageMask = &flags,
-                    .signalSemaphoreCount =
-                      static_cast<uint32_t>(p_signals.size()),
-                    .pSignalSemaphores = p_signals.data(),
                     .commandBufferCount =
                       static_cast<uint32_t>(p_commands.size()),
                     .pCommandBuffers = p_commands.data(),
+                    .signalSemaphoreCount =
+                      static_cast<uint32_t>(p_signals.size()),
+                    .pSignalSemaphores = p_signals.data(),
                 };
 
                 vk_check(
@@ -67,7 +69,7 @@ export namespace vk {
                          std::span<const VkSemaphoreSubmitInfo> p_waits = {},
                          std::span<const VkSemaphoreSubmitInfo> p_signals = {},
                          pipeline_stage_flags p_flags =
-                           pipeline_stage_flags::color_attachment_optimal) {
+                           pipeline_stage_flags::color_attachment_output) {
 
                 std::vector<VkCommandBufferSubmitInfo> command_infos;
                 command_infos.reserve(p_commands.size());
