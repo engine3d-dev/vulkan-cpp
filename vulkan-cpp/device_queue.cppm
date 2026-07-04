@@ -25,6 +25,12 @@ export namespace vk {
 
             void wait_idle() { vkQueueWaitIdle(m_queue_handler); }
 
+            /**
+             *
+             * @brief Performs queue submission without timeline semaphore
+             * support.
+             *
+             */
             void submit(std::span<const VkCommandBuffer> p_commands,
                         std::span<const VkSemaphore> p_waits = {},
                         std::span<const VkSemaphore> p_signals = {},
@@ -51,6 +57,12 @@ export namespace vk {
                   "vkQueueSubmit");
             }
 
+            /**
+             * @brief Performs queue submissions with timeline semaphore support
+             *
+             * Requires VkPhysicalDeviceSynchronization2Features to be enabled.
+             *
+             */
             void submit2(std::span<const VkCommandBuffer> p_commands,
                          std::span<const VkSemaphoreSubmitInfo> p_waits = {},
                          std::span<const VkSemaphoreSubmitInfo> p_signals = {},
