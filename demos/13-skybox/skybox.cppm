@@ -164,24 +164,10 @@ public:
                                       6);
         upload_cmd.end();
 
-        VkQueue graphics_queue = nullptr;
-        vkGetDeviceQueue(m_device, 0, 0, &graphics_queue);
+        vk::device_queue graphics_queue(m_device, { 0, 0});
         const VkCommandBuffer cmd = upload_cmd;
-        VkSubmitInfo submit = {
-            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-            .pNext = nullptr,
-            .waitSemaphoreCount = 0,
-            .pWaitSemaphores = nullptr,
-            .pWaitDstStageMask = nullptr,
-            .commandBufferCount = 1,
-            .pCommandBuffers = &cmd,
-            .signalSemaphoreCount = 0,
-            .pSignalSemaphores = nullptr,
-        };
-        vk::vk_check(vkQueueSubmit(graphics_queue, 1, &submit, nullptr),
-                     "vkQueueSubmit(cubemap upload)");
-        vk::vk_check(vkQueueWaitIdle(graphics_queue),
-                     "vkQueueWaitIdle(cubemap upload)");
+        graphics_queue.submit(std::views::single(cmd));
+        graphics_queue.wait_idle();
 
         upload_cmd.destruct();
         staging.destruct();
