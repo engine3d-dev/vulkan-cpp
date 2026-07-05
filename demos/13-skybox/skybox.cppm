@@ -5,6 +5,7 @@ module;
 #include <string>
 #include <print>
 #include <optional>
+#include <ranges>
 
 #include <stb_image.h>
 
@@ -624,8 +625,9 @@ public:
     }
 
     void update_uniform(const skybox_uniform& p_uniform) {
-        m_skybox_ubo.transfer<skybox_uniform>(
-          std::span<const skybox_uniform>(&p_uniform, 1));
+        // std::views::single treat this skybox uniform and returns a
+        // span<skybox_uniform>()
+        m_skybox_ubo.transfer<skybox_uniform>(std::views::single(p_uniform));
     }
 
     void bind(vk::command_buffer p_command) {
