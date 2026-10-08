@@ -501,27 +501,24 @@ export namespace vk {
                   p_dynamic_offsets.data());
             }
 
-
             /**
              * @brief Dispatch compute work items.
              *
              * @param p_group is the number of work groups to dispatch.
-             * 
+             *
              * @brief Additional Considerations:
              * - p_group must be within the limits of the device.
-             * 
+             *
              * Example Usage:
              * ```C++
              * vk::command_buffer current_command = ...;
-             * vk::group_count group = {1, 1, 1}; // Dispatching 1 work group in each dimension
-             * current_command.dispatch(group);
+             * vk::group_count group = {1, 1, 1}; // Dispatching 1 work group in
+             * each dimension current_command.dispatch(group);
              * ```
              */
             void dispatch(const group_count& p_group) {
-                vkCmdDispatch(m_command_buffer,
-                              p_group.x,
-                              p_group.y,
-                              p_group.z);
+                vkCmdDispatch(
+                  m_command_buffer, p_group.x, p_group.y, p_group.z);
             }
 
             /**
@@ -531,9 +528,10 @@ export namespace vk {
              * @param p_offset is the offset into the buffer.
              *
              * @brief Additional Considerations:
-             * - p_buffer must have been created with VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT.
+             * - p_buffer must have been created with
+             * VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT.
              * - p_offset must be aligned to 4 bytes.
-             * 
+             *
              * Example Usage:
              * ```C++
              * vk::command_buffer current_command = ...;
@@ -552,17 +550,18 @@ export namespace vk {
              *
              * @param p_base is the base work group to dispatch.
              * @param p_group is the number of work groups to dispatch.
-             * 
+             *
              * @brief Additional Considerations:
              * - p_base and p_group must be within the limits of the device.
              * - p_base and p_group must be within the limits of the device.
-             * 
+             *
              * Example Usage:
              * ```C++
              * vk::command_buffer current_command = ...;
-             * vk::group_count base = {0, 0, 0}; // Starting at the first work group
-             * vk::group_count group = {1, 1, 1}; // Dispatching 1 work group in each dimension
-             * current_command.dispatch_base(base, group);
+             * vk::group_count base = {0, 0, 0}; // Starting at the first work
+             * group vk::group_count group = {1, 1, 1}; // Dispatching 1 work
+             * group in each dimension current_command.dispatch_base(base,
+             * group);
              * ```
              */
             void dispatch_base(const group_count& p_base,

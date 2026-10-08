@@ -18,10 +18,11 @@ export namespace vk {
         public:
             timeline_semaphore(const VkDevice& p_device,
                                uint64_t p_initial_value,
-                               pipeline_stage_flags p_flags=pipeline_stage_flags::color_attachment_output)
+                               pipeline_stage_flags p_flags =
+                                 pipeline_stage_flags::color_attachment_output)
               : m_device(p_device)
-              , m_value(p_initial_value),
-                m_stage_flag(static_cast<VkPipelineStageFlags2>(p_flags)) {
+              , m_value(p_initial_value)
+              , m_stage_flag(static_cast<VkPipelineStageFlags2>(p_flags)) {
                 VkSemaphoreTypeCreateInfo timeline_semaphore_info = {
                     .sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO,
                     .pNext = nullptr,
@@ -51,9 +52,10 @@ export namespace vk {
             }
 
             /**
-             * @return VkSemaphoreSubmitInfo struct for submitting this timeline semaphore.
-            */
-            VkSemaphoreSubmitInfo data(const void* p_next=nullptr) const {
+             * @return VkSemaphoreSubmitInfo struct for submitting this timeline
+             * semaphore.
+             */
+            VkSemaphoreSubmitInfo data(const void* p_next = nullptr) const {
                 return {
                     .sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
                     .pNext = p_next,

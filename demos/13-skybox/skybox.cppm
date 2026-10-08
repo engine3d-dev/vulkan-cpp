@@ -164,7 +164,7 @@ public:
                                       6);
         upload_cmd.end();
 
-        vk::device_queue graphics_queue(m_device, { 0, 0});
+        vk::device_queue graphics_queue(m_device, { 0, 0 });
         const VkCommandBuffer cmd = upload_cmd;
         graphics_queue.submit(std::views::single(cmd));
         graphics_queue.wait_idle();
