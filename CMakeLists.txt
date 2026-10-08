@@ -57,6 +57,7 @@ target_sources(${PROJECT_NAME} PUBLIC
     vulkan-cpp/texture.cppm
     vulkan-cpp/dyn/buffer.cppm
     vulkan-cpp/image.cppm
+    vulkan-cpp/timeline_semaphore.cppm
 )
 
 install(
