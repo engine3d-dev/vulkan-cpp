@@ -1321,6 +1321,12 @@ export namespace vk {
                                                          // VK_COMMAND_BUFFER_USAGE_FLAG_BITS_MAX_ENUM
         };
 
+        struct group_count {
+            uint32_t x = 1;
+            uint32_t y = 1;
+            uint32_t z = 1;
+        };
+
         /**
          * @brief Wrapper enum class for VkMemoryPropertyFlags
          *
