@@ -15,6 +15,8 @@ export import :framebuffer;
 export import :sample_image;
 export import :shader_resource;
 export import :pipeline;
+export import :compute_pipeline;
+export import :timeline_semaphore;
 export import :buffer;
 export import :buffer32;
 export import :vertex_buffer;

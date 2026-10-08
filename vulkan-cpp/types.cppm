@@ -1321,6 +1321,12 @@ export namespace vk {
                                                          // VK_COMMAND_BUFFER_USAGE_FLAG_BITS_MAX_ENUM
         };
 
+        struct group_count {
+            uint32_t x = 1;
+            uint32_t y = 1;
+            uint32_t z = 1;
+        };
+
         /**
          * @brief Wrapper enum class for VkMemoryPropertyFlags
          *
@@ -1443,6 +1449,12 @@ export namespace vk {
             mesh_bit_ext = VK_SHADER_STAGE_MESH_BIT_EXT,
             supass_shading_huawei = VK_SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI,
             undefined
+        };
+
+        struct push_constant_range {
+            shader_stage stage;
+            uint32_t offset = 0;
+            uint32_t range = 0;
         };
 
         enum class descriptor_layout_flag {
