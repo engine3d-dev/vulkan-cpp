@@ -290,9 +290,16 @@ main() {
     }
 
     // setting up physical device
-    std::expected<vk::physical_device, VkResult> physical_device_expected =
+#ifdef __WIN32__
+    std::expected<vk::physical_device, VkResult> res =
+      api_instance.enumerate_physical_device(vk::physical_gpu::discrete);
+#endif
+
+#ifdef __APPLE__
+    std::expected<vk::physical_device, VkResult> res =
       api_instance.enumerate_physical_device(vk::physical_gpu::integrated);
-    vk::physical_device physical_device = physical_device_expected.value();
+#endif
+    vk::physical_device physical_device = res.value();
 
     // setting up logical device
     std::array<float, 1> priorities = { 0.f };
