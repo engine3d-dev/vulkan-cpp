@@ -597,7 +597,7 @@ main() {
             .dst_stage_mask  = vk::v2::pipeline_stage_flags::bottom_of_pipe,
             .dst_access_mask = vk::v2::access_flags::memory_read_bit,
             .old_layout = vk::image_layout::color_optimal,
-            .new_layout      = vk::image_layout::present_src_khr,
+            .new_layout = vk::image_layout::present_src_khr,
             .subresource_range = {
                 .aspect_mask = vk::image_aspect_flags::color_bit,
             },

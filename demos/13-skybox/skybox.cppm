@@ -135,7 +135,7 @@ public:
         // NOTE: explicitly set VK_IMAGE_ASPECT_COLOR_BIT to ensure the wrong
         // aspect flags are not being set when using
         // vk::sample_image::memory_barrier
-        m_skybox_image.memory_barrier(upload_cmd,
+        m_skybox_image.pipeline_barriers(upload_cmd,
                                       image_format,
                                       VK_IMAGE_LAYOUT_UNDEFINED,
                                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -156,7 +156,7 @@ public:
 
         staging.copy_to_image(upload_cmd, m_skybox_image, regions);
 
-        m_skybox_image.memory_barrier(upload_cmd,
+        m_skybox_image.pipeline_barriers(upload_cmd,
                                       image_format,
                                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                       VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,

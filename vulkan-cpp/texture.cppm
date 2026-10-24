@@ -91,7 +91,7 @@ export namespace vk {
                 // Performing image layouts
                 VkImageLayout old_layout = VK_IMAGE_LAYOUT_UNDEFINED;
                 VkImageLayout new_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-                m_image.memory_barrier(temp_command_buffer,
+                m_image.pipeline_barriers(temp_command_buffer,
                                        img_options.format,
                                        old_layout,
                                        new_layout);
@@ -108,7 +108,7 @@ export namespace vk {
 
                 old_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
                 new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                m_image.memory_barrier(temp_command_buffer,
+                m_image.pipeline_barriers(temp_command_buffer,
                                        img_options.format,
                                        old_layout,
                                        new_layout);
@@ -179,7 +179,7 @@ export namespace vk {
                 // Performing image layouts
                 VkImageLayout old_layout = VK_IMAGE_LAYOUT_UNDEFINED;
                 VkImageLayout new_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-                m_image.memory_barrier(temp_command_buffer,
+                m_image.pipeline_barriers(temp_command_buffer,
                                        img_options.format,
                                        old_layout,
                                        new_layout);
@@ -196,7 +196,7 @@ export namespace vk {
 
                 old_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
                 new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                m_image.memory_barrier(temp_command_buffer,
+                m_image.pipeline_barriers(temp_command_buffer,
                                        img_options.format,
                                        old_layout,
                                        new_layout);

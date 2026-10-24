@@ -250,21 +250,21 @@ export namespace vk {
              * sample_image texture_image(logical_device, ...);
              *
              *
-             * texture_image.memory_barrier(temp_command, some_vk_format,
+             * texture_image.pipeline_barriers(temp_command, some_vk_format,
              * VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
              *
              * // do some operation during this transition image layout
              * // such as copying from an buffer data to an image
              * // staging_buffer.copy_to_image(...);
              *
-             * texture_image.memory_barrier(temp_command, some_vk_format,
+             * texture_image.pipeline_barriers(temp_command, some_vk_format,
              * VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
              * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
              *
              * ```
              *
              */
-            void memory_barrier(
+            void pipeline_barriers(
               const VkCommandBuffer& p_command,
               VkFormat p_format,
               VkImageLayout p_old,

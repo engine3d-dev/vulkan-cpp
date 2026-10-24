@@ -9,10 +9,15 @@ Before using dynamic rendering, you need to set the dynamic rendering feature to
 
 This introduces a struct called `vk::device_features` which performs the chaining operation at compile-time to automatically assign the `.pNext` parameter when you add them into the initializer list as shown below.
 
+Since we are using synchronization
+
 ```C++
 vk::device_features device_features{
     vk::dynamic_rendering_feature{ {
         .dynamicRendering = true,
+    } },
+    vk::synchronization2{ {
+        .synchronization2 = true,
     } },
 };
 ```
@@ -206,39 +211,67 @@ current.end_rendering();
 ```
 
 
-## Image Layout Transitions
+## Image Layout Transitions with Pipeline Barriers
 
 One of the things renderpasses do for you is automatically handling layout transitions. With dynamic rendering this is not automatically handled for you.
 
 So, you have to perform image memory barriers before you perform the `.begin_rendering` call.
 
+Since we are using the Vulkan **synchronization2** feature. We are going to specify the image pipeline barriers.
+
+It is because dynamic rendering does not automatically handle layout transitions compared to using **VkRenderPass**, that has to manually be handled where these pipeline barriers come in.
+
 Before the rendering attachments, do the following:
 
 ```C++
-swapchain_images[current_frame].memory_barrier(
-    current,
-    surface_properties.format.format,
-    VK_IMAGE_LAYOUT_UNDEFINED,
-    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+// Pipeline barrier for the color attachment
+vk::v2::image_memory_barrier image_depth_memory_barrier = {
+    .src_stage_mask  = vk::v2::pipeline_stage_flags::top_of_pipe,
+    .src_access_mask = vk::v2::access_flags::memory_read_bit,
+    .dst_stage_mask  = vk::v2::pipeline_stage_flags::early_fragment_shader_bit,
+    .dst_access_mask = vk::v2::access_flags::depth_stencil_attachment_write_bit,
+    .old_layout = vk::image_layout::undefined,
+    .new_layout = vk::image_layout::depth_stencil_optimal,
+    .subresource_range = {
+        .aspect_mask = vk::image_aspect_flags::depth_bit | vk::image_aspect_flags::stencil_bit,
+    },
+};
+swapchain_depth_images[current_frame].pipeline_barriers(
+    current, std::views::single(image_depth_memory_barrier));
 
-// Because dynamic rendering does not automatically handle layout transitions
-// These memory barriers set the color and depth images for the output
-swapchain_depth_images[current_frame].memory_barrier(
-    current,
-    depth_format,
-    VK_IMAGE_LAYOUT_UNDEFINED,
-    VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-    VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
+// Pipeline barrier for the depth attachment
+vk::v2::image_memory_barrier image_depth_memory_barrier = {
+    .src_stage_mask  = vk::v2::pipeline_stage_flags::top_of_pipe,
+    .src_access_mask = vk::v2::access_flags::memory_read_bit,
+    .dst_stage_mask  = vk::v2::pipeline_stage_flags::early_fragment_shader_bit,
+    .dst_access_mask = vk::v2::access_flags::depth_stencil_attachment_write_bit,
+    .old_layout = vk::image_layout::undefined,
+    .new_layout = vk::image_layout::depth_stencil_optimal,
+    .subresource_range = {
+        .aspect_mask = vk::image_aspect_flags::depth_bit | vk::image_aspect_flags::stencil_bit,
+    },
+};
+swapchain_depth_images[current_frame].pipeline_barriers(
+    current, std::views::single(image_depth_memory_barrier));
 ```
 
 Then after `.end_rendering` follow-up with this memory barrier call.
 
 ```C++
-swapchain_images[current_frame].memory_barrier(
-    current,
-    surface_properties.format.format,
-    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-    VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+// Reusing that same struct to specify the color attachment pipeline barrier for presentation
+color_memory_barrier = {
+    .src_stage_mask  = vk::v2::pipeline_stage_flags::color_attachment_output,
+    .src_access_mask = vk::v2::access_flags::color_attachment_write_bit,
+    .dst_stage_mask  = vk::v2::pipeline_stage_flags::bottom_of_pipe,
+    .dst_access_mask = vk::v2::access_flags::memory_read_bit,
+    .old_layout = vk::image_layout::color_optimal,
+    .new_layout = vk::image_layout::present_src_khr,
+    .subresource_range = {
+        .aspect_mask = vk::image_aspect_flags::color_bit,
+    },
+};
+swapchain_images[current_frame].pipeline_barriers(
+    current, std::views::single(color_memory_barrier));
 ```
 
 ## Final Result
@@ -246,7 +279,7 @@ swapchain_images[current_frame].memory_barrier(
 This is what it should look like altogether.
 
 ```C++
-swapchain_images[current_frame].memory_barrier(
+swapchain_images[current_frame].pipeline_barriers(
     current,
     surface_properties.format.format,
     VK_IMAGE_LAYOUT_UNDEFINED,
@@ -254,7 +287,7 @@ swapchain_images[current_frame].memory_barrier(
 
 // Because dynamic rendering does not automatically handle layout transitions
 // These memory barriers set the color and depth images for the output
-swapchain_depth_images[current_frame].memory_barrier(
+swapchain_depth_images[current_frame].pipeline_barriers(
     current,
     depth_format,
     VK_IMAGE_LAYOUT_UNDEFINED,
@@ -322,11 +355,10 @@ vkCmdDraw(current, 3, 1, 0, 0);
 
 current.end_rendering();
 
-swapchain_images[current_frame].memory_barrier(
+swapchain_images[current_frame].pipeline_barriers(
     current,
     surface_properties.format.format,
     VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
     VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 ```
-<!-- 
-## Expectation to See on Screen -->
+<!--  ## Expectation to See on Screen -->

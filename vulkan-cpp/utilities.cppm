@@ -185,7 +185,7 @@ export namespace vk {
 
             temp_command_buffer.begin(vk::command_usage::one_time_submit);
 
-            p_image.memory_barrier(temp_command_buffer, p_format, p_old, p_new);
+            p_image.pipeline_barriers(temp_command_buffer, p_format, p_old, p_new);
 
             temp_command_buffer.end();
 
