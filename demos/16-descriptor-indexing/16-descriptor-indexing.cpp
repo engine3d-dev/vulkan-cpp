@@ -744,7 +744,8 @@ main() {
         // transitions These memory barriers set the color and depth images for
         // the output
 
-        // pipeline barrier for color attachment to transition from undefined to color optimal layout
+        // pipeline barrier for color attachment to transition from undefined to
+        // color optimal layout
         vk::v2::image_memory_barrier color_memory_barrier = {
             .src_stage_mask  = vk::v2::pipeline_stage_flags::top_of_pipe,
             .src_access_mask = vk::v2::access_flags::memory_read_bit,
@@ -756,9 +757,11 @@ main() {
                 .aspect_mask = vk::image_aspect_flags::color_bit,
             },
         };
-        swapchain_images[current_frame].pipeline_barriers(current, std::views::single(color_memory_barrier));
+        swapchain_images[current_frame].pipeline_barriers(
+          current, std::views::single(color_memory_barrier));
 
-        // pipeline barrier for depth attachment to transition from undefined to depth optimal layout
+        // pipeline barrier for depth attachment to transition from undefined to
+        // depth optimal layout
         vk::v2::image_memory_barrier image_depth_memory_barrier = {
             .src_stage_mask  = vk::v2::pipeline_stage_flags::top_of_pipe,
             .src_access_mask = vk::v2::access_flags::memory_read_bit,
@@ -770,7 +773,8 @@ main() {
                 .aspect_mask = vk::image_aspect_flags::depth_bit | vk::image_aspect_flags::stencil_bit,
             },
         };
-        swapchain_depth_images[current_frame].pipeline_barriers(current, std::views::single(image_depth_memory_barrier));
+        swapchain_depth_images[current_frame].pipeline_barriers(
+          current, std::views::single(image_depth_memory_barrier));
 
         vk::rendering_attachment color_render_attachment = {
             .image_view = swapchain_images[current_frame].image_view(),
@@ -889,8 +893,9 @@ main() {
 
         current.end_rendering();
 
-        // pipeline barrier for color attachment to transition from color optimal to present src layout
-        // reusing image_memory_barrier variable to set the new layout transition for the color attachment
+        // pipeline barrier for color attachment to transition from color
+        // optimal to present src layout reusing image_memory_barrier variable
+        // to set the new layout transition for the color attachment
         color_memory_barrier = {
             .src_stage_mask  = vk::v2::pipeline_stage_flags::color_attachment_output,
             .src_access_mask = vk::v2::access_flags::color_attachment_write_bit,
@@ -902,7 +907,8 @@ main() {
                 .aspect_mask = vk::image_aspect_flags::color_bit,
             },
         };
-        swapchain_images[current_frame].pipeline_barriers(current, std::views::single(color_memory_barrier));
+        swapchain_images[current_frame].pipeline_barriers(
+          current, std::views::single(color_memory_barrier));
 
         current.end();
 

@@ -520,20 +520,22 @@ export namespace vk {
                                      &image_memory_barrier);
             }
 
-
             /**
-             * @brief memory_barrier is a function that performs a memory barrier operation on the image.
-             * It takes a command buffer, a vector of image memory barriers, and applies them to the command buffer
-             * using vkCmdPipelineBarrier2.
-             * 
-             * @param p_command 
-             * @param p_barriers 
+             * @brief memory_barrier is a function that performs a memory
+             * barrier operation on the image. It takes a command buffer, a
+             * vector of image memory barriers, and applies them to the command
+             * buffer using vkCmdPipelineBarrier2.
+             *
+             * @param p_command
+             * @param p_barriers
              */
-            void pipeline_barriers(const VkCommandBuffer& p_command, std::span<const v2::image_memory_barrier> p_barriers) {
+            void pipeline_barriers(
+              const VkCommandBuffer& p_command,
+              std::span<const v2::image_memory_barrier> p_barriers) {
 
                 std::vector<VkImageMemoryBarrier2> barriers;
                 barriers.reserve(p_barriers.size());
-                for(const auto& barrier : p_barriers) {
+                for (const auto& barrier : p_barriers) {
                     VkImageMemoryBarrier2 image_memory_barrier = {
                         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
                         .pNext = nullptr,
@@ -566,7 +568,8 @@ export namespace vk {
                     .pMemoryBarriers = nullptr,
                     .bufferMemoryBarrierCount = 0,
                     .pBufferMemoryBarriers = nullptr,
-                    .imageMemoryBarrierCount = static_cast<uint32_t>(barriers.size()),
+                    .imageMemoryBarrierCount =
+                      static_cast<uint32_t>(barriers.size()),
                     .pImageMemoryBarriers = barriers.data(),
                 };
                 vkCmdPipelineBarrier2(p_command, &dependency_info);

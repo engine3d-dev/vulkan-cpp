@@ -1226,9 +1226,8 @@ export namespace vk {
             uint32_t layer_count = 1;
         };
 
-
-        // These are the new flags that are part of the Vulkan 1.3+ specification and
-        // are used for synchronization in the pipeline, etc.
+        // These are the new flags that are part of the Vulkan 1.3+
+        // specification and are used for synchronization in the pipeline, etc.
 
         // They provide more granular control over the stages of the pipeline,
         // especially for ray tracing and other advanced features.
@@ -1246,8 +1245,10 @@ export namespace vk {
                   VK_PIPELINE_STAGE_2_TESSELLATION_CONTROL_SHADER_BIT_KHR,
                 tessellation_evaluation_shader_bit =
                   VK_PIPELINE_STAGE_2_TESSELLATION_EVALUATION_SHADER_BIT_KHR,
-                geoemtry_shaders_bit = VK_PIPELINE_STAGE_2_GEOMETRY_SHADER_BIT_KHR,
-                fragment_shaders_bit = VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT_KHR,
+                geoemtry_shaders_bit =
+                  VK_PIPELINE_STAGE_2_GEOMETRY_SHADER_BIT_KHR,
+                fragment_shaders_bit =
+                  VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT_KHR,
                 early_fragment_shader_bit =
                   VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT_KHR,
                 late_fragment_tests_bit =
