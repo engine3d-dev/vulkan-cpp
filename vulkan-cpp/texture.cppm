@@ -92,9 +92,9 @@ export namespace vk {
                 VkImageLayout old_layout = VK_IMAGE_LAYOUT_UNDEFINED;
                 VkImageLayout new_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
                 m_image.pipeline_barriers(temp_command_buffer,
-                                       img_options.format,
-                                       old_layout,
-                                       new_layout);
+                                          img_options.format,
+                                          old_layout,
+                                          new_layout);
 
                 std::array<vk::buffer_image_copy, 1> region_copies = {
                     vk::buffer_image_copy{
@@ -109,9 +109,9 @@ export namespace vk {
                 old_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
                 new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
                 m_image.pipeline_barriers(temp_command_buffer,
-                                       img_options.format,
-                                       old_layout,
-                                       new_layout);
+                                          img_options.format,
+                                          old_layout,
+                                          new_layout);
 
                 temp_command_buffer.end();
 
@@ -180,9 +180,9 @@ export namespace vk {
                 VkImageLayout old_layout = VK_IMAGE_LAYOUT_UNDEFINED;
                 VkImageLayout new_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
                 m_image.pipeline_barriers(temp_command_buffer,
-                                       img_options.format,
-                                       old_layout,
-                                       new_layout);
+                                          img_options.format,
+                                          old_layout,
+                                          new_layout);
 
                 std::array<vk::buffer_image_copy, 1> region_copies = {
                     vk::buffer_image_copy{
@@ -197,9 +197,9 @@ export namespace vk {
                 old_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
                 new_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
                 m_image.pipeline_barriers(temp_command_buffer,
-                                       img_options.format,
-                                       old_layout,
-                                       new_layout);
+                                          img_options.format,
+                                          old_layout,
+                                          new_layout);
 
                 temp_command_buffer.end();
 
