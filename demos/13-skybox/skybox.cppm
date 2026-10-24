@@ -136,11 +136,11 @@ public:
         // aspect flags are not being set when using
         // vk::sample_image::memory_barrier
         m_skybox_image.pipeline_barriers(upload_cmd,
-                                      image_format,
-                                      VK_IMAGE_LAYOUT_UNDEFINED,
-                                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                      VK_IMAGE_ASPECT_COLOR_BIT,
-                                      6);
+                                         image_format,
+                                         VK_IMAGE_LAYOUT_UNDEFINED,
+                                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                         VK_IMAGE_ASPECT_COLOR_BIT,
+                                         6);
 
         std::array<vk::buffer_image_copy, 6> regions;
 
@@ -156,12 +156,13 @@ public:
 
         staging.copy_to_image(upload_cmd, m_skybox_image, regions);
 
-        m_skybox_image.pipeline_barriers(upload_cmd,
-                                      image_format,
-                                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                      VK_IMAGE_ASPECT_COLOR_BIT,
-                                      6);
+        m_skybox_image.pipeline_barriers(
+          upload_cmd,
+          image_format,
+          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+          VK_IMAGE_ASPECT_COLOR_BIT,
+          6);
         upload_cmd.end();
 
         vk::device_queue graphics_queue(m_device, { 0, 0 });
