@@ -213,15 +213,9 @@ current.end_rendering();
 
 ## Image Layout Transitions with Pipeline Barriers
 
-One of the things renderpasses do for you is automatically handling layout transitions. With dynamic rendering this is not automatically handled for you.
+Rather then using traditional render passes, Vulkan's dynamic rendering does not handle image layout transition automatically. Because of this, you have to manually issue an image memory barrier via **synchronization2** before calling `vk::command_buffer::begin_rendering` method.
 
-So, you have to perform image memory barriers before you perform the `.begin_rendering` call.
-
-Since we are using the Vulkan **synchronization2** feature. We are going to specify the image pipeline barriers.
-
-It is because dynamic rendering does not automatically handle layout transitions compared to using **VkRenderPass**, that has to manually be handled where these pipeline barriers come in.
-
-Before the rendering attachments, do the following:
+Before binding your rendering attachments, insert the following barrier configurations below:
 
 ```C++
 // Pipeline barrier for the color attachment
