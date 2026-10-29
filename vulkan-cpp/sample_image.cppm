@@ -523,7 +523,7 @@ export namespace vk {
             /**
              * @brief memory_barrier is a function that performs a memory
              * barrier operation on the image.
-             * 
+             *
              * It takes a command buffer, a
              * vector of image memory barriers, and applies them to the command
              * buffer using vkCmdPipelineBarrier2.
