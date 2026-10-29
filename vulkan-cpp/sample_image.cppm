@@ -528,6 +528,7 @@ export namespace vk {
              * vector of image memory barriers, and applies them to the command
              * buffer using vkCmdPipelineBarrier2.
              *
+             *
              * @param p_command
              * @param p_barriers
              */
