@@ -110,7 +110,7 @@ export namespace vk {
           VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GRAPHICS_PIPELINE_LIBRARY_FEATURES_EXT>;
 
         //! @brief Clean barriers and semaphores
-        using sync2_feature = feature_trait<
+        using synchronization2 = feature_trait<
           VkPhysicalDeviceSynchronization2Features,
           VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES>;
 

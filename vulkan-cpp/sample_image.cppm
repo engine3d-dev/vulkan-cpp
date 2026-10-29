@@ -250,21 +250,21 @@ export namespace vk {
              * sample_image texture_image(logical_device, ...);
              *
              *
-             * texture_image.memory_barrier(temp_command, some_vk_format,
+             * texture_image.pipeline_barriers(temp_command, some_vk_format,
              * VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
              *
              * // do some operation during this transition image layout
              * // such as copying from an buffer data to an image
              * // staging_buffer.copy_to_image(...);
              *
-             * texture_image.memory_barrier(temp_command, some_vk_format,
+             * texture_image.pipeline_barriers(temp_command, some_vk_format,
              * VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
              * VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
              *
              * ```
              *
              */
-            void memory_barrier(
+            void pipeline_barriers(
               const VkCommandBuffer& p_command,
               VkFormat p_format,
               VkImageLayout p_old,
@@ -518,6 +518,64 @@ export namespace vk {
                                      nullptr,
                                      1,
                                      &image_memory_barrier);
+            }
+
+            /**
+             * @brief memory_barrier is a function that performs a memory
+             * barrier operation on the image.
+             *
+             * It takes a command buffer, a
+             * vector of image memory barriers, and applies them to the command
+             * buffer using vkCmdPipelineBarrier2.
+             *
+             *
+             * @param p_command
+             * @param p_barriers
+             */
+            void pipeline_barriers(
+              const VkCommandBuffer& p_command,
+              std::span<const v2::image_memory_barrier> p_barriers) {
+
+                std::vector<VkImageMemoryBarrier2> barriers;
+                barriers.reserve(p_barriers.size());
+                for (const auto& barrier : p_barriers) {
+                    VkImageMemoryBarrier2 image_memory_barrier = {
+                        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+                        .pNext = nullptr,
+                        .srcStageMask = static_cast<VkPipelineStageFlags>(barrier.src_stage_mask),
+                        .srcAccessMask = static_cast<VkAccessFlags>(barrier.src_access_mask),
+                        .dstStageMask = static_cast<VkPipelineStageFlags>(barrier.dst_stage_mask),
+                        .dstAccessMask = static_cast<VkAccessFlags>(barrier.dst_access_mask),
+                        .oldLayout = static_cast<VkImageLayout>(barrier.old_layout),
+                        .newLayout = static_cast<VkImageLayout>(barrier.new_layout),
+                        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                        .image = m_image,
+                        .subresourceRange = {
+                            .aspectMask = static_cast<VkImageAspectFlags>(barrier.subresource_range.aspect_mask),
+                            .baseMipLevel = barrier.subresource_range.base_mip_level,
+                            .levelCount = barrier.subresource_range.level_count,
+                            .baseArrayLayer = barrier.subresource_range.base_array_layer,
+                            .layerCount = barrier.subresource_range.layer_count,
+                        },
+                    };
+
+                    barriers.emplace_back(image_memory_barrier);
+                }
+
+                VkDependencyInfo dependency_info = {
+                    .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+                    .pNext = nullptr,
+                    .dependencyFlags = 0,
+                    .memoryBarrierCount = 0,
+                    .pMemoryBarriers = nullptr,
+                    .bufferMemoryBarrierCount = 0,
+                    .pBufferMemoryBarriers = nullptr,
+                    .imageMemoryBarrierCount =
+                      static_cast<uint32_t>(barriers.size()),
+                    .pImageMemoryBarriers = barriers.data(),
+                };
+                vkCmdPipelineBarrier2(p_command, &dependency_info);
             }
 
             void destruct() {

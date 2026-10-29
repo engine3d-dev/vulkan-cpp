@@ -120,10 +120,10 @@ public:
         upload_cmd.begin(vk::command_usage::one_time_submit);
 
         // Begin Memory Barrier: Undefined to TRANSFER_DST
-        m_skybox_image.memory_barrier(upload_cmd,
-                                      texture_format,
-                                      VK_IMAGE_LAYOUT_UNDEFINED,
-                                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        m_skybox_image.pipeline_barriers(upload_cmd,
+                                         texture_format,
+                                         VK_IMAGE_LAYOUT_UNDEFINED,
+                                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
         std::array<vk::buffer_image_copy, 1> region_copies = {
             vk::buffer_image_copy{
@@ -134,10 +134,11 @@ public:
         staging_buffer.copy_to_image(upload_cmd, m_skybox_image, region_copies);
 
         // Begin Memory Barrier: TRANSFER_DST to SHADER_READ_ONLY
-        m_skybox_image.memory_barrier(upload_cmd,
-                                      texture_format,
-                                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        m_skybox_image.pipeline_barriers(
+          upload_cmd,
+          texture_format,
+          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
         upload_cmd.end();
 

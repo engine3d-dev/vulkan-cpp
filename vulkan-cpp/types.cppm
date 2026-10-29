@@ -1214,6 +1214,96 @@ export namespace vk {
             flag_bits_max_enum = VK_PIPELINE_STAGE_FLAG_BITS_MAX_ENUM
         };
 
+        /**
+         * @brief This struct is used to specify a range of
+         * subresources within an image.
+         */
+        struct image_subresource {
+            image_aspect_flags aspect_mask;
+            uint32_t base_mip_level = 0;
+            uint32_t level_count = 1;
+            uint32_t base_array_layer = 0;
+            uint32_t layer_count = 1;
+        };
+
+        // These are the new flags that are part of the Vulkan 1.3+
+        // specification and are used for synchronization in the pipeline, etc.
+
+        // They provide more granular control over the stages of the pipeline,
+        // especially for ray tracing and other advanced features.
+
+        // Any enum or parameters specified in v2 meaning these are
+        // modern Vulkan-added parameters that are used for control.
+        namespace v2 {
+            enum class pipeline_stage_flags : uint32_t {
+                top_of_pipe = VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT_KHR,
+                draw_indirect = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT_KHR,
+                vertex_input_bit = VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT_KHR,
+                vertex_shader_bit =
+                  VK_PIPELINE_STAGE_2_TESSELLATION_CONTROL_SHADER_BIT_KHR,
+                tesselation_control_shader_bit =
+                  VK_PIPELINE_STAGE_2_TESSELLATION_CONTROL_SHADER_BIT_KHR,
+                tessellation_evaluation_shader_bit =
+                  VK_PIPELINE_STAGE_2_TESSELLATION_EVALUATION_SHADER_BIT_KHR,
+                geoemtry_shaders_bit =
+                  VK_PIPELINE_STAGE_2_GEOMETRY_SHADER_BIT_KHR,
+                fragment_shaders_bit =
+                  VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT_KHR,
+                early_fragment_shader_bit =
+                  VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT_KHR,
+                late_fragment_tests_bit =
+                  VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT_KHR,
+                color_attachment_output =
+                  VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR,
+                compute_shader_bit = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT_KHR,
+                transient_bit = VK_PIPELINE_STAGE_2_TRANSFER_BIT_KHR,
+                bottom_of_pipe = VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT_KHR,
+                host_bit = VK_PIPELINE_STAGE_2_HOST_BIT_KHR,
+                all_graphics_bit = VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT_KHR,
+                all_commands_bit = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT_KHR,
+                none = VK_PIPELINE_STAGE_2_NONE_KHR
+            };
+
+            enum class access_flags : uint32_t {
+                indirect_command_read_bit =
+                  VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT_KHR,
+                index_read_bit = VK_ACCESS_2_INDEX_READ_BIT_KHR,
+                vertex_attribute_read_bit =
+                  VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT_KHR,
+                uniform_read_bit = VK_ACCESS_2_UNIFORM_READ_BIT_KHR,
+                input_attachment_read_bit =
+                  VK_ACCESS_2_INPUT_ATTACHMENT_READ_BIT_KHR,
+                shader_read_bit = VK_ACCESS_2_SHADER_READ_BIT_KHR,
+                shader_write_bit = VK_ACCESS_2_SHADER_WRITE_BIT_KHR,
+                color_attachment_read_bit =
+                  VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT_KHR,
+                color_attachment_write_bit =
+                  VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT_KHR,
+                depth_stencil_attachment_read_bit =
+                  VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT_KHR,
+                depth_stencil_attachment_write_bit =
+                  VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT_KHR,
+                transfer_read_bit = VK_ACCESS_2_TRANSFER_READ_BIT_KHR,
+                transfer_write_bit = VK_ACCESS_2_TRANSFER_WRITE_BIT_KHR,
+                host_read_bit = VK_ACCESS_2_HOST_READ_BIT_KHR,
+                host_write_bit = VK_ACCESS_2_HOST_WRITE_BIT_KHR,
+                memory_read_bit = VK_ACCESS_2_MEMORY_READ_BIT_KHR,
+                memory_write_bit = VK_ACCESS_2_MEMORY_WRITE_BIT_KHR
+            };
+
+            struct image_memory_barrier {
+                v2::pipeline_stage_flags src_stage_mask;
+                v2::access_flags src_access_mask;
+                v2::pipeline_stage_flags dst_stage_mask;
+                v2::access_flags dst_access_mask;
+                image_layout old_layout;
+                image_layout new_layout;
+                uint32_t src_queue_family_index = VK_QUEUE_FAMILY_IGNORED;
+                uint32_t dst_queue_family_index = VK_QUEUE_FAMILY_IGNORED;
+                image_subresource subresource_range{};
+            };
+        };
+
         //! @brief Equivalent to VkPipelineBindPoint
         enum class pipeline_bind_point : uint32_t {
             graphics =
