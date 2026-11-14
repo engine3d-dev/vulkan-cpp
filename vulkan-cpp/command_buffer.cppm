@@ -676,6 +676,70 @@ export namespace vk {
                                      p_commands.data());
             }
 
+            /**
+             * @brief Copies regions of a source image to a destination image
+             *  supporting scaling, filtering, and format conversions.
+             *
+             * Useful for generating mipmap chains, downscaling/upscaling
+             * images, or copying between images with different layouts or
+             * dimensions.
+             *
+             * @param p_images Contains source and destination images along with
+             * their layouts.
+             * @param p_blits specifies the 3D regions and subresources layers
+             * for both of the source and destination images.
+             * @param p_filter is the interpolation filter to apply if scalling
+             * occurs (e.g. linear or nearest).
+             *
+             * @brief Additional Considerations:
+             * - Source and destination images must be created appropriately
+             * with VK_IMAGE_USAGE_TRANSFER_SRC_BIT and
+             * VK_IMAGE_USAGE_TRANSFER_DST_BIT respectively.
+             * - Regions specified in p_blits must be within the bounds of both
+             * the source and destination images.
+             * - If scaling is performed, the filter specified in p_filter will
+             * determine how pixel values are interpolated.
+             * - The command must be recorded between .begin() and .end() of a
+             * command buffer.
+             * - If the source and destination images have different formats,
+             * the Vulkan implementation must support the format conversion for
+             * the blit operation to succeed.
+             *
+             */
+            void blit_image(const image_targets& p_images,
+                            std::span<const image_blit> p_blits,
+                            filter p_filter = filter::linear) {
+                std::vector<VkImageBlit> blits(p_blits.size());
+                for (uint32_t i = 0; i < p_blits.size(); i++) {
+                    blits[i] = {
+                        .srcSubresource = {
+                            .aspectMask = static_cast<VkImageAspectFlags>(p_blits[i].src_subresource.aspect_mask),
+                            .mipLevel = p_blits[i].src_subresource.mip_level,
+                            .baseArrayLayer = p_blits[i].src_subresource.base_array_layer,
+                            .layerCount = p_blits[i].src_subresource.layer_count,
+                        },
+                        .srcOffsets[0] = p_blits[i].src_offsets[0],
+                        .srcOffsets[1] = p_blits[i].src_offsets[1],
+                        .dstSubresource = {
+                            .aspectMask = static_cast<VkImageAspectFlags>(p_blits[i].dst_subresource.aspect_mask),
+                            .mipLevel = p_blits[i].dst_subresource.mip_level,
+                            .baseArrayLayer = p_blits[i].dst_subresource.base_array_layer,
+                            .layerCount = p_blits[i].dst_subresource.layer_count,
+                        },
+                        .dstOffsets[0] = p_blits[i].dst_offsets[0],
+                        .dstOffsets[1] = p_blits[i].dst_offsets[1],
+                    };
+                }
+                vkCmdBlitImage(m_command_buffer,
+                               p_images.src_image,
+                               static_cast<VkImageLayout>(p_images.src_layout),
+                               p_images.dst_image,
+                               static_cast<VkImageLayout>(p_images.dst_layout),
+                               static_cast<uint32_t>(blits.size()),
+                               blits.data(),
+                               static_cast<VkFilter>(p_filter));
+            }
+
             void set_viewport(uint32_t p_first_viewport,
                               uint32_t p_viewport_count,
                               std::span<const viewport_params> p_params) {

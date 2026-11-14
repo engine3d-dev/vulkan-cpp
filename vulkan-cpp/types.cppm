@@ -1297,6 +1297,27 @@ export namespace vk {
             uint32_t layer_count = 1;
         };
 
+        /**
+         * @brief These structs are used to specify the source of an image for
+         * blitting operations. (image_source, image_blit, image_targets)
+         */
+        struct image_source {
+            VkImage image;
+            VkImageLayout layout;
+        };
+
+        struct image_blit {
+            image_subresource src_subresource;
+            std::array<offset3d, 2> src_offsets;
+            image_subresource dst_subresource;
+            std::array<offset3d, 2> dst_offsets;
+        };
+
+        struct image_targets {
+            image_source src;
+            image_source dst;
+        };
+
         // These are the new flags that are part of the Vulkan 1.3+
         // specification and are used for synchronization in the pipeline, etc.
 
