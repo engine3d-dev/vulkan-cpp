@@ -716,10 +716,81 @@ export namespace vk {
             depth_stencil_optimal =
               VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, // VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
             depth_stencil_read_only_optimal =
-              VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL, // VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_READ_ONLY_OPTIMAL
+              VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, // VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL
+            shader_read_only_optimal =
+              VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, // VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+            transfer_src_optimal =
+              VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, // VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL
+            transfer_dst_optimal =
+              VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, // VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+            preinitialized =
+              VK_IMAGE_LAYOUT_PREINITIALIZED, // VK_IMAGE_LAYOUT_PREINITIALIZED
+            depth_read_only_stencil_attachment_optimal =
+              VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL, // VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL
+            depth_attachment_stencil_read_only_optimal =
+              VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL, // VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL
+            depth_attachment_optimal =
+              VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL, // VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL
+            depth_read_only_optimal =
+              VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL, // VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL
+            stencil_attachment_optimal =
+              VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL, // VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL
+            stencil_read_only_optimal =
+              VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL, // VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL
+            read_only_optimal =
+              VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL, // VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL
+            attachment_optimal =
+              VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, // VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL
+            rendering_local_read =
+              VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ, // VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ
             present_src_khr =
               VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, // VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
-            shader_read_only_optimal = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+            video_decode_dst_khr =
+              VK_IMAGE_LAYOUT_VIDEO_DECODE_DST_KHR, // VK_IMAGE_LAYOUT_VIDEO_DECODE_DST_KHR
+            video_decode_src_khr =
+              VK_IMAGE_LAYOUT_VIDEO_DECODE_SRC_KHR, // VK_IMAGE_LAYOUT_VIDEO_DECODE_SRC_KHR
+            video_decode_dpb_khr =
+              VK_IMAGE_LAYOUT_VIDEO_DECODE_DPB_KHR, // VK_IMAGE_LAYOUT_VIDEO_DECODE_DPB_KHR
+            shared_present_khr =
+              VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR, // VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR
+            fragment_density_map_optimal_ext =
+              VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT, // VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT
+            fragment_shading_rate_attachment_optimal_khr =
+              VK_IMAGE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR, // VK_IMAGE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR
+            video_encode_dst_khr =
+              VK_IMAGE_LAYOUT_VIDEO_ENCODE_DST_KHR, // VK_IMAGE_LAYOUT_VIDEO_ENCODE_DST_KHR
+            video_encode_src_khr =
+              VK_IMAGE_LAYOUT_VIDEO_ENCODE_SRC_KHR, // VK_IMAGE_LAYOUT_VIDEO_ENCODE_SRC_KHR
+            video_encode_dpb_khr =
+              VK_IMAGE_LAYOUT_VIDEO_ENCODE_DPB_KHR, // VK_IMAGE_LAYOUT_VIDEO_ENCODE_DPB_KHR
+            attachment_feedback_loop_optimal_ext =
+              VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT, // VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT
+            tensor_aliasing_arm =
+              VK_IMAGE_LAYOUT_TENSOR_ALIASING_ARM, // VK_IMAGE_LAYOUT_TENSOR_ALIASING_ARM
+            video_encode_quantization_map_khr =
+              VK_IMAGE_LAYOUT_VIDEO_ENCODE_QUANTIZATION_MAP_KHR, // VK_IMAGE_LAYOUT_VIDEO_ENCODE_QUANTIZATION_MAP_KHR
+            zero_initialized_ext =
+              VK_IMAGE_LAYOUT_ZERO_INITIALIZED_EXT, // VK_IMAGE_LAYOUT_ZERO_INITIALIZED_EXT
+            depth_read_only_stencil_attachment_optimal_khr =
+              VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL_KHR, // VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL_KHR
+            depth_attachment_stencil_read_only_optimal_khr =
+              VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL_KHR, // VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL_KHR
+            shading_rate_optimal_nv =
+              VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV, // VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV
+            rendering_local_read_khr =
+              VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR, // VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR
+            depth_attachment_optimal_khr =
+              VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL_KHR, // VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL_KHR
+            depth_read_only_optimal_khr =
+              VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL_KHR, // VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL_KHR
+            stencil_attachment_optimal_khr =
+              VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL_KHR, // VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL_KHR
+            stencil_read_only_optimal_khr =
+              VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL_KHR, // VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL_KHR
+            read_only_optimal_khr =
+              VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL_KHR, // VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL_KHR
+            attachment_optimal_khr =
+              VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR // VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR
         };
 
         enum class resolved_mode_flags : uint32_t {
