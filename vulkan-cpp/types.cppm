@@ -14,7 +14,7 @@ import :feature_extensions;
 
 export namespace vk {
     inline namespace v6 {
-        enum format : uint32_t {
+        enum class format : uint32_t {
             // Core Formats
             undefined = VK_FORMAT_UNDEFINED,
             r4g4_unorm_pack8 = VK_FORMAT_R4G4_UNORM_PACK8,
@@ -1306,16 +1306,33 @@ export namespace vk {
             VkImageLayout layout;
         };
 
+        struct subresource_range {
+            image_aspect_flags aspect_mask;
+            uint32_t mip_level = 0;
+            uint32_t level_count = 1;
+            uint32_t base_array_layer = 0;
+            uint32_t layer_count = 1;
+        };
+
         struct image_blit {
-            image_subresource src_subresource;
-            std::array<offset3d, 2> src_offsets;
-            image_subresource dst_subresource;
-            std::array<offset3d, 2> dst_offsets;
+            subresource_range src;
+            std::array<VkOffset3D, 2> src_offsets;
+            subresource_range dst;
+            std::array<VkOffset3D, 2> dst_offsets;
         };
 
         struct image_targets {
             image_source src;
             image_source dst;
+        };
+
+        enum class filter : uint32_t {
+            nearest = VK_FILTER_NEAREST,
+            linear = VK_FILTER_LINEAR,
+            cubic_img = VK_FILTER_CUBIC_IMG,
+            cubic_ext = VK_FILTER_CUBIC_EXT,
+            cubic_arb = VK_FILTER_CUBIC_EXT,
+            max_enum = VK_FILTER_MAX_ENUM
         };
 
         // These are the new flags that are part of the Vulkan 1.3+

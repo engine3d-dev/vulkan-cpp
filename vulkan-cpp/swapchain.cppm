@@ -21,17 +21,18 @@ export namespace vk {
             swapchain(const VkDevice& p_device,
                       const VkSurfaceKHR& p_surface,
                       const swapchain_params& p_settings,
-                      const surface_params& p_surface_properties)
+                      const surface_params& p_surface_properties,
+                      image_usage p_image_usage = image_usage::color_attachment_bit)
               : m_device(p_device)
               , m_surface_handler(p_surface) {
 
-                construct(p_settings, p_surface_properties);
+                construct(p_settings, p_surface_properties, p_image_usage);
             }
 
             ~swapchain() = default;
 
             void construct(const swapchain_params& p_settings,
-                           const surface_params& p_surface_properties) {
+                           const surface_params& p_surface_properties, image_usage p_image_usage = image_usage::color_attachment_bit) {
 
                 VkSwapchainCreateInfoKHR swapchain_ci = {
                     .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
@@ -47,7 +48,8 @@ export namespace vk {
                     .imageArrayLayers = 1,
 
                     // Remove COLOR_ATTACHMENT flag because its not needed
-                    .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                    // .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+                    .imageUsage = static_cast<VkImageUsageFlags>(p_image_usage),
                     .queueFamilyIndexCount = 0,
                     .pQueueFamilyIndices = nullptr,
                     .preTransform =

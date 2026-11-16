@@ -713,28 +713,26 @@ export namespace vk {
                 for (uint32_t i = 0; i < p_blits.size(); i++) {
                     blits[i] = {
                         .srcSubresource = {
-                            .aspectMask = static_cast<VkImageAspectFlags>(p_blits[i].src_subresource.aspect_mask),
-                            .mipLevel = p_blits[i].src_subresource.mip_level,
-                            .baseArrayLayer = p_blits[i].src_subresource.base_array_layer,
-                            .layerCount = p_blits[i].src_subresource.layer_count,
+                            .aspectMask = static_cast<VkImageAspectFlags>(p_blits[i].src.aspect_mask),
+                            .mipLevel = p_blits[i].src.mip_level,
+                            .baseArrayLayer = p_blits[i].src.base_array_layer,
+                            .layerCount = p_blits[i].src.layer_count,
                         },
-                        .srcOffsets[0] = p_blits[i].src_offsets[0],
-                        .srcOffsets[1] = p_blits[i].src_offsets[1],
+                        .srcOffsets = {p_blits[i].src_offsets[0], p_blits[i].src_offsets[1]},
                         .dstSubresource = {
-                            .aspectMask = static_cast<VkImageAspectFlags>(p_blits[i].dst_subresource.aspect_mask),
-                            .mipLevel = p_blits[i].dst_subresource.mip_level,
-                            .baseArrayLayer = p_blits[i].dst_subresource.base_array_layer,
-                            .layerCount = p_blits[i].dst_subresource.layer_count,
+                            .aspectMask = static_cast<VkImageAspectFlags>(p_blits[i].dst.aspect_mask),
+                            .mipLevel = p_blits[i].dst.mip_level,
+                            .baseArrayLayer = p_blits[i].dst.base_array_layer,
+                            .layerCount = p_blits[i].dst.layer_count,
                         },
-                        .dstOffsets[0] = p_blits[i].dst_offsets[0],
-                        .dstOffsets[1] = p_blits[i].dst_offsets[1],
+                        .dstOffsets = {p_blits[i].dst_offsets[0], p_blits[i].dst_offsets[1]}
                     };
                 }
                 vkCmdBlitImage(m_command_buffer,
-                               p_images.src_image,
-                               static_cast<VkImageLayout>(p_images.src_layout),
-                               p_images.dst_image,
-                               static_cast<VkImageLayout>(p_images.dst_layout),
+                               p_images.src.image,
+                               static_cast<VkImageLayout>(p_images.src.layout),
+                               p_images.dst.image,
+                               static_cast<VkImageLayout>(p_images.dst.layout),
                                static_cast<uint32_t>(blits.size()),
                                blits.data(),
                                static_cast<VkFilter>(p_filter));
