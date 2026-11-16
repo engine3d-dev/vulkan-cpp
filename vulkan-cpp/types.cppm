@@ -765,12 +765,16 @@ export namespace vk {
               VK_IMAGE_LAYOUT_VIDEO_ENCODE_DPB_KHR, // VK_IMAGE_LAYOUT_VIDEO_ENCODE_DPB_KHR
             attachment_feedback_loop_optimal_ext =
               VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT, // VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT
+#ifdef VK_IMAGE_LAYOUT_TENSOR_ALIASING_ARM
             tensor_aliasing_arm =
               VK_IMAGE_LAYOUT_TENSOR_ALIASING_ARM, // VK_IMAGE_LAYOUT_TENSOR_ALIASING_ARM
+#endif
             video_encode_quantization_map_khr =
               VK_IMAGE_LAYOUT_VIDEO_ENCODE_QUANTIZATION_MAP_KHR, // VK_IMAGE_LAYOUT_VIDEO_ENCODE_QUANTIZATION_MAP_KHR
+#ifdef VK_IMAGE_LAYOUT_ZERO_INITIALIZED_EXT
             zero_initialized_ext =
               VK_IMAGE_LAYOUT_ZERO_INITIALIZED_EXT, // VK_IMAGE_LAYOUT_ZERO_INITIALIZED_EXT
+#endif
             depth_read_only_stencil_attachment_optimal_khr =
               VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL_KHR, // VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL_KHR
             depth_attachment_stencil_read_only_optimal_khr =

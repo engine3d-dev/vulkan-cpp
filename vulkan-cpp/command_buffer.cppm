@@ -627,10 +627,12 @@ export namespace vk {
              * ```
              *
              */
-            void copy_buffer(const VkBuffer& p_src,
-                             const VkBuffer& p_dst,
-                             uint64_t p_size_bytes) /* NOLINT(bugprone-easily-swappable-parameters)
-                                                     */
+            void copy_buffer(
+              const VkBuffer& p_src,
+              const VkBuffer& p_dst,
+              uint64_t
+                p_size_bytes) /* NOLINT(bugprone-easily-swappable-parameters)
+                               */
             {
                 VkBufferCopy copy_region{};
                 copy_region.size = p_size_bytes;
@@ -746,7 +748,7 @@ export namespace vk {
              * @brief Sets the viewport for the command buffer
              * @param p_viewport_params The viewport parameters
              * @param p_first_viewport The index of the first viewport to set
-             * 
+             *
              * Example Usage:
              * ```C++
              * vk::command_buffer current = ...;
@@ -760,7 +762,7 @@ export namespace vk {
              * };
              * current.set_viewport(std::views::single(viewport), 0);
              * ```
-             
+
              */
             void set_viewport(
               std::span<const viewport_params> p_viewport_params,
