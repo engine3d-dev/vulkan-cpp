@@ -8,6 +8,12 @@ jobs:
     uses: engine3d-dev/ci/.github/workflows/clang-format.yml@main
     secrets: inherit
 
+  clang-tidy:
+    uses: engine3d-dev/ci/.github/workflows/clang-tidy.yml@main
+    with:
+      directory: "vulkan-cpp"
+    secrets: inherit
+
   windows:
     uses: engine3d-dev/ci/.github/workflows/windows.yml@main
     with:
