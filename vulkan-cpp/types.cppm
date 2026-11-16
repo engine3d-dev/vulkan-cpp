@@ -14,7 +14,7 @@ import :feature_extensions;
 
 export namespace vk {
     inline namespace v6 {
-        enum format : uint32_t {
+        enum class format : uint32_t {
             // Core Formats
             undefined = VK_FORMAT_UNDEFINED,
             r4g4_unorm_pack8 = VK_FORMAT_R4G4_UNORM_PACK8,
@@ -564,7 +564,7 @@ export namespace vk {
         struct framebuffer_params {
             VkRenderPass renderpass = nullptr;
             std::span<VkImageView> views;
-            VkExtent2D extent;
+            VkExtent2D extent{};
         };
 
         /**
@@ -632,7 +632,7 @@ export namespace vk {
                                                          // VK_COMMAND_POOL_CREATE_FLAG_BITS_MAX_ENUM
         };
 
-        enum present_mode : uint32_t {
+        enum class present_mode : uint32_t {
             immediate = VK_PRESENT_MODE_IMMEDIATE_KHR,
             mailbox_khr = VK_PRESENT_MODE_MAILBOX_KHR,
             fifo_khr = VK_PRESENT_MODE_FIFO_KHR,
@@ -649,7 +649,7 @@ export namespace vk {
             uint32_t present_index = -1;
 
             uint64_t depth; // depth format
-            uint32_t present_mode = present_mode::fifo_khr;
+            present_mode present_mode = present_mode::fifo_khr;
             bool clipped = true;
         };
 
@@ -716,10 +716,85 @@ export namespace vk {
             depth_stencil_optimal =
               VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, // VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
             depth_stencil_read_only_optimal =
-              VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL, // VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_READ_ONLY_OPTIMAL
+              VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, // VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL
+            shader_read_only_optimal =
+              VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, // VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+            transfer_src_optimal =
+              VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, // VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL
+            transfer_dst_optimal =
+              VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, // VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+            preinitialized =
+              VK_IMAGE_LAYOUT_PREINITIALIZED, // VK_IMAGE_LAYOUT_PREINITIALIZED
+            depth_read_only_stencil_attachment_optimal =
+              VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL, // VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL
+            depth_attachment_stencil_read_only_optimal =
+              VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL, // VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL
+            depth_attachment_optimal =
+              VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL, // VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL
+            depth_read_only_optimal =
+              VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL, // VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL
+            stencil_attachment_optimal =
+              VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL, // VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL
+            stencil_read_only_optimal =
+              VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL, // VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL
+            read_only_optimal =
+              VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL, // VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL
+            attachment_optimal =
+              VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, // VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL
+            rendering_local_read =
+              VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ, // VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ
             present_src_khr =
               VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, // VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
-            shader_read_only_optimal = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+            video_decode_dst_khr =
+              VK_IMAGE_LAYOUT_VIDEO_DECODE_DST_KHR, // VK_IMAGE_LAYOUT_VIDEO_DECODE_DST_KHR
+            video_decode_src_khr =
+              VK_IMAGE_LAYOUT_VIDEO_DECODE_SRC_KHR, // VK_IMAGE_LAYOUT_VIDEO_DECODE_SRC_KHR
+            video_decode_dpb_khr =
+              VK_IMAGE_LAYOUT_VIDEO_DECODE_DPB_KHR, // VK_IMAGE_LAYOUT_VIDEO_DECODE_DPB_KHR
+            shared_present_khr =
+              VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR, // VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR
+            fragment_density_map_optimal_ext =
+              VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT, // VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT
+            fragment_shading_rate_attachment_optimal_khr =
+              VK_IMAGE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR, // VK_IMAGE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR
+            video_encode_dst_khr =
+              VK_IMAGE_LAYOUT_VIDEO_ENCODE_DST_KHR, // VK_IMAGE_LAYOUT_VIDEO_ENCODE_DST_KHR
+            video_encode_src_khr =
+              VK_IMAGE_LAYOUT_VIDEO_ENCODE_SRC_KHR, // VK_IMAGE_LAYOUT_VIDEO_ENCODE_SRC_KHR
+            video_encode_dpb_khr =
+              VK_IMAGE_LAYOUT_VIDEO_ENCODE_DPB_KHR, // VK_IMAGE_LAYOUT_VIDEO_ENCODE_DPB_KHR
+            attachment_feedback_loop_optimal_ext =
+              VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT, // VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT
+#ifdef VK_IMAGE_LAYOUT_TENSOR_ALIASING_ARM
+            tensor_aliasing_arm =
+              VK_IMAGE_LAYOUT_TENSOR_ALIASING_ARM, // VK_IMAGE_LAYOUT_TENSOR_ALIASING_ARM
+#endif
+            video_encode_quantization_map_khr =
+              VK_IMAGE_LAYOUT_VIDEO_ENCODE_QUANTIZATION_MAP_KHR, // VK_IMAGE_LAYOUT_VIDEO_ENCODE_QUANTIZATION_MAP_KHR
+#ifdef VK_IMAGE_LAYOUT_ZERO_INITIALIZED_EXT
+            zero_initialized_ext =
+              VK_IMAGE_LAYOUT_ZERO_INITIALIZED_EXT, // VK_IMAGE_LAYOUT_ZERO_INITIALIZED_EXT
+#endif
+            depth_read_only_stencil_attachment_optimal_khr =
+              VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL_KHR, // VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL_KHR
+            depth_attachment_stencil_read_only_optimal_khr =
+              VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL_KHR, // VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL_KHR
+            shading_rate_optimal_nv =
+              VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV, // VK_IMAGE_LAYOUT_SHADING_RATE_OPTIMAL_NV
+            rendering_local_read_khr =
+              VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR, // VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR
+            depth_attachment_optimal_khr =
+              VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL_KHR, // VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL_KHR
+            depth_read_only_optimal_khr =
+              VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL_KHR, // VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL_KHR
+            stencil_attachment_optimal_khr =
+              VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL_KHR, // VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL_KHR
+            stencil_read_only_optimal_khr =
+              VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL_KHR, // VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL_KHR
+            read_only_optimal_khr =
+              VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL_KHR, // VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL_KHR
+            attachment_optimal_khr =
+              VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR // VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR
         };
 
         enum class resolved_mode_flags : uint32_t {
@@ -1226,6 +1301,44 @@ export namespace vk {
             uint32_t layer_count = 1;
         };
 
+        /**
+         * @brief These structs are used to specify the source of an image for
+         * blitting operations. (image_source, image_blit, image_targets)
+         */
+        struct image_source {
+            VkImage image;
+            VkImageLayout layout;
+        };
+
+        struct subresource_range {
+            image_aspect_flags aspect_mask;
+            uint32_t mip_level = 0;
+            uint32_t level_count = 1;
+            uint32_t base_array_layer = 0;
+            uint32_t layer_count = 1;
+        };
+
+        struct image_blit {
+            subresource_range src;
+            std::array<VkOffset3D, 2> src_offsets;
+            subresource_range dst;
+            std::array<VkOffset3D, 2> dst_offsets;
+        };
+
+        struct image_targets {
+            image_source src;
+            image_source dst;
+        };
+
+        enum class filter : uint32_t {
+            nearest = VK_FILTER_NEAREST,
+            linear = VK_FILTER_LINEAR,
+            cubic_img = VK_FILTER_CUBIC_IMG,
+            cubic_ext = VK_FILTER_CUBIC_EXT,
+            cubic_arb = VK_FILTER_CUBIC_EXT,
+            max_enum = VK_FILTER_MAX_ENUM
+        };
+
         // These are the new flags that are part of the Vulkan 1.3+
         // specification and are used for synchronization in the pipeline, etc.
 
@@ -1330,8 +1443,8 @@ export namespace vk {
         };
 
         struct scissor_params {
-            VkOffset2D offset;
-            VkExtent2D extent;
+            VkOffset2D offset{};
+            VkExtent2D extent{};
         };
 
         /**
@@ -1389,7 +1502,7 @@ export namespace vk {
         };
 
         struct renderpass_begin_params {
-            VkExtent2D extent;
+            VkExtent2D extent{};
             VkFramebuffer current_framebuffer = nullptr;
             std::array<float, 4> color;
             subpass_contents subpass;

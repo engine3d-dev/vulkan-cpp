@@ -397,8 +397,10 @@ export namespace vk {
              * ```
              *
              */
-            void bind_index_buffers8(const VkBuffer& p_index_buffer,
-                                     const uint64_t p_offset = 0) {
+            void bind_index_buffers8(
+              const VkBuffer& p_index_buffer,
+              const uint64_t p_offset =
+                0) /* NOLINT(readability-make-member-function-static) */ {
                 vkCmdBindIndexBuffer(m_command_buffer,
                                      p_index_buffer,
                                      p_offset,
@@ -564,8 +566,10 @@ export namespace vk {
              * group);
              * ```
              */
-            void dispatch_base(const group_count& p_base,
-                               const group_count& p_group) {
+            void dispatch_base(
+              const group_count& p_base,
+              const group_count&
+                p_group) /* NOLINT(bugprone-easily-swappable-parameters) */ {
                 vkCmdDispatchBase(m_command_buffer,
                                   p_base.x,
                                   p_base.y,
@@ -625,9 +629,13 @@ export namespace vk {
              * ```
              *
              */
-            void copy_buffer(const VkBuffer& p_src,
-                             const VkBuffer& p_dst,
-                             uint64_t p_size_bytes) {
+            void copy_buffer(
+              const VkBuffer& p_src,
+              const VkBuffer& p_dst,
+              uint64_t
+                p_size_bytes) /* NOLINT(bugprone-easily-swappable-parameters)
+                               */
+            {
                 VkBufferCopy copy_region{};
                 copy_region.size = p_size_bytes;
                 vkCmdCopyBuffer(
@@ -676,13 +684,95 @@ export namespace vk {
                                      p_commands.data());
             }
 
-            void set_viewport(uint32_t p_first_viewport,
-                              uint32_t p_viewport_count,
-                              std::span<const viewport_params> p_params) {
-                std::vector<VkViewport> viewports(p_params.size());
+            /**
+             * @brief Copies regions of a source image to a destination image
+             *  supporting scaling, filtering, and format conversions.
+             *
+             * Useful for generating mipmap chains, downscaling/upscaling
+             * images, or copying between images with different layouts or
+             * dimensions.
+             *
+             * @param p_images Contains source and destination images along with
+             * their layouts.
+             * @param p_blits specifies the 3D regions and subresources layers
+             * for both of the source and destination images.
+             * @param p_filter is the interpolation filter to apply if scalling
+             * occurs (e.g. linear or nearest).
+             *
+             * @brief Additional Considerations:
+             * - Source and destination images must be created appropriately
+             * with VK_IMAGE_USAGE_TRANSFER_SRC_BIT and
+             * VK_IMAGE_USAGE_TRANSFER_DST_BIT respectively.
+             * - Regions specified in p_blits must be within the bounds of both
+             * the source and destination images.
+             * - If scaling is performed, the filter specified in p_filter will
+             * determine how pixel values are interpolated.
+             * - The command must be recorded between .begin() and .end() of a
+             * command buffer.
+             * - If the source and destination images have different formats,
+             * the Vulkan implementation must support the format conversion for
+             * the blit operation to succeed.
+             *
+             */
+            void blit_image(const image_targets& p_images,
+                            std::span<const image_blit> p_blits,
+                            filter p_filter = filter::linear) {
+                std::vector<VkImageBlit> blits(p_blits.size());
+                for (uint32_t i = 0; i < p_blits.size(); i++) {
+                    blits[i] = {
+                        .srcSubresource = {
+                            .aspectMask = static_cast<VkImageAspectFlags>(p_blits[i].src.aspect_mask),
+                            .mipLevel = p_blits[i].src.mip_level,
+                            .baseArrayLayer = p_blits[i].src.base_array_layer,
+                            .layerCount = p_blits[i].src.layer_count,
+                        },
+                        .srcOffsets = {p_blits[i].src_offsets[0], p_blits[i].src_offsets[1]},
+                        .dstSubresource = {
+                            .aspectMask = static_cast<VkImageAspectFlags>(p_blits[i].dst.aspect_mask),
+                            .mipLevel = p_blits[i].dst.mip_level,
+                            .baseArrayLayer = p_blits[i].dst.base_array_layer,
+                            .layerCount = p_blits[i].dst.layer_count,
+                        },
+                        .dstOffsets = {p_blits[i].dst_offsets[0], p_blits[i].dst_offsets[1]}
+                    };
+                }
+                vkCmdBlitImage(m_command_buffer,
+                               p_images.src.image,
+                               static_cast<VkImageLayout>(p_images.src.layout),
+                               p_images.dst.image,
+                               static_cast<VkImageLayout>(p_images.dst.layout),
+                               static_cast<uint32_t>(blits.size()),
+                               blits.data(),
+                               static_cast<VkFilter>(p_filter));
+            }
+
+            /*
+             * @brief Sets the viewport for the command buffer
+             * @param p_viewport_params The viewport parameters
+             * @param p_first_viewport The index of the first viewport to set
+             *
+             * Example Usage:
+             * ```C++
+             * vk::command_buffer current = ...;
+             * vk::viewport_params viewport = {
+             *     .x = 0.0f,
+             *     .y = 0.0f,
+             *     .width = 800.0f,
+             *     .height = 600.0f,
+             *     .min_depth = 0.0f,
+             *     .max_depth = 1.0f,
+             * };
+             * current.set_viewport(std::views::single(viewport), 0);
+             * ```
+
+             */
+            void set_viewport(
+              std::span<const viewport_params> p_viewport_params,
+              uint32_t p_first_viewport) {
+                std::vector<VkViewport> viewports(p_viewport_params.size());
 
                 for (uint32_t i = 0; i < viewports.size(); i++) {
-                    const auto viewport = p_params[i];
+                    const auto viewport = p_viewport_params[i];
                     viewports[i] = {
                         .x = viewport.x,
                         .y = viewport.y,
@@ -694,17 +784,21 @@ export namespace vk {
                 }
                 vkCmdSetViewport(m_command_buffer,
                                  p_first_viewport,
-                                 p_viewport_count,
+                                 static_cast<uint32_t>(viewports.size()),
                                  viewports.data());
             }
 
-            void set_scissor(uint32_t p_first_scissor,
-                             uint32_t p_scissor_count,
-                             std::span<const scissor_params> p_params) {
-                std::vector<VkRect2D> scissors(p_params.size());
+            /**
+             * @brief Sets the scissor for the command buffer
+             * @param p_scissor_params The scissor parameters
+             * @param p_first_scissor The index of the first scissor to set
+             */
+            void set_scissor(std::span<const scissor_params> p_scissor_params,
+                             uint32_t p_first_scissor) {
+                std::vector<VkRect2D> scissors(p_scissor_params.size());
 
                 for (uint32_t i = 0; i < scissors.size(); i++) {
-                    const auto scissor = p_params[i];
+                    const auto scissor = p_scissor_params[i];
                     scissors[i] = {
                         .offset = scissor.offset,
                         .extent = scissor.extent,
@@ -713,7 +807,7 @@ export namespace vk {
 
                 vkCmdSetScissor(m_command_buffer,
                                 p_first_scissor,
-                                p_scissor_count,
+                                static_cast<uint32_t>(scissors.size()),
                                 scissors.data());
             }
 
