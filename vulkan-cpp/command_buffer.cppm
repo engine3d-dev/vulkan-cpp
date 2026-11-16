@@ -740,6 +740,11 @@ export namespace vk {
                                static_cast<VkFilter>(p_filter));
             }
 
+            /*
+             * @brief Sets the viewport for the command buffer
+             * @param p_viewport_params The viewport parameters
+             * @param p_first_viewport The index of the first viewport to set
+             */
             void set_viewport(
               std::span<const viewport_params> p_viewport_params,
               uint32_t p_first_viewport) {
@@ -762,6 +767,11 @@ export namespace vk {
                                  viewports.data());
             }
 
+            /**
+             * @brief Sets the scissor for the command buffer
+             * @param p_scissor_params The scissor parameters
+             * @param p_first_scissor The index of the first scissor to set
+             */
             void set_scissor(std::span<const scissor_params> p_scissor_params,
                              uint32_t p_first_scissor) {
                 std::vector<VkRect2D> scissors(p_scissor_params.size());
