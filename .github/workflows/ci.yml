@@ -9,7 +9,7 @@ jobs:
     secrets: inherit
 
   clang-tidy:
-    uses: engine3d-dev/ci/.github/workflows/clang-tidy.yml@main
+    uses: engine3d-dev/ci/.github/workflows/lint.yml@main
     with:
       directory: "vulkan-cpp"
     secrets: inherit
