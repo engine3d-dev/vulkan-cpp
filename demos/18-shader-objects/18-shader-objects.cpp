@@ -391,8 +391,7 @@ main() {
     };
 #else
     std::array<const char*, 2> extensions = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-        VK_EXT_SHADER_OBJECT_EXTENSION_NAME
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_EXT_SHADER_OBJECT_EXTENSION_NAME
     };
 #endif
 
@@ -437,12 +436,15 @@ main() {
     vk::device logical_device(physical_device, logical_device_params);
 
     uint32_t extension_count = 0;
-    vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &extension_count, nullptr);
+    vkEnumerateDeviceExtensionProperties(
+      physical_device, nullptr, &extension_count, nullptr);
     std::vector<VkExtensionProperties> available_extensions(extension_count);
-    vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &extension_count, available_extensions.data());
+    vkEnumerateDeviceExtensionProperties(
+      physical_device, nullptr, &extension_count, available_extensions.data());
 
-    for(const auto& ext : available_extensions) {
-        if(ext.extensionName == std::string(VK_EXT_SHADER_OBJECT_EXTENSION_NAME)) {
+    for (const auto& ext : available_extensions) {
+        if (ext.extensionName ==
+            std::string(VK_EXT_SHADER_OBJECT_EXTENSION_NAME)) {
             std::println("Shader Object Extension is supported!");
             break;
         }
@@ -716,24 +718,22 @@ main() {
         .depthStencil = { .depth = 1.f, .stencil = 0 },
     };
 
-
-
     /*
-    
+
         Shader Objects Example Code
-    
+
     */
 
     // VkShaderCreateInfoEXT createInfos[2]{};
 
     // // Vertex Shader Config
     // createInfos[0].sType = VK_STRUCTURE_TYPE_SHADER_CREATE_INFO_EXT;
-    // createInfos[0].flags = VK_SHADER_CREATE_LINK_STAGE_BIT_EXT; // Optional: performance linking
-    // createInfos[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
-    // createInfos[0].nextStage = VK_SHADER_STAGE_FRAGMENT_BIT;   // Tells the compiler what follows
-    // createInfos[0].codeType = VK_SHADER_CODE_TYPE_SPIRV_EXT;
-    // createInfos[0].codeSize = vertSpirv.size() * sizeof(uint32_t);
-    // createInfos[0].pCode = vertSpirv.data();
+    // createInfos[0].flags = VK_SHADER_CREATE_LINK_STAGE_BIT_EXT; // Optional:
+    // performance linking createInfos[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
+    // createInfos[0].nextStage = VK_SHADER_STAGE_FRAGMENT_BIT;   // Tells the
+    // compiler what follows createInfos[0].codeType =
+    // VK_SHADER_CODE_TYPE_SPIRV_EXT; createInfos[0].codeSize = vertSpirv.size()
+    // * sizeof(uint32_t); createInfos[0].pCode = vertSpirv.data();
     // createInfos[0].pName = "main"; // Entry point
     // createInfos[0].setLayoutCount = (layout != VK_NULL_HANDLE) ? 1 : 0;
     // createInfos[0].pSetLayouts = &layout;
@@ -751,8 +751,9 @@ main() {
     // createInfos[1].pSetLayouts = &layout;
 
     // VkShaderEXT shaders[2];
-    // VkResult result = vkCreateShadersEXT(device, 2, createInfos, nullptr, shaders);
-    
+    // VkResult result = vkCreateShadersEXT(device, 2, createInfos, nullptr,
+    // shaders);
+
     // if (result == VK_SUCCESS) {
     //     outVertShader = shaders[0];
     //     outFragShader = shaders[1];
@@ -764,10 +765,10 @@ main() {
         .stage = VK_SHADER_STAGE_VERTEX_BIT,
         .nextStage = VK_SHADER_STAGE_FRAGMENT_BIT,
         .codeType = VK_SHADER_CODE_TYPE_SPIRV_EXT,
-        .codeSize = 0, // Set to the size of your SPIR-V code
+        .codeSize = 0,    // Set to the size of your SPIR-V code
         .pCode = nullptr, // Set to point to your SPIR-V code
         .pName = "main",
-        .setLayoutCount = 0, // Set to the number of descriptor set layouts
+        .setLayoutCount = 0,    // Set to the number of descriptor set layouts
         .pSetLayouts = nullptr, // Set to point to your descriptor set layouts
     };
 
@@ -777,29 +778,32 @@ main() {
         .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
         .nextStage = 0, // Final stage in this chain
         .codeType = VK_SHADER_CODE_TYPE_SPIRV_EXT,
-        .codeSize = 0, // Set to the size of your SPIR-V code
+        .codeSize = 0,    // Set to the size of your SPIR-V code
         .pCode = nullptr, // Set to point to your SPIR-V code
         .pName = "main",
-        .setLayoutCount = 0, // Set to the number of descriptor set layouts
+        .setLayoutCount = 0,    // Set to the number of descriptor set layouts
         .pSetLayouts = nullptr, // Set to point to your descriptor set layouts
     };
 
-    auto vkCreateShadersEXT = reinterpret_cast<PFN_vkCreateShadersEXT>(vkGetDeviceProcAddr(logical_device, "vkCreateShadersEXT"));
-    auto vkDestroyShadersEXT = reinterpret_cast<PFN_vkDestroyShaderEXT>(vkGetDeviceProcAddr(logical_device, "vkDestroyShadersEXT"));
+    auto vkCreateShadersEXT = reinterpret_cast<PFN_vkCreateShadersEXT>(
+      vkGetDeviceProcAddr(logical_device, "vkCreateShadersEXT"));
+    auto vkDestroyShadersEXT = reinterpret_cast<PFN_vkDestroyShaderEXT>(
+      vkGetDeviceProcAddr(logical_device, "vkDestroyShadersEXT"));
 
-    VkResult vertex_res = vkCreateShadersEXT(logical_device, 1, &vertex_ci, nullptr, nullptr);
-    VkResult fragment_res = vkCreateShadersEXT(logical_device, 1, &fragment_ci, nullptr, nullptr);
+    VkResult vertex_res =
+      vkCreateShadersEXT(logical_device, 1, &vertex_ci, nullptr, nullptr);
+    VkResult fragment_res =
+      vkCreateShadersEXT(logical_device, 1, &fragment_ci, nullptr, nullptr);
 
-    if(vertex_res != VK_SUCCESS) {
+    if (vertex_res != VK_SUCCESS) {
         std::println("Failed to create vertex shader!");
         return -1;
     }
 
-    if(fragment_res != VK_SUCCESS) {
+    if (fragment_res != VK_SUCCESS) {
         std::println("Failed to create fragment shader!");
         return -1;
     }
-
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
