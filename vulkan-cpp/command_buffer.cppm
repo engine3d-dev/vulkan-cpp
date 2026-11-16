@@ -746,6 +746,21 @@ export namespace vk {
              * @brief Sets the viewport for the command buffer
              * @param p_viewport_params The viewport parameters
              * @param p_first_viewport The index of the first viewport to set
+             * 
+             * Example Usage:
+             * ```C++
+             * vk::command_buffer current = ...;
+             * vk::viewport_params viewport = {
+             *     .x = 0.0f,
+             *     .y = 0.0f,
+             *     .width = 800.0f,
+             *     .height = 600.0f,
+             *     .min_depth = 0.0f,
+             *     .max_depth = 1.0f,
+             * };
+             * current.set_viewport(std::views::single(viewport), 0);
+             * ```
+             
              */
             void set_viewport(
               std::span<const viewport_params> p_viewport_params,
