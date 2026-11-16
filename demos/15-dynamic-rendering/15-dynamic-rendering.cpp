@@ -570,16 +570,14 @@ main() {
             .min_depth = 0.0f,
             .max_depth = 1.0f,
         };
-        current.set_viewport(
-          0, 1, std::span<const vk::viewport_params>(&viewport, 1));
+        current.set_viewport(std::views::single(viewport), 0);
 
         vk::scissor_params scissor = {
             .offset = { 0, 0 },
             .extent = swapchain_extent,
         };
 
-        current.set_scissor(
-          0, 1, std::span<const vk::scissor_params>(&scissor, 1));
+        current.set_scissor(std::views::single(scissor), 0);
 
         current.begin_rendering(begin_params);
 
