@@ -629,7 +629,9 @@ export namespace vk {
              */
             void copy_buffer(const VkBuffer& p_src,
                              const VkBuffer& p_dst,
-                             uint64_t p_size_bytes) /* NOLINT(bugprone-easily-swappable-parameters) */ {
+                             uint64_t p_size_bytes) /* NOLINT(bugprone-easily-swappable-parameters)
+                                                     */
+            {
                 VkBufferCopy copy_region{};
                 copy_region.size = p_size_bytes;
                 vkCmdCopyBuffer(
