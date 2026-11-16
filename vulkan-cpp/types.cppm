@@ -564,7 +564,7 @@ export namespace vk {
         struct framebuffer_params {
             VkRenderPass renderpass = nullptr;
             std::span<VkImageView> views;
-            VkExtent2D extent;
+            VkExtent2D extent{};
         };
 
         /**
@@ -632,7 +632,7 @@ export namespace vk {
                                                          // VK_COMMAND_POOL_CREATE_FLAG_BITS_MAX_ENUM
         };
 
-        enum present_mode : uint32_t {
+        enum class present_mode : uint32_t {
             immediate = VK_PRESENT_MODE_IMMEDIATE_KHR,
             mailbox_khr = VK_PRESENT_MODE_MAILBOX_KHR,
             fifo_khr = VK_PRESENT_MODE_FIFO_KHR,
@@ -1439,8 +1439,8 @@ export namespace vk {
         };
 
         struct scissor_params {
-            VkOffset2D offset;
-            VkExtent2D extent;
+            VkOffset2D offset{};
+            VkExtent2D extent{};
         };
 
         /**
@@ -1498,7 +1498,7 @@ export namespace vk {
         };
 
         struct renderpass_begin_params {
-            VkExtent2D extent;
+            VkExtent2D extent{};
             VkFramebuffer current_framebuffer = nullptr;
             std::array<float, 4> color;
             subpass_contents subpass;

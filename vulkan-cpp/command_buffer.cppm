@@ -564,8 +564,10 @@ export namespace vk {
              * group);
              * ```
              */
-            void dispatch_base(const group_count& p_base,
-                               const group_count& p_group) {
+            void dispatch_base(
+              const group_count& p_base,
+              const group_count&
+                p_group) /* NOLINT(bugprone-easily-swappable-parameters) */ {
                 vkCmdDispatchBase(m_command_buffer,
                                   p_base.x,
                                   p_base.y,
@@ -627,7 +629,7 @@ export namespace vk {
              */
             void copy_buffer(const VkBuffer& p_src,
                              const VkBuffer& p_dst,
-                             uint64_t p_size_bytes) {
+                             uint64_t p_size_bytes) /* NOLINT(bugprone-easily-swappable-parameters) */ {
                 VkBufferCopy copy_region{};
                 copy_region.size = p_size_bytes;
                 vkCmdCopyBuffer(
@@ -738,13 +740,13 @@ export namespace vk {
                                static_cast<VkFilter>(p_filter));
             }
 
-            void set_viewport(uint32_t p_first_viewport,
-                              uint32_t p_viewport_count,
-                              std::span<const viewport_params> p_params) {
-                std::vector<VkViewport> viewports(p_params.size());
+            void set_viewport(
+              std::span<const viewport_params> p_viewport_params,
+              uint32_t p_first_viewport) {
+                std::vector<VkViewport> viewports(p_viewport_params.size());
 
                 for (uint32_t i = 0; i < viewports.size(); i++) {
-                    const auto viewport = p_params[i];
+                    const auto viewport = p_viewport_params[i];
                     viewports[i] = {
                         .x = viewport.x,
                         .y = viewport.y,
@@ -756,17 +758,16 @@ export namespace vk {
                 }
                 vkCmdSetViewport(m_command_buffer,
                                  p_first_viewport,
-                                 p_viewport_count,
+                                 static_cast<uint32_t>(viewports.size()),
                                  viewports.data());
             }
 
-            void set_scissor(uint32_t p_first_scissor,
-                             uint32_t p_scissor_count,
-                             std::span<const scissor_params> p_params) {
-                std::vector<VkRect2D> scissors(p_params.size());
+            void set_scissor(std::span<const scissor_params> p_scissor_params,
+                             uint32_t p_first_scissor) {
+                std::vector<VkRect2D> scissors(p_scissor_params.size());
 
                 for (uint32_t i = 0; i < scissors.size(); i++) {
-                    const auto scissor = p_params[i];
+                    const auto scissor = p_scissor_params[i];
                     scissors[i] = {
                         .offset = scissor.offset,
                         .extent = scissor.extent,
@@ -775,7 +776,7 @@ export namespace vk {
 
                 vkCmdSetScissor(m_command_buffer,
                                 p_first_scissor,
-                                p_scissor_count,
+                                static_cast<uint32_t>(scissors.size()),
                                 scissors.data());
             }
 
