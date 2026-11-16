@@ -211,7 +211,7 @@ export namespace vk {
              *
              */
             void begin_rendering(
-              const rendering_begin_parameters& p_parameters) {
+              const rendering_begin_parameters& p_parameters) /* NOLINT(readability-make-member-function-static) */ {
                 std::vector<VkRenderingAttachmentInfo> color_attachments(
                   p_parameters.color_attachments.size());
 
@@ -302,7 +302,7 @@ export namespace vk {
             /**
              * @brief End recording for dynamic rendering pass
              */
-            void end_rendering() { vkCmdEndRendering(m_command_buffer); }
+            void end_rendering() /* NOLINT(readability-make-member-function-static) */ { vkCmdEndRendering(m_command_buffer); }
 
             /**
              * @brief Transferring the raw geomtric data of vertices to the
@@ -349,7 +349,7 @@ export namespace vk {
              */
             void bind_vertex_buffers(std::span<const VkBuffer> p_buffers,
                                      std::span<const uint64_t> p_offsets = {},
-                                     const uint32_t p_first_binding = 0) {
+                                     const uint32_t p_first_binding = 0) /* NOLINT(bugprone-easily-swappable-parameters, readability-make-member-function-static) */ {
                 vkCmdBindVertexBuffers(m_command_buffer,
                                        p_first_binding,
                                        static_cast<uint32_t>(p_buffers.size()),
@@ -398,7 +398,7 @@ export namespace vk {
              *
              */
             void bind_index_buffers8(const VkBuffer& p_index_buffer,
-                                     const uint64_t p_offset = 0) {
+                                     const uint64_t p_offset = 0) /* NOLINT(readability-make-member-function-static) */ {
                 vkCmdBindIndexBuffer(m_command_buffer,
                                      p_index_buffer,
                                      p_offset,
@@ -420,7 +420,7 @@ export namespace vk {
              *
              */
             void bind_index_buffers16(const VkBuffer& p_index_buffer,
-                                      const uint64_t p_offset = 0) {
+                                      const uint64_t p_offset = 0) /* NOLINT(readability-make-member-function-static) */ {
                 vkCmdBindIndexBuffer(m_command_buffer,
                                      p_index_buffer,
                                      p_offset,
@@ -443,7 +443,7 @@ export namespace vk {
              *
              */
             void bind_index_buffers32(const VkBuffer& p_index_buffer,
-                                      const uint64_t p_offset = 0) {
+                                      const uint64_t p_offset = 0) /* NOLINT(readability-make-member-function-static) */ {
                 vkCmdBindIndexBuffer(m_command_buffer,
                                      p_index_buffer,
                                      p_offset,
@@ -489,7 +489,7 @@ export namespace vk {
               uint64_t p_pipeline_bind_point,
               std::span<const VkDescriptorSet> p_descriptors,
               std::span<const uint32_t> p_dynamic_offsets = {},
-              const uint32_t p_starting_slot = 0) {
+              const uint32_t p_starting_slot = 0) /* NOLINT(bugprone-easily-swappable-parameters, readability-make-member-function-static) */ {
                 vkCmdBindDescriptorSets(
                   m_command_buffer,
                   static_cast<VkPipelineBindPoint>(p_pipeline_bind_point),
